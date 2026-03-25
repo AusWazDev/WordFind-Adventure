@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Trophy, Lightbulb, HelpCircle } from 'lucide-react';
+import { Volume2, Trophy, Lightbulb, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GameModeSelector from '@/components/game/GameModeSelector';
 import CategorySelector from '@/components/game/CategorySelector';
@@ -93,10 +93,10 @@ export default function Home() {
           >
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl shadow-md shadow-violet-200">
-                <Search className="w-5 h-5 text-white" />
+                <Volume2 className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                Word<span className="text-violet-600">Find</span>
+                Sound<span className="text-violet-600">Find</span>
               </h1>
             </div>
 

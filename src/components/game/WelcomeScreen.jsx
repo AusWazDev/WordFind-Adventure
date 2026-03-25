@@ -72,12 +72,12 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
             transition={{ delay: 0.1 }}
           >
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-sm mb-4 shadow-xl">
-              <Search className="w-8 h-8 text-white" />
+              <Volume2 className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-4xl font-black text-white tracking-tight">
-              Word<span className="text-amber-400">Find</span>
+              Sound<span className="text-amber-400">Find</span>
             </h1>
-            <p className="text-white/60 text-sm mt-1">Adventure</p>
+            <p className="text-white/60 text-sm mt-1">Hear it. Find it.</p>
           </motion.div>
 
           {/* Feature highlights */}

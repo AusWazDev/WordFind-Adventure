@@ -72,7 +72,7 @@ function scheduleNextNotification(time) {
 
   const timerId = setTimeout(() => {
     if (Notification.permission === 'granted') {
-      new Notification("⏰ WordFind Daily Challenge!", {
+      new Notification("⏰ SoundFind Daily Challenge!", {
         body: "Your daily challenge is waiting — keep your streak alive! 🔥",
         icon: "/favicon.ico",
       });

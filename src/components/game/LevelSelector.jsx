@@ -1,0 +1,101 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Lock, Star, Zap, Brain, Flame } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const levels = [
+  { 
+    id: 1, 
+    name: 'Easy', 
+    description: '8×8 grid • 6 words',
+    icon: Star,
+    gradient: 'from-emerald-400 to-teal-500',
+    bgGradient: 'from-emerald-50 to-teal-50',
+    unlocked: true
+  },
+  { 
+    id: 2, 
+    name: 'Medium', 
+    description: '10×10 grid • 12 words',
+    icon: Zap,
+    gradient: 'from-blue-400 to-indigo-500',
+    bgGradient: 'from-blue-50 to-indigo-50',
+    unlocked: true
+  },
+  { 
+    id: 3, 
+    name: 'Hard', 
+    description: '12×12 grid • 18 words',
+    icon: Brain,
+    gradient: 'from-violet-400 to-purple-500',
+    bgGradient: 'from-violet-50 to-purple-50',
+    unlocked: true
+  },
+  { 
+    id: 4, 
+    name: 'Expert', 
+    description: '15×15 grid • 24 words',
+    icon: Flame,
+    gradient: 'from-orange-400 to-red-500',
+    bgGradient: 'from-orange-50 to-red-50',
+    unlocked: true
+  },
+];
+
+export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLevels = 4 }) {
+  return (
+    <div className="space-y-3">
+      <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 text-center">Select Difficulty</h3>
+      <div className="grid grid-cols-2 gap-2">
+        {levels.map((level, index) => {
+          const Icon = level.icon;
+          const isUnlocked = index < unlockedLevels;
+          const isSelected = currentLevel === level.id;
+          
+          return (
+            <motion.button
+              key={level.id}
+              onClick={() => isUnlocked && onSelectLevel(level.id)}
+              disabled={!isUnlocked}
+              className={cn(
+                "relative p-2 rounded-2xl border-2 transition-all text-left",
+                isUnlocked 
+                  ? `bg-gradient-to-br ${level.bgGradient} hover:shadow-md cursor-pointer`
+                  : "bg-slate-100 dark:bg-slate-800 cursor-not-allowed",
+                isSelected 
+                  ? "border-violet-500 shadow-lg shadow-violet-200" 
+                  : "border-transparent"
+              )}
+              whileHover={isUnlocked ? { scale: 1.02 } : {}}
+              whileTap={isUnlocked ? { scale: 0.98 } : {}}
+            >
+              <div className="flex items-start justify-between gap-1.5">
+                <div className={cn(
+                  "p-1.5 rounded-lg bg-gradient-to-br shadow-sm flex items-center justify-center shrink-0",
+                  isUnlocked ? level.gradient : "from-slate-300 to-slate-400"
+                )}>
+                  <Icon className="w-3.5 h-3.5 text-white" />
+                </div>
+                {!isUnlocked && (
+                  <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                )}
+              </div>
+              <h4 className={cn(
+                "font-bold mt-0.5 text-xs leading-tight line-clamp-1",
+                isUnlocked ? "text-slate-800 dark:text-slate-100" : "text-slate-400"
+              )}>
+                {level.name}
+              </h4>
+              <p className={cn(
+                "text-[10px] whitespace-normal leading-none line-clamp-1",
+                isUnlocked ? "text-slate-600 dark:text-slate-400" : "text-slate-400"
+              )}>
+                {level.description}
+              </p>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

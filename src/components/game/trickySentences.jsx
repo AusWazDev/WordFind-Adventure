@@ -1,0 +1,392 @@
+/**
+ * trickySentences.js
+ *
+ * Pre-generated example sentences for all tricky words.
+ * Sentences are 8-10 words, clear, and optimised for TTS speech.
+ *
+ * Usage:
+ *   import { getSentence } from '@/components/game/trickySentences';
+ *   const sentence = getSentence('KNIGHT'); // "The knight rode bravely into battle on horseback."
+ *
+ * When a word is spoken in audio mode, the format is:
+ *   "[WORD]. [sentence]. [WORD]."
+ */
+
+const sentences = {
+
+  // ─── Silent K ───────────────────────────────────────────────────────────────
+  KNIGHT:    "The knight rode bravely into battle on horseback.",
+  KNEEL:     "You must kneel before the queen to receive your honour.",
+  KNACK:     "She has a real knack for solving difficult puzzles quickly.",
+  KNAVE:     "The knave was caught stealing from the royal treasury.",
+  KNOB:      "Turn the knob slowly to open the old wooden door.",
+  KNIFE:     "He used a sharp knife to slice the fresh bread.",
+  KNIT:      "Grandma loves to knit warm scarves during the cold winter.",
+  KNOCK:     "Please knock on the door before you come inside.",
+  KNOT:      "He tied a tight knot so the rope would hold.",
+  KNEW:      "She knew the answer before the teacher finished the question.",
+  KNUCKLE:   "He scraped his knuckle on the rough brick wall.",
+  KNAPSACK:  "She packed her knapsack with food for the long hike.",
+
+  // ─── Silent W ───────────────────────────────────────────────────────────────
+  WRAP:      "Please wrap the gift carefully before the birthday party.",
+  WRITE:     "Remember to write your name clearly at the top.",
+  WRIST:     "She wore a gold bracelet around her left wrist.",
+  WRONG:     "He realised he had taken the wrong turn at the lights.",
+  WRECK:     "The old ship was a complete wreck on the ocean floor.",
+  WREN:      "A tiny wren was singing loudly from the garden fence.",
+  WRATH:     "The king's wrath was feared throughout the entire kingdom.",
+  WRENCH:    "He used a wrench to tighten the loose bolt firmly.",
+  WRESTLE:   "The two brothers would often wrestle playfully in the garden.",
+  WRINKLE:   "She smoothed out every wrinkle from the freshly washed shirt.",
+  WROTE:     "He wrote a long letter to his friend overseas.",
+  WRITTEN:   "The rules were clearly written on the notice board.",
+
+  // ─── Silent G ───────────────────────────────────────────────────────────────
+  GNOME:     "A small garden gnome stood cheerfully beside the roses.",
+  GNAT:      "A tiny gnat flew annoyingly close to her face.",
+  GNAW:      "The puppy loves to gnaw on his favourite chew toy.",
+  GNU:       "The gnu galloped swiftly across the open African plain.",
+
+  // ─── Silent B ───────────────────────────────────────────────────────────────
+  LAMB:      "The little lamb followed its mother across the green field.",
+  THUMB:     "He held the book open with his left thumb.",
+  CLIMB:     "It took two hours to climb to the mountain top.",
+  COMB:      "She used a wide comb to untangle her long hair.",
+  CRUMB:     "Not a single crumb was left on the empty plate.",
+  BOMB:      "The army carefully defused the bomb before it could explode.",
+  LIMB:      "A large limb fell from the old oak tree.",
+  NUMB:      "Her fingers went completely numb in the freezing cold wind.",
+  TOMB:      "The ancient tomb was discovered deep beneath the desert sand.",
+  WOMB:      "The baby grew safely inside its mother's womb for months.",
+  PLUMB:     "The builder used a plumb line to check the wall.",
+  DEBT:      "He worked hard for years to pay off his debt.",
+  DOUBT:     "There is no doubt that she is the best player.",
+  SUBTLE:    "There was a subtle hint of lemon in the sauce.",
+  DUMB:      "The audience was struck dumb by the incredible performance.",
+
+  // ─── Silent T ───────────────────────────────────────────────────────────────
+  CASTLE:    "The old castle stood proudly on top of the hill.",
+  WHISTLE:   "The referee blew the whistle to signal the end of play.",
+  BUSTLE:    "The city was full of bustle on a Friday evening.",
+  HUSTLE:    "You need to hustle if you want to catch the train.",
+  THISTLE:   "A purple thistle grew wild along the country roadside.",
+  BRISTLE:   "The old brush had a very stiff bristle.",
+  FASTEN:    "Please fasten your seatbelt before the plane takes off.",
+  LISTEN:    "You need to listen carefully to understand the instructions.",
+  SOFTEN:    "Add a little butter to soften the hard biscuit.",
+  OFTEN:     "She often walks to work on sunny mornings.",
+  GLISTEN:   "The morning dew made the grass glisten in the sunlight.",
+  MOISTEN:   "Moisten the cloth before wiping down the dusty shelf.",
+  HASTEN:    "We must hasten our steps to arrive on time.",
+
+  // ─── Silent H ───────────────────────────────────────────────────────────────
+  HOUR:      "The meeting will last for exactly one hour.",
+  GHOST:     "The children told stories about a friendly ghost at camp.",
+  HONEST:    "Always be honest even when the truth is difficult.",
+  HEIR:      "The eldest child is the heir to the family estate.",
+  RHYME:     "The poet searched for a word to rhyme with orange.",
+
+  // ─── Silent C ───────────────────────────────────────────────────────────────
+  SCENE:     "The final scene of the film made everyone cry.",
+  SCENT:     "The scent of fresh flowers filled the entire room.",
+  SCIENCE:   "She has always loved science especially biology and chemistry.",
+  SCISSORS:  "Use the scissors carefully to cut along the dotted line.",
+  MUSCLE:    "You need strong muscle to lift such heavy weights.",
+  DESCEND:   "Watch your step as you descend the steep staircase.",
+  ASCEND:    "It takes great effort to ascend to the mountain peak.",
+  CRESCENT:  "A crescent moon hung low in the clear night sky.",
+
+  // ─── Silent N ───────────────────────────────────────────────────────────────
+  AUTUMN:    "The leaves turn golden and red every autumn.",
+  COLUMN:    "Each column of the spreadsheet contained different information.",
+  SOLEMN:    "The funeral was a solemn and quiet occasion.",
+  HYMN:      "The choir sang a beautiful hymn at the end of the service.",
+  DAMN:      "He let out a quiet damn when he missed the bus.",
+  CONDEMN:   "The judge was quick to condemn the dishonest behaviour.",
+
+  // ─── Silent GH ──────────────────────────────────────────────────────────────
+  LIGHT:     "Please turn off the light when you leave the room.",
+  NIGHT:     "The stars were incredibly bright on that clear night.",
+  FIGHT:     "They decided to fight for what they truly believed in.",
+  MIGHT:     "She might arrive late if the traffic is bad.",
+  RIGHT:     "Turn right at the corner and walk two blocks.",
+  SIGHT:     "The view from the top was an incredible sight.",
+  TIGHT:     "The lid was so tight she could not open the jar.",
+  FLIGHT:    "Their flight to Sydney departs early tomorrow morning.",
+  BRIGHT:    "The children wore bright colours for the school photo.",
+  FRIGHT:    "The loud bang gave everyone in the room quite a fright.",
+  DAUGHTER:  "Their daughter won first prize at the school art show.",
+  SLAUGHTER: "The documentary showed the slaughter of animals on the farm.",
+  THOUGHT:   "She thought carefully before giving her final answer.",
+  BOUGHT:    "He bought a new jacket from the shop on Friday.",
+  CAUGHT:    "The police caught the thief before he could escape.",
+  TAUGHT:    "She taught mathematics at the local high school for years.",
+  NAUGHT:    "All his hard work came to naught in the end.",
+  DROUGHT:   "The long drought left the farmland completely dry and cracked.",
+
+  // ─── Silent P ───────────────────────────────────────────────────────────────
+  PSALM:     "The priest read a psalm at the beginning of the service.",
+  PSYCHE:    "Understanding the human psyche is the goal of psychology.",
+  RECEIPT:   "Always keep your receipt in case you need to return it.",
+
+  // ─── Silent L ───────────────────────────────────────────────────────────────
+  CALM:      "She remained calm even when everything went wrong around her.",
+  PALM:      "He held the tiny bird gently in the palm of his hand.",
+  HALF:      "She ate half the pizza and saved the rest.",
+  WALK:      "They decided to walk along the beach at sunset.",
+  TALK:      "We need to sit down and talk about this seriously.",
+  CHALK:     "The teacher wrote the answer in chalk on the board.",
+  COULD:     "She could hear music coming from the flat below.",
+  WOULD:     "He said he would call as soon as he arrived.",
+  SHOULD:    "You should drink more water throughout the day.",
+  FOLK:      "The old folk song had been passed down for generations.",
+  YOLK:      "Separate the yolk from the white before you begin baking.",
+  SALMON:    "The salmon swam upstream against the strong river current.",
+  ALMOND:    "She added a handful of almond slices to the salad.",
+
+  // ─── Silent MISC ────────────────────────────────────────────────────────────
+  SWORD:     "The knight carried a long sword at his side.",
+  ANSWER:    "Please write your answer clearly in the box provided.",
+  ISLAND:    "They spent two weeks on a small tropical island.",
+  YACHT:     "The wealthy family sailed their yacht along the coastline.",
+  ACHE:      "She felt a dull ache in her lower back all day.",
+  CHAOS:     "The sudden storm caused complete chaos at the outdoor festival.",
+  CHROME:    "The kitchen taps were polished chrome and perfectly clean.",
+  ECHO:      "Her voice produced a clear echo in the empty cave.",
+  EXHAUST:   "The long race began to exhaust even the fittest runners.",
+  STOMACH:   "He had butterflies in his stomach before the big presentation.",
+
+  // ─── OUGH words ─────────────────────────────────────────────────────────────
+  TOUGH:     "The meat was so tough it was hard to chew.",
+  ROUGH:     "The rough surface of the rock scraped against her hand.",
+  ENOUGH:    "There is just enough food left for one more meal.",
+  COUGH:     "He had a bad cough that kept him awake at night.",
+  THROUGH:   "The train passed through three tunnels on the journey.",
+  ALTHOUGH:  "Although it was cold outside she did not wear a coat.",
+  THOROUGH:  "The detective carried out a thorough search of the building.",
+  BOROUGH:   "They moved to a quiet borough on the edge of the city.",
+  DOUGH:     "She kneaded the dough until it was smooth and elastic.",
+  THOUGH:    "He smiled though he was feeling quite nervous inside.",
+  PLOUGH:    "The farmer used a plough to turn over the soil.",
+  BOUGH:     "A heavy bough snapped off the old tree in the storm.",
+  SOUGHT:    "She sought advice from her most trusted friend and mentor.",
+  FOUGHT:    "They fought bravely to defend their home from the invaders.",
+  BROUGHT:   "He brought flowers to cheer her up after the hard week.",
+  OUGHT:     "You ought to apologise for what you said yesterday.",
+  NOUGHT:    "Despite all the effort their score remained at nought.",
+
+  // ─── Homophones ─────────────────────────────────────────────────────────────
+  WHOLE:     "She ate the whole apple without leaving a single piece.",
+  FLOUR:     "Add two cups of flour to make the bread dough.",
+  STATIONARY: "The stationary car was blocking the entrance to the driveway.",
+  STATIONERY: "She bought new stationery including pens paper and notebooks.",
+  PRINCIPAL:  "The school principal addressed all the students at assembly.",
+  PRINCIPLE:  "He refused to lie as it went against his principles.",
+  COMPLEMENT: "The red wine was a perfect complement to the rich meal.",
+  COMPLIMENT: "She received a lovely compliment about her new haircut.",
+  PEACE:     "After years of conflict the two countries finally found peace.",
+  PIECE:     "Can I have just one more piece of that delicious cake.",
+  STEEL:     "The bridge was constructed from reinforced steel and concrete.",
+  STEAL:     "It is wrong to steal no matter how small the item.",
+  HEAL:      "It took several weeks for the wound to fully heal.",
+  HEEL:      "She wore a blister on her heel from the new shoes.",
+  HEAR:      "Can you hear the birds singing outside the window.",
+  HERE:      "Please come here and sit beside me for a moment.",
+  WASTE:     "Try not to waste food when others are going hungry.",
+  WAIST:     "The belt cinched tightly around her narrow waist.",
+  BARE:      "He walked across the bare floorboards with bare feet.",
+  BEAR:      "A large brown bear was spotted near the campsite at dawn.",
+  MALE:      "The male lion has a large and impressive dark mane.",
+  MAIL:      "There was an important letter in the mail this morning.",
+  TALE:      "Grandpa told the children a wonderful tale at bedtime.",
+  TAIL:      "The dog wagged its tail excitedly when its owner arrived.",
+  VAIN:      "She spent hours in front of the mirror being vain.",
+  VEIN:      "The nurse found a vein and inserted the needle carefully.",
+  PLAIN:     "She preferred plain food with no sauces or strong spices.",
+  PLANE:     "The plane landed smoothly despite the stormy weather conditions.",
+  RAIN:      "The heavy rain flooded the streets within just an hour.",
+  REIGN:     "The queen's reign lasted for more than seventy years.",
+
+  // ─── Double letters ──────────────────────────────────────────────────────────
+  OCCASION:     "A wedding is a very special occasion for the whole family.",
+  NECESSARY:    "It is necessary to bring your passport to the airport.",
+  TOMORROW:     "We are planning to leave for the airport tomorrow morning.",
+  ADDRESS:      "Please write your full address clearly on the envelope.",
+  AGGRESSIVE:   "The aggressive dog barked loudly at every passing stranger.",
+  APPRECIATE:   "I really appreciate all the hard work you have put in.",
+  BEGINNING:    "The beginning of the book was so good I could not stop.",
+  BROCCOLI:     "Steam the broccoli for five minutes before serving it.",
+  COLLEAGUE:    "My colleague helped me finish the project before the deadline.",
+  COMMITTEE:    "The committee met every month to discuss new proposals.",
+  CONSCIENCE:   "His conscience would not allow him to tell the lie.",
+  DISAPPEAR:    "The magician made the rabbit disappear in front of everyone.",
+  DISAPPOINT:   "She did not want to disappoint her parents with the results.",
+  EMBARRASS:    "It is easy to embarrass yourself when speaking in public.",
+  EXAGGERATE:   "He tends to exaggerate every story to make it more exciting.",
+  EXCELLENT:    "The teacher gave her an excellent mark for the essay.",
+  GUARANTEE:    "The company offers a full guarantee on all its products.",
+  IMMEDIATELY:  "Please call me immediately if anything goes wrong tonight.",
+  INTERRUPT:    "It is rude to interrupt someone while they are speaking.",
+  MILLENNIUM:   "The new millennium brought great hope and celebration worldwide.",
+  MISSPELL:     "It is easy to misspell words that have silent letters.",
+  OCCURRENCE:   "A solar eclipse is a rare and spectacular occurrence.",
+  PARALLEL:     "Draw two parallel lines that never meet or cross.",
+  POSSESSION:   "The police found the stolen goods in his possession.",
+  RECOMMEND:    "I would highly recommend this restaurant to anyone visiting.",
+  RESISTANCE:   "The soldiers showed great resistance against the advancing army.",
+  RHYTHM:       "The drummer kept a steady rhythm throughout the entire song.",
+  SEPARATE:     "Keep the colours separate when washing your clothes at home.",
+  SUCCEED:      "With enough effort and practice anyone can succeed.",
+  UNNECESSARY:  "It is unnecessary to bring an umbrella on a sunny day.",
+  VACUUM:       "She used the vacuum to clean the carpet after dinner.",
+  WEIRD:        "It was weird to see snow falling in the middle of summer.",
+
+  // ─── Commonly misspelled ────────────────────────────────────────────────────
+  RECEIVE:      "Did you receive the package that was sent last week.",
+  ACHIEVE:      "With hard work you can achieve almost anything you set your mind to.",
+  BELIEVE:      "I believe we can find a solution if we work together.",
+  CEILING:      "The ceiling of the old church was covered in beautiful paintings.",
+  DECEIVE:      "It is never right to deceive someone who trusts you.",
+  NIECE:        "My niece is coming to stay with us for the holidays.",
+  THIEF:        "The thief was caught on camera stealing from the shop.",
+  YIELD:        "Drivers must yield to pedestrians at the crossing.",
+  DEFINITELY:   "She will definitely be at the party on Saturday night.",
+  DESPERATE:    "He was desperate to find his lost dog before dark.",
+  ENVIRONMENT:  "We all have a duty to protect the natural environment.",
+  GOVERNMENT:   "The government announced new rules to reduce pollution levels.",
+  HUMOROUS:     "The comedian gave a very humorous speech at the dinner.",
+  IRRESISTIBLE: "The smell of fresh coffee in the morning is irresistible.",
+  MISCHIEVOUS:  "The mischievous puppy chewed through three pairs of shoes.",
+  OCCASIONALLY: "She occasionally treats herself to a slice of chocolate cake.",
+  RESTAURANT:   "The restaurant was fully booked for the entire weekend.",
+  SCHEDULE:     "Check the schedule to see what time your flight departs.",
+  STRENGTH:     "Regular exercise will help you build strength and endurance.",
+  TWELFTH:      "She finished in twelfth place in her very first race.",
+  WEDNESDAY:    "The meeting has been moved to Wednesday afternoon at three.",
+  ABSENCE:      "His absence from school was noticed by all his teachers.",
+  CALENDAR:     "Mark the date on your calendar so you do not forget.",
+  CONSCIENTIOUS:"She was a conscientious student who always handed work in on time.",
+  CURIOSITY:    "The cat's curiosity led it to explore every corner of the house.",
+  DILEMMA:      "She faced a difficult dilemma about which job to accept.",
+  DISCIPLINE:   "Good discipline is essential for achieving long term success.",
+  EXPERIENCE:   "Years of experience made her the best person for the job.",
+  FASCINATING:  "The documentary about deep sea creatures was absolutely fascinating.",
+  FEBRUARY:     "Valentine's Day falls on the fourteenth of February each year.",
+  FOREIGN:      "She studied several foreign languages at university.",
+  HEIGHT:        "The height of the building made her feel quite dizzy.",
+  INDEPENDENT:  "She was fiercely independent and preferred to work alone.",
+  INTELLIGENT:  "The intelligent student always asked the most thoughtful questions.",
+  LANGUAGE:     "Learning a new language opens many doors in life.",
+  LITERATURE:   "She developed a deep love of literature from a young age.",
+  MAINTENANCE:  "Regular maintenance will keep your car running smoothly.",
+  MARRIAGE:     "Their marriage was celebrated with a large outdoor ceremony.",
+  MEDICINE:     "Always take your medicine at the same time every day.",
+  NOTICEABLE:   "The improvement in her work was noticeable to everyone.",
+  ORIGINAL:     "The artist was known for her truly original and bold style.",
+  PERSEVERANCE: "Perseverance is the key to achieving your long term goals.",
+  PHYSICAL:     "Regular physical activity is important for a healthy lifestyle.",
+  PRIVILEGE:    "It is a privilege to work alongside such talented people.",
+  QUESTIONNAIRE:"Please fill in the questionnaire as honestly as you can.",
+  QUEUE:        "We had to queue for over an hour to get inside.",
+  RECOGNISE:    "I did not recognise her at first with her new haircut.",
+  RIDICULOUS:   "It is ridiculous to argue over such a small thing.",
+  SENSITIVE:    "She was very sensitive to criticism even when it was constructive.",
+  SERGEANT:     "The sergeant gave clear instructions to the new recruits.",
+  SIMILAR:      "The two sisters had very similar tastes in music and film.",
+  SINCERELY:    "I sincerely hope that you feel much better very soon.",
+  SPECIFIC:     "Can you give me a more specific example of the problem.",
+  TECHNIQUE:    "The chef demonstrated his technique for making perfect pastry.",
+  TEMPERATURE:  "The temperature dropped sharply once the sun went down.",
+  TONGUE:       "She burned her tongue on the hot bowl of soup.",
+  TRAGEDY:      "The loss of the old library was a tragedy for the town.",
+  TRULY:        "I am truly grateful for everything you have done for me.",
+
+  // ─── ISE / IZE spellings ────────────────────────────────────────────────────
+  REALISE:      "Did you realise how late it was when you left.",
+  ORGANISE:     "She volunteered to organise the end of year school party.",
+  APOLOGISE:    "He knew he needed to apologise for his careless words.",
+  EMPHASISE:    "The teacher would always emphasise the importance of checking your work.",
+  ADVERTISE:    "They decided to advertise the event on social media.",
+  ADVISE:       "I would advise you to read the instructions carefully first.",
+  ANALYSE:      "The scientist had to analyse hundreds of samples in the lab.",
+  CAPITALISE:   "Always capitalise the first letter of a proper noun.",
+  CIVILISE:     "Education is one of the key ways to civilise a society.",
+  CRITICISE:    "It is easy to criticise but much harder to offer solutions.",
+  CUSTOMISE:    "You can customise your order to suit your own preferences.",
+  EXERCISE:     "It is important to exercise for at least thirty minutes daily.",
+  FINALISE:     "Let us meet tomorrow to finalise the details of the plan.",
+  GENERALISE:   "It is unfair to generalise about an entire group of people.",
+  IMPROVISE:    "When the music stopped the jazz band had to improvise.",
+  LEGALISE:     "There is ongoing debate about whether to legalise certain substances.",
+  MAXIMISE:     "We need to maximise our use of the available space.",
+  MINIMISE:     "Please minimise the window if you are not using it.",
+  MODERNISE:    "The council plans to modernise the old town hall building.",
+  OPTIMISE:     "A good mechanic will optimise your engine for better performance.",
+  PENALISE:     "The referee will penalise any player who breaks the rules.",
+  PERSONALISE:  "You can personalise your profile with a photo and bio.",
+  PRIORITISE:   "Learn to prioritise your tasks to manage your time better.",
+  PUBLICISE:    "They hired a team to publicise the launch of the new product.",
+  REVISE:       "Always revise your notes before sitting an important exam.",
+  SPECIALISE:   "He chose to specialise in heart surgery after medical school.",
+  STANDARDISE:  "The aim was to standardise the process across all departments.",
+  SUMMARISE:    "Can you summarise the main points of the report please.",
+  SUPERVISE:    "A qualified adult must supervise children near the swimming pool.",
+  SURPRISE:     "Her friends planned a surprise party for her thirtieth birthday.",
+  SYMBOLISE:    "The dove has long been used to symbolise peace and hope.",
+  UTILISE:      "We need to utilise every available resource to finish on time.",
+  VISUALISE:    "Try to visualise the finished result before you begin painting.",
+
+  // ─── OUR / OR spellings ─────────────────────────────────────────────────────
+  COLOUR:    "Her favourite colour has always been a deep shade of blue.",
+  FAVOUR:    "Could you do me a favour and post this letter today.",
+  HONOUR:    "It is a great honour to represent your country in sport.",
+  HUMOUR:    "His dry humour always managed to lighten the mood in the room.",
+  LABOUR:    "Building the wall required hours of hard physical labour.",
+  NEIGHBOUR: "Our neighbour kindly offered to water the plants while we were away.",
+  RUMOUR:    "There is a rumour going around that the school may close.",
+  VAPOUR:    "Water vapour rises from the surface of the warm ocean.",
+  BEHAVIOUR: "Good behaviour in class helps everyone learn more effectively.",
+  ENDEAVOUR: "Despite every endeavour the team could not quite win the match.",
+  FLAVOUR:   "This ice cream has a rich and creamy caramel flavour.",
+  GLAMOUR:   "Old Hollywood had a sense of glamour that is rarely seen today.",
+  HARBOUR:   "The fishing boats returned safely to the harbour before the storm.",
+  PARLOUR:   "They sat together in the parlour drinking tea and talking.",
+  RIGOUR:    "Scientific research must be conducted with great rigour and care.",
+  SAVOUR:    "Take time to savour every bite of this delicious meal.",
+  SPLENDOUR: "The tourists were amazed by the splendour of the ancient palace.",
+  VALOUR:    "The soldier was awarded a medal for his extraordinary valour.",
+  VIGOUR:    "She approached every task with remarkable energy and vigour.",
+  ARMOUR:    "The knight polished his armour until it shone like a mirror.",
+  CLAMOUR:   "There was a great clamour from the crowd when the goal was scored.",
+  FERVOUR:   "The crowd cheered with great fervour as the team ran onto the field.",
+  CANDOUR:   "She spoke with rare candour about the difficulties she had faced.",
+  TUMOUR:    "The doctor discovered a small tumour during the routine scan.",
+  ODOUR:     "There was an unpleasant odour coming from the old rubbish bin.",
+  DEMEANOUR: "Despite the pressure she maintained a calm and professional demeanour.",
+
+};
+
+/**
+ * Returns a pre-generated sentence for the given word.
+ * Falls back to a generic sentence if the word is not found.
+ *
+ * @param {string} word - uppercase word e.g. 'KNIGHT'
+ * @returns {string} example sentence
+ */
+export function getSentence(word) {
+  return sentences[word.toUpperCase()] || `This word is spelled ${word.toUpperCase()}.`;
+}
+
+/**
+ * Returns true if we have a pre-generated sentence for this word.
+ * Useful for deciding whether to call the AI or use local data.
+ *
+ * @param {string} word
+ * @returns {boolean}
+ */
+export function hasSentence(word) {
+  return word.toUpperCase() in sentences;
+}
+
+export default sentences;

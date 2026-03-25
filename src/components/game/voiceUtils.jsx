@@ -97,6 +97,7 @@ const QUALITY_MARKERS = [
   'wavenet',    // Google WaveNet
   'natural',    // Microsoft Natural voices
   'online',     // Often indicates higher quality cloud voices
+  'google',     // Google TTS voices — excellent quality in Chrome
 ];
 
 // Female voices ordered by quality per platform
@@ -149,8 +150,12 @@ function scoreVoice(voice, genderPref) {
   // English language
   if (voice.lang && voice.lang.startsWith('en')) score += 30;
 
-  // Local/on-device (more reliable, works offline)
-  if (voice.localService) score += 15;
+  // Local/on-device — small bonus, but NOT for old Windows Desktop SAPI voices
+  // (e.g. "Microsoft Zira Desktop", "Microsoft David Desktop" — very robotic)
+  if (voice.localService && !nameLower.includes('desktop')) score += 15;
+
+  // Actively penalise old Windows Desktop SAPI voices
+  if (nameLower.includes('desktop')) score -= 100;
 
   // Named voice match
   const preferredList = genderPref === 'female' ? FEMALE_VOICES : MALE_VOICES;

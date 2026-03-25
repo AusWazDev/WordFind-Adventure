@@ -122,6 +122,17 @@ export function scrambleWord(word) {
   return result === word && word.length > 1 ? scrambleWord(word) : result;
 }
 
+// ─── Fisher-Yates shuffle — uniform distribution, no bias ────────────────────
+
+function fisherYates(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // ─── Word selection ───────────────────────────────────────────────────────────
 
 function pickWords({ count, minLen, maxLen, pool, trickyPool, trickyRatio }) {
@@ -130,12 +141,25 @@ function pickWords({ count, minLen, maxLen, pool, trickyPool, trickyRatio }) {
   if (trickyPool && trickyRatio > 0) {
     const trickyCount = Math.round(count * trickyRatio);
     const regularCount = count - trickyCount;
-    const shuffledTricky = trickyPool.filter(fits).sort(() => Math.random() - 0.5).slice(0, trickyCount);
-    const shuffledRegular = pool.filter(fits).sort(() => Math.random() - 0.5).slice(0, regularCount);
-    return [...shuffledTricky, ...shuffledRegular].sort(() => Math.random() - 0.5);
+
+    // Deduplicate before shuffling — some words appear in multiple tricky groups
+    // (e.g. KNIGHT is in silent_k, silent_gh AND homophones) which caused the
+    // same word to be selected multiple times and appear 3-4x in the word list.
+    const uniqueTricky = fisherYates([...new Set(trickyPool.filter(fits))]);
+    const selectedTricky = uniqueTricky.slice(0, trickyCount);
+
+    // Exclude already-chosen tricky words from the regular pool so there's no overlap
+    const pickedSet = new Set(selectedTricky.map(w => w.toUpperCase()));
+    const uniqueRegular = fisherYates(
+      [...new Set(pool.filter(fits))].filter(w => !pickedSet.has(w.toUpperCase()))
+    );
+    const selectedRegular = uniqueRegular.slice(0, regularCount);
+
+    return fisherYates([...selectedTricky, ...selectedRegular]);
   }
 
-  return pool.filter(fits).sort(() => Math.random() - 0.5).slice(0, count);
+  // Deduplicate standard pool (some words appear in multiple category lists)
+  return fisherYates([...new Set(pool.filter(fits))]).slice(0, count);
 }
 
 // ─── Grid placement ───────────────────────────────────────────────────────────
@@ -163,7 +187,7 @@ function placeWord(grid, word, startRow, startCol, direction, wordPositions) {
 }
 
 function tryPlaceWord(grid, word, gridSize, wordPositions) {
-  const shuffledDirs = [...directions].sort(() => Math.random() - 0.5);
+  const shuffledDirs = fisherYates([...directions]);
   for (const dir of shuffledDirs) {
     for (let attempt = 0; attempt < 50; attempt++) {
       const startRow = Math.floor(Math.random() * gridSize);

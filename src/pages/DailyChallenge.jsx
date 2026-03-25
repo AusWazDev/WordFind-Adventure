@@ -43,22 +43,23 @@ export default function DailyChallenge() {
     return () => clearInterval(timerRef.current);
   }, []);
 
-  // Timer logic
+  // Timer countdown — only restarts when timerActive toggles on
   useEffect(() => {
     if (!timerActive || !time_limit) return;
-    if (timeLeft <= 0) {
+    const interval = setInterval(() => {
+      setTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+    timerRef.current = interval;
+    return () => clearInterval(interval);
+  }, [timerActive, time_limit]);
+
+  // Game-over detection — separate from countdown to avoid nested setState calls
+  useEffect(() => {
+    if (timerActive && timeLeft === 0) {
       setTimerActive(false);
       setGameOver(true);
-      return;
     }
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) { clearInterval(timerRef.current); setTimerActive(false); setGameOver(true); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [timerActive]);
+  }, [timeLeft, timerActive]);
 
   const loadProgressData = async () => {
     const p = await loadProgress();
@@ -145,14 +146,14 @@ export default function DailyChallenge() {
       setTimeout(() => setHintWord(null), 4000);
     }
     setHintsRemaining(prev => prev - 1);
-    if (progress) updateProgress(null, progress, { hints_remaining: hintsRemaining - 1 });
+    if (progress) updateProgress(null, progress, { hints_remaining: hintsRemaining - 1 }).catch(console.error);
   };
 
   const handleRevealWord = (word) => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     setRevealedWords(prev => [...prev, word]);
     setHintsRemaining(prev => prev - 1);
-    if (progress) updateProgress(null, progress, { hints_remaining: hintsRemaining - 1 });
+    if (progress) updateProgress(null, progress, { hints_remaining: hintsRemaining - 1 }).catch(console.error);
     toast.info(`Revealed: ${word}`);
   };
 

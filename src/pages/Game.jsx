@@ -87,6 +87,12 @@ export default function Game() {
   const [hintCells, setHintCells] = useState([]);
   const [hintWord, setHintWord] = useState(null);
 
+  // Stable refs for handleWordFound — avoids recreating the callback on every word found
+  const gameDataRef = useRef(null);
+  const foundWordsRef = useRef([]);
+  useEffect(() => { gameDataRef.current = gameData; }, [gameData]);
+  useEffect(() => { foundWordsRef.current = foundWords; }, [foundWords]);
+
   // Board sizing — measured in JS for exact pixel values
   const boardAreaRef = useRef(null);
   const [boardSize, setBoardSize] = useState(0);
@@ -130,10 +136,12 @@ export default function Game() {
   };
 
   const handleWordFound = useCallback((selectedWord, cells) => {
-    if (!gameData) return;
-    const foundWord = checkWord(selectedWord, gameData.words, foundWords);
+    const currentGame = gameDataRef.current;
+    const currentFound = foundWordsRef.current;
+    if (!currentGame) return;
+    const foundWord = checkWord(selectedWord, currentGame.words, currentFound);
     if (foundWord) {
-      const newFoundWords = [...foundWords, foundWord];
+      const newFoundWords = [...currentFound, foundWord];
       setFoundWords(newFoundWords);
       const wordScore = calculateScore(foundWord, level, mode === 'audio');
       setScore(prev => prev + wordScore);
@@ -149,11 +157,11 @@ export default function Game() {
 
       toast.success(`+${wordScore} points!`, { description: `Found: ${foundWord.toUpperCase()}` });
 
-      if (newFoundWords.length === gameData.words.length) {
+      if (newFoundWords.length === currentGame.words.length) {
         setTimeout(() => { setShowVictory(true); saveProgress(newFoundWords.length); }, 500);
       }
     }
-  }, [gameData, foundWords, level, mode, audioEnabled]);
+  }, [level, mode, audioEnabled]);
 
   const saveProgress = async (wordsFoundCount) => {
     if (!progress) return;
@@ -214,8 +222,9 @@ export default function Game() {
 
   const handleNextLevel = () => {
     const nextLevel = Math.min(level + 1, 4);
-    navigate(createPageUrl('Game') + `?mode=${mode}&category=${category}&level=${nextLevel}`);
-    window.location.reload();
+    // Use location.assign for a single atomic navigation — avoids the race condition
+    // of calling navigate() then reload() separately (progress could be lost between the two)
+    window.location.assign(createPageUrl('Game') + `?mode=${mode}&category=${category}&level=${nextLevel}`);
   };
 
   const handleReplay = () => initGame();

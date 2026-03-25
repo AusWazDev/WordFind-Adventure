@@ -34,12 +34,18 @@ export default function Home() {
   const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   useEffect(() => {
-    loadProgressData();
+    loadProgressData().catch(console.error);
   }, []);
 
   const loadProgressData = async () => {
-    const p = await loadProgress();
-    setProgress(p);
+    try {
+      const p = await loadProgress();
+      setProgress(p);
+    } catch (err) {
+      console.error('SoundFind: failed to load progress', err);
+      // Fall back to defaults so the app remains usable
+      setProgress({ current_level: 1, total_score: 0, hints_remaining: 3, games_played: 0, words_found: 0 });
+    }
   };
 
   const handleSelectMode = (mode) => {

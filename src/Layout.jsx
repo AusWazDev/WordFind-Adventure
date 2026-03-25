@@ -70,7 +70,7 @@ export default function Layout({ children, currentPageName }) {
       // Navigate to tab root
       navigate(rootUrl);
     }
-  }, [currentPageName, navigate, location.pathname]);
+  }, [currentPageName, navigate]);
 
   const variants = {
     enter: (dir) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),

@@ -21,7 +21,19 @@ export function saveLocalProgress(data) {
   try {
     const existing = getLocalProgress() || {};
     localStorage.setItem(PROGRESS_KEY, JSON.stringify({ ...existing, ...data }));
-  } catch {}
+  } catch (err) {
+    if (err?.name === 'QuotaExceededError' || err?.code === 22) {
+      // Storage full — clear old daily records to free space, then retry
+      console.warn('SoundFind: localStorage full, clearing old daily records');
+      try {
+        localStorage.removeItem(DAILY_KEY);
+        const existing = getLocalProgress() || {};
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify({ ...existing, ...data }));
+      } catch {
+        console.error('SoundFind: could not save progress — device storage is full');
+      }
+    }
+  }
 }
 
 export async function loadProgress() {
@@ -66,7 +78,11 @@ export function getLocalSettings() {
 export function saveLocalSettings(data) {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
-  } catch {}
+  } catch (err) {
+    if (err?.name === 'QuotaExceededError' || err?.code === 22) {
+      console.warn('SoundFind: localStorage full, could not save settings');
+    }
+  }
 }
 
 export async function loadSettings() {
@@ -89,7 +105,11 @@ function getDailyStore() {
 function saveDailyStore(store) {
   try {
     localStorage.setItem(DAILY_KEY, JSON.stringify(store));
-  } catch {}
+  } catch (err) {
+    if (err?.name === 'QuotaExceededError' || err?.code === 22) {
+      console.warn('SoundFind: localStorage full, could not save daily record');
+    }
+  }
 }
 
 export function getDailyRecord(date) {

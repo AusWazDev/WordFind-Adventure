@@ -33,24 +33,26 @@ export default function WordList({
     } catch {}
 
     const upper = word.toUpperCase();
+    // Always speak in lowercase — TTS engines can read ALL-CAPS as acronyms
+    const spoken = word.toLowerCase();
 
     // 1. Pre-generated sentence available — use it (works offline, no latency)
     if (hasSentence(upper)) {
       const sentence = getSentence(upper);
-      await speakText(`${word}. ${sentence} ${word}.`, settings);
+      await speakText(`${spoken}... ${sentence}... ${spoken}.`, settings);
       onPlayAudio?.(word);
       return;
     }
 
     // 2. No pre-generated sentence — offline fallback: speak word twice
     if (!isOnline) {
-      await speakText(`${word}. ${word}.`, settings);
+      await speakText(`${spoken}... ${spoken}.`, settings);
       onPlayAudio?.(word);
       return;
     }
 
     // 3. Fallback — speak word twice clearly
-    await speakText(`${word}. ${word}.`, settings);
+    await speakText(`${spoken}... ${spoken}.`, settings);
 
     onPlayAudio?.(word);
   };

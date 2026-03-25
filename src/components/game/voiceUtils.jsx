@@ -190,7 +190,7 @@ export async function speakText(text, settings = {}) {
   const utterance = new SpeechSynthesisUtterance(text);
   const genderPref = settings.audio_voice || 'female';
 
-  utterance.rate   = settings.audio_rate  ?? 0.85;  // slightly slow for clarity
+  utterance.rate   = settings.audio_rate  ?? 0.78;  // deliberate pace — clearer for spelling
   utterance.volume = 1;
   utterance.pitch  = settings.audio_pitch ?? 1.0;
 

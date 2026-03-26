@@ -4,26 +4,29 @@ import { Trophy, Star, ArrowRight, RotateCcw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
 
-export default function VictoryModal({ 
-  isOpen, 
-  score, 
-  wordsFound, 
+export default function VictoryModal({
+  isOpen,
+  score,
+  wordsFound,
   level,
-  onNextLevel, 
-  onReplay, 
-  onHome 
+  onNextLevel,
+  onReplay,
+  onHome,
+  bonusFound = false,
+  bonusPoints = 0,
+  hasBonusWord = false,
 }) {
   React.useEffect(() => {
     if (isOpen) {
       confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
+        particleCount: bonusFound ? 180 : 100,
+        spread: bonusFound ? 90 : 70,
+        origin: { y: 0.6 },
       });
     }
   }, [isOpen]);
 
-  const levelNames = ['Easy', 'Medium', 'Hard', 'Expert'];
+  const levelNames = ['Easy', 'Medium', 'Hard', 'Expert', 'Master'];
   const stars = level >= 3 ? 3 : level >= 2 ? 2 : 1;
 
   return (
@@ -105,13 +108,36 @@ export default function VictoryModal({
               </div>
             </motion.div>
 
+            {/* Bonus word result — only shown on Master level */}
+            {hasBonusWord && (
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.75 }}
+                className={`mb-4 p-3 rounded-xl text-sm font-medium ${
+                  bonusFound
+                    ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400'
+                    : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                {bonusFound ? (
+                  <>
+                    <p className="font-bold">🌟 Bonus word found!</p>
+                    <p className="text-xs opacity-80">+{bonusPoints} bonus points included</p>
+                  </>
+                ) : (
+                  <p>🔍 Bonus word not found this time</p>
+                )}
+              </motion.div>
+            )}
+
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.8 }}
               className="flex flex-col gap-3"
             >
-              {level < 4 && (
+              {level < 5 && (
                 <Button
                   onClick={onNextLevel}
                   className="w-full h-12 bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white rounded-xl font-semibold"

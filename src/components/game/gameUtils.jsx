@@ -111,6 +111,38 @@ export function getClue(word) {
   return wordClues[word] || `A ${word.length}-letter word`;
 }
 
+// ─── Master level bonus word themes ──────────────────────────────────────────
+// Each entry pairs a word (placed hidden in the grid) with a cryptic clue.
+// The player hunts for this word after finding all listed words.
+
+const masterBonusThemes = [
+  { word: 'SILENCE',    hint: 'What librarians demand 🤫' },
+  { word: 'VICTORY',    hint: 'What champions celebrate 🏆' },
+  { word: 'PHANTOM',    hint: 'Something unseen, yet present 👻' },
+  { word: 'ECLIPSE',    hint: 'When one thing hides another 🌑' },
+  { word: 'WHISPER',    hint: 'A barely audible sound 🌬️' },
+  { word: 'SHADOW',     hint: 'It follows you everywhere 🌗' },
+  { word: 'ENIGMA',     hint: 'A puzzle within a puzzle 🧩' },
+  { word: 'SECRET',     hint: 'Something not meant to be known 🤐' },
+  { word: 'CIPHER',     hint: 'A coded message 🔐' },
+  { word: 'STEALTH',    hint: 'Moving without being detected 🥷' },
+  { word: 'VANISH',     hint: 'To disappear without a trace ✨' },
+  { word: 'CONCEAL',    hint: 'To keep something out of sight 🎭' },
+  { word: 'LABYRINTH',  hint: 'A maze you might get lost in 🌀' },
+  { word: 'ARCANE',     hint: 'Known only to a select few 🪄' },
+  { word: 'MIRAGE',     hint: 'Something that appears but is not there 🏜️' },
+  { word: 'LURKING',    hint: 'Waiting, unseen in the shadows 👀' },
+  { word: 'CAMOUFLAGE', hint: 'Nature\'s disguise 🦎' },
+  { word: 'CRYPTIC',    hint: 'Mysterious and hard to decode 🗝️' },
+  { word: 'ELUSIVE',    hint: 'Difficult to find or catch 🦋' },
+  { word: 'CLOAK',      hint: 'Worn to disguise or hide identity 🧥' },
+  { word: 'VEIL',       hint: 'A covering that conceals 💫' },
+  { word: 'MASK',       hint: 'Worn to hide a true identity 🎭' },
+  { word: 'PROWL',      hint: 'Moving stealthily through the night 🐈' },
+  { word: 'RECLUSE',    hint: 'One who hides away from the world 🏚️' },
+  { word: 'OCCULT',     hint: 'Hidden from ordinary knowledge 🔮' },
+];
+
 // ─── Anagram helper ───────────────────────────────────────────────────────────
 
 export function scrambleWord(word) {
@@ -290,6 +322,35 @@ export function generateGame(level, category = null, isAudioMode = false) {
     }
   }
 
+  // ── Bonus word for Master level ────────────────────────────────────────────
+  // Place a secret word in the grid that is NOT in the word list.
+  // Stored separately so the normal highlight system never reveals it.
+  let bonusWord = null;
+  let bonusHint = null;
+  let bonusWordPositions = null;
+
+  if (config.dense) {
+    const placedSet = new Set(placedWords.map(w => w.toUpperCase()));
+    const available = masterBonusThemes.filter(
+      ({ word }) => !placedSet.has(word.toUpperCase()) && word.length >= 4 && word.length <= 10
+    );
+    if (available.length > 0) {
+      const pick = available[Math.floor(Math.random() * available.length)];
+      bonusWord = pick.word;
+      bonusHint = pick.hint;
+      // Use a separate positions dict so it never shows in the word highlight system
+      const tempPos = {};
+      const placed = tryPlaceWordDense(grid, bonusWord, gridSize, tempPos);
+      if (placed && tempPos[bonusWord]) {
+        bonusWordPositions = tempPos[bonusWord];
+      } else {
+        // Could not place — skip bonus for this game
+        bonusWord = null;
+        bonusHint = null;
+      }
+    }
+  }
+
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
@@ -299,7 +360,7 @@ export function generateGame(level, category = null, isAudioMode = false) {
     }
   }
 
-  return { grid, words: placedWords, wordPositions, gridSize };
+  return { grid, words: placedWords, wordPositions, gridSize, bonusWord, bonusHint, bonusWordPositions };
 }
 
 // ─── Word checking ────────────────────────────────────────────────────────────

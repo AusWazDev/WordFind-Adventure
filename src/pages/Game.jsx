@@ -87,11 +87,20 @@ export default function Game() {
   const [hintCells, setHintCells] = useState([]);
   const [hintWord, setHintWord] = useState(null);
 
+  // Bonus word hunt state (Master level)
+  const [bonusHuntActive, setBonusHuntActive] = useState(false);
+  const [bonusFound, setBonusFound] = useState(false);
+  const [bonusPoints, setBonusPoints] = useState(0);
+
   // Stable refs for handleWordFound — avoids recreating the callback on every word found
   const gameDataRef = useRef(null);
   const foundWordsRef = useRef([]);
+  const bonusHuntActiveRef = useRef(false);
+  const bonusFoundRef = useRef(false);
   useEffect(() => { gameDataRef.current = gameData; }, [gameData]);
   useEffect(() => { foundWordsRef.current = foundWords; }, [foundWords]);
+  useEffect(() => { bonusHuntActiveRef.current = bonusHuntActive; }, [bonusHuntActive]);
+  useEffect(() => { bonusFoundRef.current = bonusFound; }, [bonusFound]);
 
   // Board sizing — measured in JS for exact pixel values
   const boardAreaRef = useRef(null);
@@ -131,6 +140,9 @@ export default function Game() {
     setRevealedWords([]);
     setScore(0);
     setShowVictory(false);
+    setBonusHuntActive(false);
+    setBonusFound(false);
+    setBonusPoints(0);
     // NOTE: No auto-play intro here — iOS Safari blocks audio without a user gesture.
     // Players tap the speaker button to start audio.
   };
@@ -139,6 +151,31 @@ export default function Game() {
     const currentGame = gameDataRef.current;
     const currentFound = foundWordsRef.current;
     if (!currentGame) return;
+
+    // ── Bonus word detection (only active after all regular words found) ──────
+    if (bonusHuntActiveRef.current && currentGame.bonusWord && currentGame.bonusWordPositions) {
+      const upper = selectedWord.toUpperCase();
+      const reversed = upper.split('').reverse().join('');
+      const target = currentGame.bonusWord.toUpperCase();
+      if (upper === target || reversed === target) {
+        const bPts = target.length * 50;
+        setBonusPoints(bPts);
+        setBonusFound(true);
+        setBonusHuntActive(false);
+        setScore(prev => prev + bPts);
+        if (mode === 'audio' && audioEnabled) {
+          unlockAudio();
+          loadSettings().then(settings => speakText('Amazing! You found the secret bonus word!', settings));
+        }
+        toast.success(`🌟 BONUS WORD: ${target}!`, { description: `+${bPts} bonus points!`, duration: 3000 });
+        setTimeout(() => { setShowVictory(true); saveProgress(currentFound.length); }, 900);
+        return;
+      }
+      // Wrong word during bonus hunt — silently ignore (no penalty)
+      return;
+    }
+
+    // ── Regular word check ────────────────────────────────────────────────────
     const foundWord = checkWord(selectedWord, currentGame.words, currentFound);
     if (foundWord) {
       const newFoundWords = [...currentFound, foundWord];
@@ -158,7 +195,22 @@ export default function Game() {
       toast.success(`+${wordScore} points!`, { description: `Found: ${foundWord.toUpperCase()}` });
 
       if (newFoundWords.length === currentGame.words.length) {
-        setTimeout(() => { setShowVictory(true); saveProgress(newFoundWords.length); }, 500);
+        // Master level with a valid bonus word → start bonus hunt instead of victory
+        if (currentGame.bonusWord && currentGame.bonusWordPositions && !bonusFoundRef.current) {
+          setBonusHuntActive(true);
+          if (mode === 'audio' && audioEnabled) {
+            unlockAudio();
+            loadSettings().then(settings =>
+              speakText('Incredible! All words found! Now find the hidden bonus word!', settings)
+            );
+          }
+          toast.success('🎉 All words found!', {
+            description: 'Find the hidden bonus word for extra points!',
+            duration: 5000,
+          });
+        } else {
+          setTimeout(() => { setShowVictory(true); saveProgress(newFoundWords.length); }, 500);
+        }
       }
     }
   }, [level, mode, audioEnabled]);
@@ -220,6 +272,12 @@ export default function Game() {
     if (progress) updateProgress(null, progress, { hints_remaining: newHints });
   };
 
+  const handleSkipBonus = () => {
+    setBonusHuntActive(false);
+    setShowVictory(true);
+    saveProgress(foundWords.length);
+  };
+
   const handleNextLevel = () => {
     const nextLevel = Math.min(level + 1, 5);
     // Use location.assign for a single atomic navigation — avoids the race condition
@@ -263,6 +321,49 @@ export default function Game() {
   const GAP = 12;
   const PAD = 12;
 
+  // ── Bonus banner — shown above the word list in both orientations ────────────
+  const bonusBannerEl = (() => {
+    if (bonusHuntActive && gameData.bonusWord) {
+      return (
+        <div style={{
+          background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+          borderRadius: 12, padding: '10px 12px', marginBottom: 8, color: 'white',
+        }}>
+          <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 4px 0' }}>
+            🌟 BONUS WORD HUNT!
+          </p>
+          <p style={{ fontSize: 11, textAlign: 'center', opacity: 0.9, margin: '0 0 8px 0' }}>
+            {gameData.bonusHint}
+          </p>
+          <button
+            onClick={handleSkipBonus}
+            style={{
+              width: '100%', fontSize: 11, background: 'rgba(255,255,255,0.2)',
+              border: 'none', borderRadius: 6, padding: '4px 8px',
+              color: 'white', cursor: 'pointer',
+            }}
+          >
+            Skip bonus →
+          </button>
+        </div>
+      );
+    }
+    if (gameData.bonusWord && !bonusHuntActive && !bonusFound && foundWords.length < gameData.words.length) {
+      return (
+        <div style={{
+          background: 'rgba(245,158,11,0.08)',
+          border: '1px solid rgba(245,158,11,0.3)',
+          borderRadius: 10, padding: '5px 10px', marginBottom: 6, textAlign: 'center',
+        }}>
+          <p style={{ fontSize: 11, color: '#b45309', margin: 0 }}>
+            🔍 A hidden bonus word awaits...
+          </p>
+        </div>
+      );
+    }
+    return null;
+  })();
+
   return (
     <div style={{ width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--background)' }}>
       <Toaster position="top-center" richColors />
@@ -296,6 +397,7 @@ export default function Game() {
                 width: SIDEBAR_W, height: boardSize, flexShrink: 0,
                 overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'thin',
               }}>
+                {bonusBannerEl}
                 <WordListSwitch {...wordListProps} />
               </div>
             )}
@@ -329,13 +431,14 @@ export default function Game() {
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: '0.5rem' }}>
+            {bonusBannerEl}
             <WordListSwitch {...wordListProps} />
           </div>
         </div>
       )}
 
       <HintModal isOpen={showHintModal} onClose={() => setShowHintModal(false)} onWatchAd={handleWatchAd} onPurchase={handlePurchase} />
-      <VictoryModal isOpen={showVictory} score={score} wordsFound={foundWords.length} level={level} onNextLevel={handleNextLevel} onReplay={handleReplay} onHome={handleHome} />
+      <VictoryModal isOpen={showVictory} score={score} wordsFound={foundWords.length} level={level} onNextLevel={handleNextLevel} onReplay={handleReplay} onHome={handleHome} bonusFound={bonusFound} bonusPoints={bonusPoints} hasBonusWord={!!gameData?.bonusWord} />
     </div>
   );
 }

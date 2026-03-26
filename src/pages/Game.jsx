@@ -221,7 +221,7 @@ export default function Game() {
   };
 
   const handleNextLevel = () => {
-    const nextLevel = Math.min(level + 1, 4);
+    const nextLevel = Math.min(level + 1, 5);
     // Use location.assign for a single atomic navigation — avoids the race condition
     // of calling navigate() then reload() separately (progress could be lost between the two)
     window.location.assign(createPageUrl('Game') + `?mode=${mode}&category=${category}&level=${nextLevel}`);

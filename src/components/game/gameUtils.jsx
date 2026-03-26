@@ -65,10 +65,11 @@ const coreAudioWords = [
 // ─── Level configuration ──────────────────────────────────────────────────────
 
 export const levelConfig = {
-  1: { gridSize: 8,  wordCount: 6,  minWordLen: 3, maxWordLen: 6,  trickyRatio: 0.5, label: 'Easy',   description: '8x8 grid - 6 words' },
-  2: { gridSize: 10, wordCount: 10, minWordLen: 3, maxWordLen: 8,  trickyRatio: 0.6, label: 'Medium', description: '10x10 grid - 10 words' },
-  3: { gridSize: 12, wordCount: 15, minWordLen: 3, maxWordLen: 10, trickyRatio: 0.7, label: 'Hard',   description: '12x12 grid - 15 words' },
-  4: { gridSize: 15, wordCount: 20, minWordLen: 3, maxWordLen: 15, trickyRatio: 0.9, label: 'Expert', description: '15x15 grid - 20 words' },
+  1: { gridSize: 8,  wordCount: 6,  minWordLen: 3, maxWordLen: 6,  trickyRatio: 0.5, label: 'Easy',   description: '8×8 grid · 6 words',              dense: false },
+  2: { gridSize: 10, wordCount: 10, minWordLen: 3, maxWordLen: 8,  trickyRatio: 0.6, label: 'Medium', description: '10×10 grid · 10 words',            dense: false },
+  3: { gridSize: 12, wordCount: 15, minWordLen: 3, maxWordLen: 10, trickyRatio: 0.7, label: 'Hard',   description: '12×12 grid · 15 words',            dense: false },
+  4: { gridSize: 15, wordCount: 20, minWordLen: 3, maxWordLen: 15, trickyRatio: 0.9, label: 'Expert', description: '15×15 grid · 20 words',            dense: false },
+  5: { gridSize: 15, wordCount: 25, minWordLen: 4, maxWordLen: 15, trickyRatio: 0.95, label: 'Master', description: '15×15 grid · 25 words · crossword', dense: true  },
 };
 
 // ─── Directions ───────────────────────────────────────────────────────────────
@@ -201,6 +202,47 @@ function tryPlaceWord(grid, word, gridSize, wordPositions) {
   return false;
 }
 
+// Dense placement — actively seeks positions that cross existing letters,
+// creating a crossword-style grid. Used for the Master difficulty level.
+function tryPlaceWordDense(grid, word, gridSize, wordPositions) {
+  const candidates = [];
+
+  // Scan every filled cell in the grid for letters that match any character in the word
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      if (grid[r][c] === '') continue;
+      for (let charIdx = 0; charIdx < word.length; charIdx++) {
+        if (word[charIdx] !== grid[r][c]) continue;
+        // Try placing the word through this cell at each direction
+        for (const dir of directions) {
+          const startRow = r - charIdx * dir.row;
+          const startCol = c - charIdx * dir.col;
+          if (!canPlaceWord(grid, word, startRow, startCol, dir, gridSize)) continue;
+          // Count how many letters this placement shares with existing words
+          let overlaps = 0;
+          for (let i = 0; i < word.length; i++) {
+            if (grid[startRow + i * dir.row][startCol + i * dir.col] !== '') overlaps++;
+          }
+          candidates.push({ startRow, startCol, dir, overlaps });
+        }
+      }
+    }
+  }
+
+  if (candidates.length > 0) {
+    // Sort by most overlaps, then pick randomly among the top tier for variety
+    candidates.sort((a, b) => b.overlaps - a.overlaps);
+    const maxOverlaps = candidates[0].overlaps;
+    const topTier = candidates.filter(c => c.overlaps === maxOverlaps);
+    const chosen = topTier[Math.floor(Math.random() * topTier.length)];
+    placeWord(grid, word, chosen.startRow, chosen.startCol, chosen.dir, wordPositions);
+    return true;
+  }
+
+  // No intersecting position found — fall back to standard random placement
+  return tryPlaceWord(grid, word, gridSize, wordPositions);
+}
+
 // ─── Tricky category map ──────────────────────────────────────────────────────
 
 const _s = trickyWordGroups;
@@ -219,7 +261,7 @@ const TRICKY_CATEGORY_MAP = {
 
 export function generateGame(level, category = null, isAudioMode = false) {
   const config = levelConfig[level];
-  const { gridSize, wordCount, minWordLen, maxWordLen, trickyRatio } = config;
+  const { gridSize, wordCount, minWordLen, maxWordLen, trickyRatio, dense } = config;
 
   const isTrickyCategory = category && category.startsWith('tricky_');
   const trickyPool = isTrickyCategory
@@ -239,9 +281,11 @@ export function generateGame(level, category = null, isAudioMode = false) {
   const wordPositions = {};
   const placedWords = [];
 
+  // Sort longest-first so large words anchor the grid before shorter ones fill gaps
   const sorted = [...selectedWords].sort((a, b) => b.length - a.length);
   for (const word of sorted) {
-    if (tryPlaceWord(grid, word.toUpperCase(), gridSize, wordPositions)) {
+    const placer = dense ? tryPlaceWordDense : tryPlaceWord;
+    if (placer(grid, word.toUpperCase(), gridSize, wordPositions)) {
       placedWords.push(word);
     }
   }

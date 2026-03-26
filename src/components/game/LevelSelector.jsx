@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Star, Zap, Brain, Flame } from 'lucide-react';
+import { Lock, Star, Zap, Brain, Flame, Skull } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const levels = [
@@ -31,18 +31,27 @@ const levels = [
     bgGradient: 'from-violet-50 to-purple-50',
     unlocked: true
   },
-  { 
-    id: 4, 
-    name: 'Expert', 
+  {
+    id: 4,
+    name: 'Expert',
     description: '15×15 grid • 24 words',
     icon: Flame,
     gradient: 'from-orange-400 to-red-500',
     bgGradient: 'from-orange-50 to-red-50',
     unlocked: true
   },
+  {
+    id: 5,
+    name: 'Master',
+    description: '15×15 grid • 25 words • crossword',
+    icon: Skull,
+    gradient: 'from-rose-600 to-red-900',
+    bgGradient: 'from-rose-50 to-red-100',
+    unlocked: true
+  },
 ];
 
-export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLevels = 4 }) {
+export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLevels = 5 }) {
   return (
     <div className="space-y-3">
       <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 text-center">Select Difficulty</h3>
@@ -51,7 +60,8 @@ export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLev
           const Icon = level.icon;
           const isUnlocked = index < unlockedLevels;
           const isSelected = currentLevel === level.id;
-          
+          const isMaster = level.id === 5;
+
           return (
             <motion.button
               key={level.id}
@@ -59,6 +69,7 @@ export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLev
               disabled={!isUnlocked}
               className={cn(
                 "relative p-2 rounded-2xl border-2 transition-all text-left",
+                isMaster && "col-span-2",
                 isUnlocked 
                   ? `bg-gradient-to-br ${level.bgGradient} hover:shadow-md cursor-pointer`
                   : "bg-slate-100 dark:bg-slate-800 cursor-not-allowed",

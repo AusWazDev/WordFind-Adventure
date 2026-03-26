@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Eye, Volume2, WifiOff } from 'lucide-react';
+import { Check, Eye, Volume2, WifiOff, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { speakText, unlockAudio } from '@/components/game/voiceUtils';
@@ -14,6 +14,7 @@ export default function WordList({
   isAudioMode,
   revealedWords,
   onRevealWord,
+  onHintCell,
   onPlayAudio,
   hintsRemaining,
   hintWord,
@@ -133,16 +134,7 @@ export default function WordList({
 
                 {isAudioMode && !isFound && (
                   <div className="flex gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-11 w-11 text-violet-600 hover:text-violet-700 hover:bg-violet-100"
-                      onClick={() => speakWord(word)}
-                      title="Hear word with example sentence"
-                    >
-                      <Volume2 className="w-4 h-4" />
-                    </Button>
-
+                    {/* Eye — reveal word text (uses a hint) */}
                     {!isRevealed && (
                       <Button
                         size="icon"
@@ -155,6 +147,29 @@ export default function WordList({
                         <Eye className="w-4 h-4" />
                       </Button>
                     )}
+
+                    {/* Speaker — play audio (free) */}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-11 w-11 text-violet-600 hover:text-violet-700 hover:bg-violet-100"
+                      onClick={() => speakWord(word)}
+                      title="Hear word with example sentence"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                    </Button>
+
+                    {/* Lightbulb — flash first letter on grid (uses a hint) */}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
+                      onClick={() => onHintCell?.(word)}
+                      disabled={hintsRemaining <= 0}
+                      title="Show first letter in grid (uses a hint)"
+                    >
+                      <Lightbulb className="w-4 h-4" />
+                    </Button>
                   </div>
                 )}
               </motion.div>

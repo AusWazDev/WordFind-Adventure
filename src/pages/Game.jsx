@@ -33,7 +33,7 @@ function useOrientation() {
 }
 
 // ─── Word list router ─────────────────────────────────────────────────────────
-function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, onRevealWord, hintsRemaining, category }) {
+function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, onRevealWord, onHintCell, hintsRemaining, category }) {
   if (mode === 'anagram') {
     return <AnagramWordList words={gameData.words} foundWords={foundWords} hintWord={hintWord} />;
   }
@@ -59,6 +59,7 @@ function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, o
       isAudioMode={mode === 'audio'}
       revealedWords={revealedWords}
       onRevealWord={onRevealWord}
+      onHintCell={onHintCell}
       hintsRemaining={hintsRemaining}
       hintWord={hintWord}
       category={category}
@@ -230,6 +231,20 @@ export default function Game() {
   const handleUseHint = () => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     if (!gameData) return;
+
+    // ── Bonus hunt hint: flash the first letter of the bonus word ─────────────
+    if (bonusHuntActive && gameData.bonusWord && gameData.bonusWordPositions?.length > 0) {
+      const newHints = hintsRemaining - 1;
+      setHintsRemaining(newHints);
+      if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+      setHintCells([gameData.bonusWordPositions[0]]);
+      setHintWord(gameData.bonusWord.toLowerCase());
+      toast.info(`Hint: the bonus word starts with "${gameData.bonusWord[0]}"`, { duration: 4000 });
+      setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
+      return;
+    }
+
+    // ── Regular hint: flash first letter of a random unfound word ─────────────
     const unfoundWords = gameData.words.filter(w => !foundWords.includes(w.toLowerCase()));
     if (unfoundWords.length === 0) return;
     const randomWord = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
@@ -254,6 +269,19 @@ export default function Game() {
     setHintsRemaining(newHints);
     if (progress) updateProgress(null, progress, { hints_remaining: newHints });
     toast.info(`Word revealed: ${word}`, { duration: 3000 });
+  };
+
+  const handleHintCell = (word) => {
+    if (hintsRemaining <= 0) { setShowHintModal(true); return; }
+    if (!gameData) return;
+    const positions = gameData.wordPositions[word.toUpperCase()];
+    if (!positions?.length) return;
+    const newHints = hintsRemaining - 1;
+    setHintsRemaining(newHints);
+    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+    setHintCells([positions[0]]);
+    setHintWord(word.toLowerCase());
+    setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
   };
 
   const handleWatchAd = () => {
@@ -293,6 +321,7 @@ export default function Game() {
   const wordListProps = {
     mode, gameData, foundWords, hintWord,
     revealedWords, onRevealWord: handleRevealWord,
+    onHintCell: handleHintCell,
     hintsRemaining, category,
   };
 

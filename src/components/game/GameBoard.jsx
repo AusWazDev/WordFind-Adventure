@@ -9,6 +9,7 @@ export default function GameBoard({
   onWordFound,
   gridSize,
   hintCells = [],
+  bonusLetterCells = [],
   isLandscape
 }) {
   const [selecting, setSelecting] = useState(false);
@@ -114,6 +115,7 @@ export default function GameBoard({
   const isSelected = (row, col) => selectedCells.some(c => c.row === row && c.col === col);
   const isFound = (row, col) => foundCells.has(`${row}-${col}`);
   const isHint = (row, col) => hintCells.some(c => c.row === row && c.col === col);
+  const isBonusLetter = (row, col) => bonusLetterCells.some(c => c.row === row && c.col === col);
 
   // Scale font size with grid: bigger cells = bigger font
   const getCellFontSize = () => {
@@ -164,11 +166,15 @@ export default function GameBoard({
                   ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white'
                   : isHint(rowIndex, colIndex)
                   ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md z-10 ring-2 ring-amber-300'
+                  : isBonusLetter(rowIndex, colIndex)
+                  ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 ring-1 ring-amber-400 dark:ring-amber-600'
                   : 'bg-muted text-foreground hover:bg-muted/70'
               )}
               animate={
                 isSelected(rowIndex, colIndex) || isHint(rowIndex, colIndex)
                   ? { scale: 1.08 }
+                  : isBonusLetter(rowIndex, colIndex)
+                  ? { scale: 1.04 }
                   : { scale: 1 }
               }
               transition={{ duration: 0.1 }}

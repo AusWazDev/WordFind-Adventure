@@ -322,12 +322,14 @@ export function generateGame(level, category = null, isAudioMode = false) {
     }
   }
 
-  // ── Bonus word for Master level ────────────────────────────────────────────
-  // Place a secret word in the grid that is NOT in the word list.
-  // Stored separately so the normal highlight system never reveals it.
+  // ── Bonus word for Master level (classic hidden-word mechanic) ─────────────
+  // After all regular words are placed, scan for empty cells in reading order
+  // (left→right, top→bottom). Write the bonus word letters into the FIRST N
+  // empty cells so that, once all list words are found and highlighted, a player
+  // reading the unhighlighted cells from the top-left will spell the bonus word.
   let bonusWord = null;
   let bonusHint = null;
-  let bonusWordPositions = null;
+  let bonusLetterPositions = null;   // [{row,col}, …] — one per letter
 
   if (config.dense) {
     const placedSet = new Set(placedWords.map(w => w.toUpperCase()));
@@ -336,21 +338,29 @@ export function generateGame(level, category = null, isAudioMode = false) {
     );
     if (available.length > 0) {
       const pick = available[Math.floor(Math.random() * available.length)];
-      bonusWord = pick.word;
-      bonusHint = pick.hint;
-      // Use a separate positions dict so it never shows in the word highlight system
-      const tempPos = {};
-      const placed = tryPlaceWordDense(grid, bonusWord, gridSize, tempPos);
-      if (placed && tempPos[bonusWord]) {
-        bonusWordPositions = tempPos[bonusWord];
-      } else {
-        // Could not place — skip bonus for this game
-        bonusWord = null;
-        bonusHint = null;
+
+      // Collect every empty cell in reading order BEFORE random fill
+      const emptyCells = [];
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          if (grid[r][c] === '') emptyCells.push({ row: r, col: c });
+        }
+      }
+
+      if (emptyCells.length >= pick.word.length) {
+        bonusWord = pick.word;
+        bonusHint = pick.hint;
+        bonusLetterPositions = [];
+        for (let i = 0; i < bonusWord.length; i++) {
+          const { row, col } = emptyCells[i];
+          grid[row][col] = bonusWord[i];          // write letter into grid
+          bonusLetterPositions.push({ row, col });
+        }
       }
     }
   }
 
+  // Fill all remaining empty cells with random letters
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
@@ -360,7 +370,7 @@ export function generateGame(level, category = null, isAudioMode = false) {
     }
   }
 
-  return { grid, words: placedWords, wordPositions, gridSize, bonusWord, bonusHint, bonusWordPositions };
+  return { grid, words: placedWords, wordPositions, gridSize, bonusWord, bonusHint, bonusLetterPositions };
 }
 
 // ─── Word checking ────────────────────────────────────────────────────────────

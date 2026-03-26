@@ -92,6 +92,7 @@ export default function Game() {
   const [bonusHuntActive, setBonusHuntActive] = useState(false);
   const [bonusFound, setBonusFound] = useState(false);
   const [bonusPoints, setBonusPoints] = useState(0);
+  const [bonusInput, setBonusInput] = useState('');
 
   // Stable refs for handleWordFound — avoids recreating the callback on every word found
   const gameDataRef = useRef(null);
@@ -144,6 +145,7 @@ export default function Game() {
     setBonusHuntActive(false);
     setBonusFound(false);
     setBonusPoints(0);
+    setBonusInput('');
     // NOTE: No auto-play intro here — iOS Safari blocks audio without a user gesture.
     // Players tap the speaker button to start audio.
   };
@@ -152,29 +154,6 @@ export default function Game() {
     const currentGame = gameDataRef.current;
     const currentFound = foundWordsRef.current;
     if (!currentGame) return;
-
-    // ── Bonus word detection (only active after all regular words found) ──────
-    if (bonusHuntActiveRef.current && currentGame.bonusWord && currentGame.bonusWordPositions) {
-      const upper = selectedWord.toUpperCase();
-      const reversed = upper.split('').reverse().join('');
-      const target = currentGame.bonusWord.toUpperCase();
-      if (upper === target || reversed === target) {
-        const bPts = target.length * 50;
-        setBonusPoints(bPts);
-        setBonusFound(true);
-        setBonusHuntActive(false);
-        setScore(prev => prev + bPts);
-        if (mode === 'audio' && audioEnabled) {
-          unlockAudio();
-          loadSettings().then(settings => speakText('Amazing! You found the secret bonus word!', settings));
-        }
-        toast.success(`🌟 BONUS WORD: ${target}!`, { description: `+${bPts} bonus points!`, duration: 3000 });
-        setTimeout(() => { setShowVictory(true); saveProgress(currentFound.length); }, 900);
-        return;
-      }
-      // Wrong word during bonus hunt — silently ignore (no penalty)
-      return;
-    }
 
     // ── Regular word check ────────────────────────────────────────────────────
     const foundWord = checkWord(selectedWord, currentGame.words, currentFound);
@@ -197,7 +176,7 @@ export default function Game() {
 
       if (newFoundWords.length === currentGame.words.length) {
         // Master level with a valid bonus word → start bonus hunt instead of victory
-        if (currentGame.bonusWord && currentGame.bonusWordPositions && !bonusFoundRef.current) {
+        if (currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current) {
           setBonusHuntActive(true);
           if (mode === 'audio' && audioEnabled) {
             unlockAudio();
@@ -233,14 +212,14 @@ export default function Game() {
     if (!gameData) return;
 
     // ── Bonus hunt hint: flash the first letter of the bonus word ─────────────
-    if (bonusHuntActive && gameData.bonusWord && gameData.bonusWordPositions?.length > 0) {
+    if (bonusHuntActive && gameData.bonusWord && gameData.bonusLetterPositions?.length > 0) {
       const newHints = hintsRemaining - 1;
       setHintsRemaining(newHints);
       if (progress) updateProgress(null, progress, { hints_remaining: newHints });
-      setHintCells([gameData.bonusWordPositions[0]]);
-      setHintWord(gameData.bonusWord.toLowerCase());
-      toast.info(`Hint: the bonus word starts with "${gameData.bonusWord[0]}"`, { duration: 4000 });
-      setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
+      setHintCells([gameData.bonusLetterPositions[0]]);
+      setHintWord(null);
+      toast.info(`Hint: the hidden word starts with "${gameData.bonusWord[0]}"`, { duration: 4000 });
+      setTimeout(() => { setHintCells([]); }, 4000);
       return;
     }
 
@@ -302,8 +281,29 @@ export default function Game() {
 
   const handleSkipBonus = () => {
     setBonusHuntActive(false);
+    setBonusInput('');
     setShowVictory(true);
     saveProgress(foundWords.length);
+  };
+
+  const handleBonusSubmit = () => {
+    if (!gameData?.bonusWord) return;
+    if (bonusInput.trim().toUpperCase() === gameData.bonusWord.toUpperCase()) {
+      const bPts = gameData.bonusWord.length * 50;
+      setBonusPoints(bPts);
+      setBonusFound(true);
+      setBonusHuntActive(false);
+      setBonusInput('');
+      setScore(prev => prev + bPts);
+      if (mode === 'audio' && audioEnabled) {
+        unlockAudio();
+        loadSettings().then(s => speakText(`Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s));
+      }
+      toast.success(`🌟 ${gameData.bonusWord}! +${bPts} bonus points!`, { duration: 3000 });
+      setTimeout(() => { setShowVictory(true); saveProgress(foundWords.length); }, 900);
+    } else {
+      toast.error('Not quite — keep reading the grid!', { duration: 2000 });
+    }
   };
 
   const handleNextLevel = () => {
@@ -343,6 +343,7 @@ export default function Game() {
     onWordFound: handleWordFound,
     gridSize: gameData.gridSize,
     hintCells,
+    bonusLetterCells: bonusHuntActive ? (gameData.bonusLetterPositions || []) : [],
     isLandscape,
   };
 
@@ -358,22 +359,54 @@ export default function Game() {
           background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
           borderRadius: 12, padding: '10px 12px', marginBottom: 8, color: 'white',
         }}>
-          <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 4px 0' }}>
+          <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 2px 0' }}>
             🌟 BONUS WORD HUNT!
           </p>
-          <p style={{ fontSize: 11, textAlign: 'center', opacity: 0.9, margin: '0 0 8px 0' }}>
+          <p style={{ fontSize: 11, textAlign: 'center', opacity: 0.9, margin: '0 0 4px 0' }}>
             {gameData.bonusHint}
           </p>
-          <button
-            onClick={handleSkipBonus}
+          <p style={{ fontSize: 10, textAlign: 'center', opacity: 0.75, margin: '0 0 6px 0' }}>
+            Read the gold letters top-left → bottom-right
+          </p>
+          <input
+            type="text"
+            value={bonusInput}
+            onChange={e => setBonusInput(e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase())}
+            placeholder="Type the hidden word…"
+            maxLength={(gameData.bonusWord.length || 10) + 2}
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck="false"
             style={{
-              width: '100%', fontSize: 11, background: 'rgba(255,255,255,0.2)',
-              border: 'none', borderRadius: 6, padding: '4px 8px',
-              color: 'white', cursor: 'pointer',
+              width: '100%', boxSizing: 'border-box',
+              background: 'rgba(255,255,255,0.92)', color: '#1e1b4b',
+              border: 'none', borderRadius: 8,
+              padding: '6px 10px', fontSize: 14, fontWeight: 700,
+              letterSpacing: 3, textAlign: 'center', marginBottom: 6,
             }}
-          >
-            Skip bonus →
-          </button>
+          />
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={handleBonusSubmit}
+              style={{
+                flex: 1, fontSize: 12, fontWeight: 700,
+                background: 'rgba(255,255,255,0.25)', border: 'none',
+                borderRadius: 6, padding: '5px 8px', color: 'white', cursor: 'pointer',
+              }}
+            >
+              Submit ✓
+            </button>
+            <button
+              onClick={handleSkipBonus}
+              style={{
+                flex: 1, fontSize: 11,
+                background: 'rgba(255,255,255,0.12)', border: 'none',
+                borderRadius: 6, padding: '5px 8px', color: 'white', cursor: 'pointer',
+              }}
+            >
+              Skip →
+            </button>
+          </div>
         </div>
       );
     }
@@ -385,7 +418,7 @@ export default function Game() {
           borderRadius: 10, padding: '5px 10px', marginBottom: 6, textAlign: 'center',
         }}>
           <p style={{ fontSize: 11, color: '#b45309', margin: 0 }}>
-            🔍 A hidden bonus word awaits...
+            🔍 A hidden bonus word awaits…
           </p>
         </div>
       );

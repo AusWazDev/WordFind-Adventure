@@ -134,21 +134,7 @@ export default function WordList({
 
                 {isAudioMode && !isFound && (
                   <div className="flex gap-1">
-                    {/* Eye — reveal word text (uses a hint) */}
-                    {!isRevealed && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-11 w-11 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
-                        onClick={() => onRevealWord(word)}
-                        disabled={hintsRemaining <= 0}
-                        title="Reveal this word (uses a hint)"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    )}
-
-                    {/* Speaker — play audio (free) */}
+                    {/* Speaker — play audio (always free, no hint cost) */}
                     <Button
                       size="icon"
                       variant="ghost"
@@ -159,13 +145,25 @@ export default function WordList({
                       <Volume2 className="w-4 h-4" />
                     </Button>
 
-                    {/* Lightbulb — flash first letter on grid (uses a hint) */}
+                    {/* Eye — reveal word text (uses a hint; handler shows purchase modal if 0) */}
+                    {!isRevealed && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-11 w-11 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
+                        onClick={() => onRevealWord(word)}
+                        title="Reveal this word (uses a hint)"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    )}
+
+                    {/* Lightbulb — flash first letter on grid (uses a hint; handler shows purchase modal if 0) */}
                     <Button
                       size="icon"
                       variant="ghost"
                       className="h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
                       onClick={() => onHintCell?.(word)}
-                      disabled={hintsRemaining <= 0}
                       title="Show first letter in grid (uses a hint)"
                     >
                       <Lightbulb className="w-4 h-4" />

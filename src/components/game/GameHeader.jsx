@@ -10,7 +10,6 @@ const modeLabels = {
   standard: 'Standard',
   audio: 'Audio Challenge',
   anagram: 'Anagram Hunt',
-  spelling: 'Spelling Bee',
   association: 'Word Association',
   mystery_word: 'Mystery Word',
 };

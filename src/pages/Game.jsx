@@ -76,7 +76,7 @@ export default function Game() {
   const [foundWords, setFoundWords] = useState([]);
   const [revealedWords, setRevealedWords] = useState([]);
   const [score, setScore] = useState(0);
-  const [hintsRemaining, setHintsRemaining] = useState(3);
+  const [hintsRemaining, setHintsRemaining] = useState(12);
   const [progress, setProgress] = useState(null);
   const [showHintModal, setShowHintModal] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
@@ -135,7 +135,7 @@ export default function Game() {
   const loadProgressData = async () => {
     const p = await loadProgress();
     setProgress(p);
-    setHintsRemaining(p.hints_remaining || 3);
+    setHintsRemaining(p.hints_remaining ?? 12);
   };
 
   const initGame = async () => {

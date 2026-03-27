@@ -15,6 +15,7 @@ import WelcomeScreen, { hasSeenWelcome } from '@/components/game/WelcomeScreen';
 import { createPageUrl } from '@/utils';
 import { loadProgress } from '@/components/game/offlineStorage';
 import PullToRefresh from '@/components/ui/PullToRefresh';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 const AD_FREQUENCY = 3;
 
@@ -28,6 +29,7 @@ export default function Home() {
   const [showRemoveAds, setShowRemoveAds] = useState(false);
   const [pendingGameUrl, setPendingGameUrl] = useState(null);
   const [adsRemoved, setAdsRemoved] = useState(() => localStorage.getItem('ads_removed') === 'true');
+  const isOnline = useOnlineStatus();
 
   // Onboarding state
   const [showWelcome, setShowWelcome] = useState(() => !hasSeenWelcome());
@@ -44,7 +46,7 @@ export default function Home() {
     } catch (err) {
       console.error('SoundFind: failed to load progress', err);
       // Fall back to defaults so the app remains usable
-      setProgress({ current_level: 1, total_score: 0, hints_remaining: 3, games_played: 0, words_found: 0 });
+      setProgress({ current_level: 1, total_score: 0, hints_remaining: 12, games_played: 0, words_found: 0 });
     }
   };
 
@@ -60,7 +62,7 @@ export default function Home() {
 
   const handleSelectLevel = (level) => {
     const url = createPageUrl('Game') + `?mode=${selectedMode}&category=${selectedCategory}&level=${level}`;
-    if (adsRemoved) { navigate(url); return; }
+    if (adsRemoved || !isOnline) { navigate(url); return; } // skip ad if offline or ads removed
     const gameCount = parseInt(localStorage.getItem('game_start_count') || '0') + 1;
     localStorage.setItem('game_start_count', String(gameCount));
     if (gameCount % AD_FREQUENCY === 0) {
@@ -126,7 +128,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Lightbulb className="w-4 h-4 text-emerald-500" />
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{progress.hints_remaining || 3}</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{progress.hints_remaining ?? 12}</span>
                   </div>
                 </div>
               )}

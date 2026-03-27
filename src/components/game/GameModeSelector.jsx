@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, Volume2, ChevronRight, Shuffle, Brain, WifiOff, Sparkles, Eye, Lock } from 'lucide-react';
+import { Search, Volume2, ChevronRight, Shuffle, Brain, WifiOff, Sparkles, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
-const REQUIRES_ONLINE  = new Set(['association']);
+const REQUIRES_ONLINE  = new Set(); // No modes currently require online — reserved for future use
 const DEGRADED_OFFLINE = new Set(['audio']);
 
 // Flat tiles shown below the two hero cards
@@ -29,8 +29,7 @@ const OTHER_MODES = [
   {
     id: 'association',
     name: 'Word Association',
-    description: 'Find words from their clue, not the word itself',
-    offlineDescription: 'Requires internet for AI-generated clues',
+    description: 'Find words using hand-crafted clues — works fully offline',
     icon: Brain,
     gradient: 'from-cyan-500 to-blue-600',
     bgGradient: 'from-cyan-50 to-blue-50',
@@ -56,7 +55,7 @@ export default function GameModeSelector({ onSelectMode }) {
           className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs"
         >
           <WifiOff className="w-4 h-4 shrink-0" />
-          <span>You're offline. Some modes are unavailable or limited.</span>
+          <span>You're offline. Audio Challenge is limited — all other modes work normally.</span>
         </motion.div>
       )}
 

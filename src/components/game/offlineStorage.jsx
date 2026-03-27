@@ -40,7 +40,7 @@ export async function loadProgress() {
   const local = getLocalProgress();
   if (local) return local;
   const seed = {
-    id: 'local', current_level: 1, total_score: 0, hints_remaining: 3,
+    id: 'local', current_level: 1, total_score: 0, hints_remaining: 12,
     games_played: 0, words_found: 0, best_streak: 0,
   };
   saveLocalProgress(seed);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Volume2, Search, Shuffle, Brain, Mic, ChevronRight, ChevronLeft, Hand, Lightbulb, Trophy, Sparkles } from 'lucide-react';
+import { X, Volume2, Search, Shuffle, Brain, Eye, ChevronRight, ChevronLeft, Hand, Lightbulb, Trophy, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Slide content ────────────────────────────────────────────────────────────
@@ -132,6 +132,13 @@ const slides = [
             desc: 'Classic word search — words are visible, find them all in the grid.',
           },
           {
+            icon: Eye,
+            name: 'Mystery Word',
+            gradient: 'from-indigo-500 to-violet-600',
+            bg: 'from-indigo-50 to-violet-50',
+            desc: 'Find every word in the grid — the unused letters spell out a hidden mystery word.',
+          },
+          {
             icon: Shuffle,
             name: 'Anagram Hunt',
             gradient: 'from-pink-500 to-rose-600',
@@ -139,18 +146,11 @@ const slides = [
             desc: 'Words are shown scrambled. Unscramble them mentally, then find them.',
           },
           {
-            icon: Mic,
-            name: 'Spelling Bee',
-            gradient: 'from-emerald-500 to-teal-600',
-            bg: 'from-emerald-50 to-teal-50',
-            desc: 'Words are hidden. Type each word correctly to reveal it in the grid.',
-          },
-          {
             icon: Brain,
             name: 'Word Association',
             gradient: 'from-cyan-500 to-blue-600',
             bg: 'from-cyan-50 to-blue-50',
-            desc: 'Find words using AI-generated clues rather than the word itself.',
+            desc: 'Each word is replaced with a hand-crafted clue. Read the clue and find the matching word in the grid.',
           },
         ].map(mode => {
           const Icon = mode.icon;
@@ -160,8 +160,8 @@ const slides = [
                 <Icon className="w-3.5 h-3.5 text-white" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{mode.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{mode.desc}</p>
+                <p className="text-xs font-bold text-slate-800">{mode.name}</p>
+                <p className="text-xs text-slate-600 mt-0.5 leading-snug">{mode.desc}</p>
               </div>
             </div>
           );
@@ -181,17 +181,20 @@ const slides = [
       <div className="space-y-4">
         <div className="space-y-2">
           <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Hints</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">You start with <span className="font-semibold text-slate-700 dark:text-slate-200">12 free hints</span>. Use them wisely!</p>
           <div className="flex items-start gap-2">
-            <Lightbulb className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-600 dark:text-slate-300">Tap the hint button to highlight the starting letter of an unfound word. You start with 3 hints.</p>
+            <Lightbulb className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              <span className="font-semibold">Lightbulb</span> (Standard, Anagram, Association, Mystery Word) — flashes the first letter of a word on the grid. Applies a <span className="font-semibold text-amber-600">−25% score penalty</span> for that word.
+            </p>
           </div>
           <div className="flex items-start gap-2">
-            <div className="w-4 h-4 shrink-0 mt-0.5 flex items-center justify-center">
-              <span className="text-xs">👁️</span>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300">In audio mode, tap the eye icon next to a word to reveal it — also uses a hint.</p>
+            <Eye className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              <span className="font-semibold">Eye</span> (Audio Challenge only) — reveals the word text. Applies a <span className="font-semibold text-amber-600">−50% score penalty</span> for that word.
+            </p>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Run out of hints? Watch a short ad to earn one, or purchase a bundle.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Run out of hints? Watch a short ad to earn one free hint, or purchase a bundle.</p>
         </div>
 
         <div className="space-y-2">
@@ -318,25 +321,29 @@ export default function HowToPlayModal({ isOpen, onClose }) {
             {/* Navigation */}
             <div className="px-5 pb-5 flex items-center gap-3">
               {!isFirst && (
-                <button
+                <motion.button
                   onClick={() => setCurrentSlide(i => i - 1)}
-                  className="flex items-center gap-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="flex items-center gap-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium transition-colors hover:bg-slate-50"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   <ChevronLeft className="w-4 h-4" /> Back
-                </button>
+                </motion.button>
               )}
-              <button
+              <motion.button
                 onClick={isLast ? handleClose : () => setCurrentSlide(i => i + 1)}
                 className={cn(
                   'flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl text-sm font-bold transition-all',
                   slide.featured
-                    ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md shadow-orange-200'
-                    : 'bg-gradient-to-r from-violet-500 to-indigo-600 text-white shadow-md shadow-violet-200'
+                    ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:shadow-md hover:shadow-orange-200'
+                    : 'bg-gradient-to-r from-violet-500 to-indigo-600 text-white hover:shadow-md hover:shadow-violet-200'
                 )}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
               >
                 {isLast ? "Let's Play!" : 'Next'}
                 {!isLast && <ChevronRight className="w-4 h-4" />}
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         </motion.div>

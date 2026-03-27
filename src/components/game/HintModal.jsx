@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Coins, Sparkles, Star, Shield } from 'lucide-react';
+import { X, Play, Coins, Sparkles, Star, Shield, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 
 const PURCHASE_OPTIONS = [
@@ -165,6 +166,7 @@ function PurchaseView({ onPurchase, onClose }) {
 
 export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
   const [view, setView] = useState('options'); // 'options' | 'ad' | 'purchase'
+  const isOnline = useOnlineStatus();
 
   const handleAdComplete = () => {
     setView('options');
@@ -232,38 +234,62 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                   className="space-y-3"
                 >
                   {/* Watch Ad */}
-                  <motion.button
-                    onClick={() => setView('ad')}
-                    className="w-full p-4 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-2xl text-white text-left flex items-center gap-4 hover:shadow-lg hover:shadow-violet-200 transition-shadow"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="p-3 bg-white/20 rounded-xl">
-                      <Play className="w-6 h-6" />
+                  {isOnline ? (
+                    <motion.button
+                      onClick={() => setView('ad')}
+                      className="w-full p-4 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-2xl text-white text-left flex items-center gap-4 hover:shadow-lg hover:shadow-violet-200 transition-shadow"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="p-3 bg-white/20 rounded-xl">
+                        <Play className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold">Watch an Ad</h3>
+                        <p className="text-violet-200 text-sm">Get 1 free hint — ~15 seconds</p>
+                      </div>
+                      <span className="ml-auto text-white/60 text-sm font-medium">FREE</span>
+                    </motion.button>
+                  ) : (
+                    <div className="w-full p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-left flex items-center gap-4 opacity-60">
+                      <div className="p-3 bg-slate-200 dark:bg-slate-700 rounded-xl">
+                        <WifiOff className="w-6 h-6 text-slate-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-500 dark:text-slate-400">Watch an Ad</h3>
+                        <p className="text-slate-400 text-sm">Go online to earn a free hint</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold">Watch an Ad</h3>
-                      <p className="text-violet-200 text-sm">Get 1 free hint — ~15 seconds</p>
-                    </div>
-                    <span className="ml-auto text-white/60 text-sm font-medium">FREE</span>
-                  </motion.button>
+                  )}
 
                   {/* Purchase */}
-                  <motion.button
-                    onClick={() => setView('purchase')}
-                    className="w-full p-4 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl text-white text-left flex items-center gap-4 hover:shadow-lg hover:shadow-amber-200 transition-shadow"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="p-3 bg-white/20 rounded-xl">
-                      <Sparkles className="w-6 h-6" />
+                  {isOnline ? (
+                    <motion.button
+                      onClick={() => setView('purchase')}
+                      className="w-full p-4 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl text-white text-left flex items-center gap-4 hover:shadow-lg hover:shadow-amber-200 transition-shadow"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="p-3 bg-white/20 rounded-xl">
+                        <Sparkles className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold">Buy Hint Pack</h3>
+                        <p className="text-amber-100 text-sm">3, 10 or 25 hints</p>
+                      </div>
+                      <span className="ml-auto text-white/80 text-sm font-medium">from $0.99</span>
+                    </motion.button>
+                  ) : (
+                    <div className="w-full p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-left flex items-center gap-4 opacity-60">
+                      <div className="p-3 bg-slate-200 dark:bg-slate-700 rounded-xl">
+                        <WifiOff className="w-6 h-6 text-slate-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-500 dark:text-slate-400">Buy Hint Pack</h3>
+                        <p className="text-slate-400 text-sm">Go online to purchase hints</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold">Buy Hint Pack</h3>
-                      <p className="text-amber-100 text-sm">3, 10 or 25 hints</p>
-                    </div>
-                    <span className="ml-auto text-white/80 text-sm font-medium">from $0.99</span>
-                  </motion.button>
+                  )}
 
                   <div className="flex items-center gap-1.5 justify-center pt-1">
                     <Star className="w-3 h-3 text-amber-400 fill-amber-400" />

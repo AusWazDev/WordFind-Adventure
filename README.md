@@ -1,39 +1,57 @@
-**Welcome to your Base44 project** 
+# WordFind Adventure
 
-**About**
+A word-finding puzzle game with multiple game modes, daily challenges, leaderboards, and audio-assisted play.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+## Game Modes
 
-This project contains everything you need to run your app locally.
+- **Word Find** — classic grid-based word search
+- **Anagram** — unscramble letters to find words
+- **Association** — find words linked by a common theme
+- **Spelling Bee** — make as many words as possible from a set of letters
+- **Tricky Sentences** — spot the hidden words in sentences
+- **Master Level** — advanced challenge with a bonus hidden word built from remaining letters
 
-**Edit the code in your local development environment**
+## Tech Stack
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+- **React 18** + **Vite**
+- **Tailwind CSS** + **shadcn/ui** component library
+- **React Router** for navigation
+- **Framer Motion** for animations
+- **Recharts** for stats visualisation
+- **Local storage** for offline progress & settings
 
-**Prerequisites:** 
+## Getting Started
 
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
+### Prerequisites
 
+- Node.js (v18+)
+- npm
+
+### Install & Run
+
+```bash
+git clone https://github.com/AusWazDev/WordFind-Adventure.git
+cd WordFind-Adventure
+npm install
+npm run dev
 ```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
 
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+The app will be available at `http://localhost:5173`
+
+### Other Commands
+
+```bash
+npm run build      # Production build
+npm run preview    # Preview production build locally
+npm run lint       # Run ESLint
 ```
 
-Run the app: `npm run dev`
+## Features
 
-**Publish your changes**
-
-Open [Base44.com](http://Base44.com) and click on Publish.
-
-**Docs & Support**
-
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
-
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+- Multiple difficulty levels (1–5, including Master)
+- Daily Challenge mode with shared puzzles
+- Leaderboard & personal stats tracking
+- Audio mode with voice assistance
+- Hint system with eye, speaker & lightbulb controls
+- Offline support via local storage
+- Pull-to-refresh on mobile

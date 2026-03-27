@@ -107,13 +107,6 @@ export default function GameModeSelector({ onSelectMode }) {
             <ChevronRight className="w-5 h-5 text-white/70 shrink-0 mt-1" />
           </div>
 
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {['Silent Letters', 'Homophones', '-OUGH Words', 'Double Letters', 'Misspelled'].map(tag => (
-              <span key={tag} className="px-2 py-0.5 bg-white/20 text-white text-[10px] font-medium rounded-full">
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
       </motion.button>
 
@@ -158,13 +151,6 @@ export default function GameModeSelector({ onSelectMode }) {
             <ChevronRight className="w-4 h-4 text-white/70 shrink-0 mt-1" />
           </div>
 
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {['All Categories', 'All Levels', 'Theme Clue', 'Decode the Grid'].map(tag => (
-              <span key={tag} className="px-2 py-0.5 bg-white/15 text-white text-[10px] font-medium rounded-full">
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
       </motion.button>
 

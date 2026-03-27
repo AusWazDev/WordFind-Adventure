@@ -4,12 +4,35 @@ import { Lightbulb, Trophy, Target, ArrowLeft, Volume2, VolumeX } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
+const levelNames = ['Easy', 'Medium', 'Hard', 'Expert', 'Master'];
+
+const modeLabels = {
+  standard: 'Standard',
+  audio: 'Audio Challenge',
+  anagram: 'Anagram Hunt',
+  spelling: 'Spelling Bee',
+  association: 'Word Association',
+};
+
+const categoryLabels = {
+  random: 'Random Mix', animals: 'Animals', food: 'Food', nature: 'Nature',
+  colors: 'Colors', sports: 'Sports', space: 'Space', music: 'Music',
+  countries: 'Countries', science: 'Science', mythology: 'Mythology',
+  technology: 'Technology', ocean: 'Ocean', history: 'History', emotions: 'Emotions',
+  tricky_mix: 'Tricky Mix', tricky_silent: 'Silent Letters',
+  tricky_homophones: 'Homophones', tricky_ough: '-OUGH Words',
+  tricky_double: 'Double Letters', tricky_misspelled: 'Misspelled',
+  tricky_ise_ize: '-ISE / -IZE', tricky_our_or: '-OUR / -OR',
+};
+
 export default function GameHeader({
   score,
   hintsRemaining,
   wordsFound,
   totalWords,
   level,
+  gameMode,
+  category,
   onBack,
   onUseHint,
   isAudioMode,
@@ -18,7 +41,14 @@ export default function GameHeader({
   compact = false,   // true in landscape — single row, no progress bar
 }) {
   const progress = (wordsFound / totalWords) * 100;
-  const levelNames = ['Easy', 'Medium', 'Hard', 'Expert'];
+  const levelLabel    = levelNames[level - 1] ?? `Level ${level}`;
+  const modeLabel     = modeLabels[gameMode]  ?? 'Standard';
+  const categoryLabel = category ? (categoryLabels[category] ?? category) : null;
+  // Subtitle: show mode (if not standard) and/or category
+  const subtitleParts = [];
+  if (gameMode && gameMode !== 'standard') subtitleParts.push(modeLabel);
+  if (categoryLabel) subtitleParts.push(categoryLabel);
+  const subtitle = subtitleParts.join(' · ');
 
   if (compact) {
     // ── Compact landscape header — everything on one row ────────────────────
@@ -31,10 +61,15 @@ export default function GameHeader({
 
         {/* Level badge */}
         <span className="px-2 py-0.5 bg-gradient-to-r from-violet-500 to-indigo-600 text-white text-xs font-medium rounded-full shrink-0">
-          {levelNames[level - 1]}
+          {levelLabel}
         </span>
 
-        {isAudioMode && (
+        {/* Category / mode subtitle pill */}
+        {subtitle ? (
+          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium rounded-full shrink-0 truncate max-w-[120px]">
+            {subtitle}
+          </span>
+        ) : isAudioMode && (
           <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-medium rounded-full flex items-center gap-1 shrink-0">
             <Volume2 className="w-3 h-3" /> Audio
           </span>
@@ -85,13 +120,20 @@ export default function GameHeader({
           <ArrowLeft className="w-5 h-5" />
         </Button>
 
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-gradient-to-r from-violet-500 to-indigo-600 text-white text-sm font-medium rounded-full">
-            {levelNames[level - 1]}
-          </span>
-          {isAudioMode && (
-            <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium rounded-full flex items-center gap-1">
-              <Volume2 className="w-3 h-3" /> Audio
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-gradient-to-r from-violet-500 to-indigo-600 text-white text-sm font-semibold rounded-full">
+              {levelLabel}
+            </span>
+            {isAudioMode && !subtitle && (
+              <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium rounded-full flex items-center gap-1">
+                <Volume2 className="w-3 h-3" /> Audio
+              </span>
+            )}
+          </div>
+          {subtitle && (
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+              {subtitle}
             </span>
           )}
         </div>

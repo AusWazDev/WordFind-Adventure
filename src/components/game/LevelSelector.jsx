@@ -92,13 +92,13 @@ export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLev
                 )}
               </div>
               <h4 className={cn(
-                "font-bold mt-0.5 text-xs leading-tight line-clamp-1",
+                "font-bold mt-1 text-sm leading-tight",
                 isUnlocked ? "text-slate-800 dark:text-slate-100" : "text-slate-400"
               )}>
                 {level.name}
               </h4>
               <p className={cn(
-                "text-[10px] whitespace-normal leading-none line-clamp-1",
+                "text-[11px] leading-tight line-clamp-2 mt-0.5",
                 isUnlocked ? "text-slate-600 dark:text-slate-400" : "text-slate-400"
               )}>
                 {level.description}

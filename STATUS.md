@@ -75,6 +75,16 @@ When hints = 0, Eye and Lightbulb open the hint purchase/watch-ad modal.
 - Agreed tech path: Capacitor for multi-platform, RevenueCat for purchases, AdMob for ads (future milestone)
 - Git push method on education network: SSH over port 443 (ssh://git@ssh.github.com:443/...)
 
+### 2026-03-27 (Session 3 — three major features implemented)
+- **Category/difficulty labels**: GameHeader now shows level name (incl. 'Master' fix) + category + mode as subtitle pill during gameplay; CategorySelector and LevelSelector button names upgraded to text-sm for better visibility
+- **Hint/reveal score penalty**: Eye (reveal word) = −50% score; Lightbulb (hint cell) = −25% score; penalty shown in toast; tracked via hintedWords state + revealedWordsRef/hintedWordsRef for stale-closure safety
+- **Bonus word redesign (full grid coverage)**:
+  - Bonus word is now category-themed (ELEPHANT for animals, CHOCOLATE for food, etc.) — 14 categories × 8 words each defined in `categoryBonusWordPairs`
+  - After placing 25 main words, algorithm reserves the first N empty cells (reading order) for the bonus word, then dynamically fills ALL remaining empty cells with extra words from the category pool (`buildFillerWordPool`)
+  - `tryPlaceWordDenseProtected` + `canPlaceWordAvoidingCells` ensure filler words never write into reserved bonus positions
+  - When all listed words are found, only the bonus letters remain unhighlighted — perfectly clean reveal
+  - Total word count is now dynamic (~40-50 for Master level)
+
 ### 2026-03-27 (Windows — Cowork session, continued from prior context)
 - Rebranded app: WordFind Adventure → SoundFind ("Hear it. Find it.")
 - Removed all Base44 dependencies (18 packages), simplified App.jsx
@@ -88,8 +98,9 @@ When hints = 0, Eye and Lightbulb open the hint purchase/watch-ad modal.
 - Fixed VictoryModal: level 5 "Master" label, Next Level cap, bonus result display
 
 ## Next Steps
-- [ ] Test bonus word mechanic end-to-end in browser (Master level)
+- [ ] Test bonus word mechanic end-to-end in browser (Master level — full grid coverage)
 - [ ] Test audio mode 3-button layout and hint modal behaviour
+- [ ] Test hint/reveal score penalty in all game modes
 - [ ] Plan and begin Capacitor integration for multi-platform builds
 - [ ] Connect RevenueCat SDK (replace alert() in HintModal + RemoveAdsModal)
 - [ ] Connect AdMob (replace Unsplash placeholder ads in AdModal + HintModal AdPlayer)

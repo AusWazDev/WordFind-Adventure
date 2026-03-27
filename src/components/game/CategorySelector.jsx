@@ -48,8 +48,8 @@ export default function CategorySelector({ onSelectCategory }) {
                )}>
                  <Icon className="w-4 h-4 text-white" />
                </div>
-               <h4 className="font-bold text-slate-800 dark:text-slate-100 text-xs leading-tight line-clamp-1">{category.name}</h4>
-               <p className="text-[10px] text-slate-600 dark:text-slate-400 whitespace-normal leading-none line-clamp-1">{category.description}</p>
+               <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">{category.name}</h4>
+               <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-tight line-clamp-2">{category.description}</p>
              </motion.button>
            );
          })}

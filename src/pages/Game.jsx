@@ -94,13 +94,20 @@ export default function Game() {
   const [bonusPoints, setBonusPoints] = useState(0);
   const [bonusInput, setBonusInput] = useState('');
 
+  // Track words where hint tools were used — for score penalties
+  const [hintedWords, setHintedWords] = useState(new Set());   // lightbulb used → -25%
+
   // Stable refs for handleWordFound — avoids recreating the callback on every word found
   const gameDataRef = useRef(null);
   const foundWordsRef = useRef([]);
+  const revealedWordsRef = useRef([]);
+  const hintedWordsRef = useRef(new Set());
   const bonusHuntActiveRef = useRef(false);
   const bonusFoundRef = useRef(false);
   useEffect(() => { gameDataRef.current = gameData; }, [gameData]);
   useEffect(() => { foundWordsRef.current = foundWords; }, [foundWords]);
+  useEffect(() => { revealedWordsRef.current = revealedWords; }, [revealedWords]);
+  useEffect(() => { hintedWordsRef.current = hintedWords; }, [hintedWords]);
   useEffect(() => { bonusHuntActiveRef.current = bonusHuntActive; }, [bonusHuntActive]);
   useEffect(() => { bonusFoundRef.current = bonusFound; }, [bonusFound]);
 
@@ -140,6 +147,7 @@ export default function Game() {
     setGameData(game);
     setFoundWords([]);
     setRevealedWords([]);
+    setHintedWords(new Set());
     setScore(0);
     setShowVictory(false);
     setBonusHuntActive(false);
@@ -160,7 +168,14 @@ export default function Game() {
     if (foundWord) {
       const newFoundWords = [...currentFound, foundWord];
       setFoundWords(newFoundWords);
-      const wordScore = calculateScore(foundWord, level, mode === 'audio');
+
+      // ── Score penalty for using hints ──────────────────────────────────────
+      // Eye (reveal) = 50% penalty · Lightbulb (hint cell) = 25% penalty
+      const wasRevealed = revealedWordsRef.current.includes(foundWord);
+      const wasHinted   = hintedWordsRef.current.has(foundWord);
+      const rawScore    = calculateScore(foundWord, level, mode === 'audio');
+      const multiplier  = wasRevealed ? 0.5 : wasHinted ? 0.75 : 1.0;
+      const wordScore   = Math.round(rawScore * multiplier);
       setScore(prev => prev + wordScore);
 
       // Speak feedback — unlockAudio() first so iOS allows it.
@@ -172,7 +187,8 @@ export default function Game() {
         });
       }
 
-      toast.success(`+${wordScore} points!`, { description: `Found: ${foundWord.toUpperCase()}` });
+      const penaltyNote = wasRevealed ? ' (−50% penalty)' : wasHinted ? ' (−25% penalty)' : '';
+      toast.success(`+${wordScore} points!${penaltyNote}`, { description: `Found: ${foundWord.toUpperCase()}` });
 
       if (newFoundWords.length === currentGame.words.length) {
         // Master level with a valid bonus word → start bonus hunt instead of victory
@@ -258,6 +274,8 @@ export default function Game() {
     const newHints = hintsRemaining - 1;
     setHintsRemaining(newHints);
     if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+    // Mark this word as hinted — score will be reduced by 25% when found
+    setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
     setHintCells([positions[0]]);
     setHintWord(word.toLowerCase());
     setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
@@ -329,7 +347,8 @@ export default function Game() {
     score, hintsRemaining,
     wordsFound: foundWords.length,
     totalWords: gameData.words.length,
-    level, onBack: handleHome,
+    level, gameMode: mode, category,
+    onBack: handleHome,
     onUseHint: handleUseHint,
     isAudioMode: mode === 'audio',
     audioEnabled,

@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 const REMOVE_ADS_PRICE = '$2.99';
 
 export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
-  const [success] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
 
   const handlePurchase = () => {
     // In-app purchase: handled by the native store billing layer.
     // onSuccess() is called only after a confirmed store transaction.
+    // TODO: replace with RevenueCat purchase call on release.
     alert(`In-app purchases will be available on release.\nRemove Ads — ${REMOVE_ADS_PRICE} (one-time)`);
   };
 

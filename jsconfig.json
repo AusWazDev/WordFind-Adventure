@@ -9,9 +9,7 @@
     "moduleResolution": "bundler",
     "lib": ["esnext", "dom"],
     "target": "esnext",
-    "checkJs": true,
-    "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
+"allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "types": []

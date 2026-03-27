@@ -123,7 +123,7 @@ export default function WordList({
                       ? 'text-amber-700 font-bold'
                       : 'text-foreground'
                   )}>
-                    {showWord ? word : '• • • • •'}
+                    {showWord ? word.toUpperCase() : '• • • • •'}
                   </span>
                   {showWord && !isFound && trickyHint && (
                     <span className="text-xs text-muted-foreground truncate mt-0.5">
@@ -132,9 +132,9 @@ export default function WordList({
                   )}
                 </div>
 
+                {/* Audio mode: Speaker + Eye reveal + Lightbulb */}
                 {isAudioMode && !isFound && (
                   <div className="flex gap-1">
-                    {/* Speaker — play audio (always free, no hint cost) */}
                     <Button
                       size="icon"
                       variant="ghost"
@@ -144,8 +144,6 @@ export default function WordList({
                     >
                       <Volume2 className="w-4 h-4" />
                     </Button>
-
-                    {/* Eye — reveal word text (uses a hint; handler shows purchase modal if 0) */}
                     {!isRevealed && (
                       <Button
                         size="icon"
@@ -157,18 +155,29 @@ export default function WordList({
                         <Eye className="w-4 h-4" />
                       </Button>
                     )}
-
-                    {/* Lightbulb — flash first letter on grid (uses a hint; handler shows purchase modal if 0) */}
                     <Button
                       size="icon"
                       variant="ghost"
                       className="h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
                       onClick={() => onHintCell?.(word)}
-                      title="Show first letter in grid (uses a hint)"
+                      title="Flash first letter on grid (uses a hint)"
                     >
                       <Lightbulb className="w-4 h-4" />
                     </Button>
                   </div>
+                )}
+
+                {/* Non-audio modes: Lightbulb only — flash first letter in grid */}
+                {!isAudioMode && !isFound && onHintCell && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-9 w-9 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
+                    onClick={() => onHintCell(word)}
+                    title="Flash first letter on grid (uses a hint, −25% score penalty)"
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                  </Button>
                 )}
               </motion.div>
             );

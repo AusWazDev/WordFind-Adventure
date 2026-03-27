@@ -5,7 +5,6 @@ import GameBoard from '@/components/game/GameBoard';
 import WordList from '@/components/game/WordList';
 import AnagramWordList from '@/components/game/AnagramWordList';
 import AssociationWordList from '@/components/game/AssociationWordList';
-import SpellingBeeWordList from '@/components/game/SpellingBeeWordList';
 import GameHeader from '@/components/game/GameHeader';
 import GameLoadingScreen from '@/components/game/GameLoadingScreen';
 import HintModal from '@/components/game/HintModal';
@@ -48,9 +47,6 @@ function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, o
         hintsRemaining={hintsRemaining}
       />
     );
-  }
-  if (mode === 'spelling') {
-    return <SpellingBeeWordList words={gameData.words} foundWords={foundWords} hintWord={hintWord} />;
   }
   return (
     <WordList
@@ -143,7 +139,7 @@ export default function Game() {
   };
 
   const initGame = async () => {
-    const game = generateGame(level, category, mode === 'audio');
+    const game = generateGame(level, category, mode === 'audio', mode === 'mystery_word');
     setGameData(game);
     setFoundWords([]);
     setRevealedWords([]);

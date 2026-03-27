@@ -1,18 +1,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, Volume2, ChevronRight, Shuffle, Brain, Mic, WifiOff, Sparkles } from 'lucide-react';
+import { Search, Volume2, ChevronRight, Shuffle, Brain, WifiOff, Sparkles, Eye, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 const REQUIRES_ONLINE  = new Set(['association']);
 const DEGRADED_OFFLINE = new Set(['audio']);
 
-// Non-audio modes shown below the hero card
+// Flat tiles shown below the two hero cards
 const OTHER_MODES = [
   {
     id: 'standard',
     name: 'Standard',
-    description: 'Classic word search with visible word list',
+    description: 'Classic word search with a visible word list',
     icon: Search,
     gradient: 'from-violet-500 to-indigo-600',
     bgGradient: 'from-violet-50 to-indigo-50',
@@ -27,18 +27,9 @@ const OTHER_MODES = [
     badge: 'New!',
   },
   {
-    id: 'spelling',
-    name: 'Spelling Bee',
-    description: 'Spell each word correctly to reveal it',
-    icon: Mic,
-    gradient: 'from-emerald-500 to-teal-600',
-    bgGradient: 'from-emerald-50 to-teal-50',
-    badge: 'New!',
-  },
-  {
     id: 'association',
     name: 'Word Association',
-    description: 'Find words by their clue, not the word itself',
+    description: 'Find words from their clue, not the word itself',
     offlineDescription: 'Requires internet for AI-generated clues',
     icon: Brain,
     gradient: 'from-cyan-500 to-blue-600',
@@ -69,7 +60,7 @@ export default function GameModeSelector({ onSelectMode }) {
         </motion.div>
       )}
 
-      {/* ── Audio Challenge hero card ─────────────────────────────────────── */}
+      {/* ── Hero 1 · Audio Challenge ──────────────────────────────────────── */}
       <motion.button
         onClick={() => onSelectMode('audio')}
         className={cn(
@@ -85,18 +76,15 @@ export default function GameModeSelector({ onSelectMode }) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        {/* Decorative background circles */}
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 -translate-y-8 translate-x-8 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full bg-white/10 translate-y-6 -translate-x-6 pointer-events-none" />
 
         <div className="relative p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              {/* Icon */}
               <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm shrink-0">
                 <Volume2 className="w-6 h-6 text-white" />
               </div>
-
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="font-bold text-white text-base">Audio Challenge</h4>
@@ -116,11 +104,9 @@ export default function GameModeSelector({ onSelectMode }) {
                 </p>
               </div>
             </div>
-
             <ChevronRight className="w-5 h-5 text-white/70 shrink-0 mt-1" />
           </div>
 
-          {/* Word type pills */}
           <div className="flex flex-wrap gap-1.5 mt-3">
             {['Silent Letters', 'Homophones', '-OUGH Words', 'Double Letters', 'Misspelled'].map(tag => (
               <span key={tag} className="px-2 py-0.5 bg-white/20 text-white text-[10px] font-medium rounded-full">
@@ -131,14 +117,65 @@ export default function GameModeSelector({ onSelectMode }) {
         </div>
       </motion.button>
 
+      {/* ── Hero 2 · Mystery Word ─────────────────────────────────────────── */}
+      <motion.button
+        onClick={() => onSelectMode('mystery_word')}
+        className={cn(
+          'w-full rounded-2xl text-left overflow-hidden relative',
+          'bg-gradient-to-br from-indigo-500 via-purple-600 to-violet-700',
+          'shadow-md shadow-purple-200 dark:shadow-purple-900',
+          'hover:shadow-lg hover:shadow-purple-300 transition-all',
+          'border border-indigo-400'
+        )}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        whileHover={{ scale: 1.015 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {/* Subtle decorative circles */}
+        <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 pointer-events-none" />
+        <div className="absolute bottom-0 left-4 w-14 h-14 rounded-full bg-white/10 translate-y-4 pointer-events-none" />
+
+        <div className="relative p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm shrink-0">
+                <Eye className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-bold text-white text-sm">Mystery Word</h4>
+                  <span className="px-2 py-0.5 bg-white/25 text-white text-[10px] font-bold rounded-full">
+                    ✨ New!
+                  </span>
+                </div>
+                <p className="text-white/85 text-xs mt-1 leading-snug">
+                  Find every word in the grid — the remaining letters reveal a hidden mystery word
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-white/70 shrink-0 mt-1" />
+          </div>
+
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {['All Categories', 'All Levels', 'Theme Clue', 'Decode the Grid'].map(tag => (
+              <span key={tag} className="px-2 py-0.5 bg-white/15 text-white text-[10px] font-medium rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </motion.button>
+
       {/* ── Divider ───────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2">
         <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-        <span className="text-xs text-slate-400 font-medium">other modes</span>
+        <span className="text-xs text-slate-400 font-medium">more modes</span>
         <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
       </div>
 
-      {/* ── Other modes ───────────────────────────────────────────────────── */}
+      {/* ── Flat tiles ────────────────────────────────────────────────────── */}
       <div className="space-y-2">
         {OTHER_MODES.map((mode, index) => {
           const Icon = mode.icon;
@@ -158,7 +195,7 @@ export default function GameModeSelector({ onSelectMode }) {
               )}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 + index * 0.07 }}
+              transition={{ delay: 0.15 + index * 0.07 }}
               whileHover={isDisabled ? {} : { scale: 1.02, x: 4 }}
               whileTap={isDisabled ? {} : { scale: 0.98 }}
             >

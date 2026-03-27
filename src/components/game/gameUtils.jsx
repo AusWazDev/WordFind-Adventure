@@ -746,20 +746,6 @@ const categoryBonusWordPairs = {
   ],
 };
 
-function pickCategoryBonusWord(category, usedSet) {
-  const key = (!category || category === 'random' || category.startsWith('tricky_'))
-    ? 'random'
-    : category;
-  const pool = (categoryBonusWordPairs[key] || categoryBonusWordPairs.random)
-    .filter(({ word }) => !usedSet.has(word.toUpperCase()) && word.length >= 5 && word.length <= 12);
-  if (pool.length > 0) return pool[Math.floor(Math.random() * pool.length)];
-  // Fallback to generic themes
-  const fallback = masterBonusThemes.filter(
-    ({ word }) => !usedSet.has(word.toUpperCase()) && word.length <= 10
-  );
-  return fallback.length > 0 ? fallback[Math.floor(Math.random() * fallback.length)] : null;
-}
-
 // ─── Anagram helper ───────────────────────────────────────────────────────────
 
 export function scrambleWord(word) {
@@ -905,67 +891,6 @@ function canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize
     if (cell !== '' && cell !== word[i]) return false;
   }
   return true;
-}
-
-function tryPlaceWordDenseProtected(grid, word, gridSize, wordPositions, protectedKeys) {
-  const candidates = [];
-  for (let r = 0; r < gridSize; r++) {
-    for (let c = 0; c < gridSize; c++) {
-      if (grid[r][c] === '') continue;
-      for (let charIdx = 0; charIdx < word.length; charIdx++) {
-        if (word[charIdx] !== grid[r][c]) continue;
-        for (const dir of directions) {
-          const startRow = r - charIdx * dir.row;
-          const startCol = c - charIdx * dir.col;
-          if (!canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize, protectedKeys)) continue;
-          let overlaps = 0;
-          for (let i = 0; i < word.length; i++) {
-            if (grid[startRow + i * dir.row][startCol + i * dir.col] !== '') overlaps++;
-          }
-          candidates.push({ startRow, startCol, dir, overlaps });
-        }
-      }
-    }
-  }
-  if (candidates.length > 0) {
-    // Only accept placements that write at least one new cell — pure overlaps
-    // mean the word is entirely hidden inside existing letters (no grid coverage gain).
-    const newCellCandidates = candidates.filter(c => c.overlaps < word.length);
-    if (newCellCandidates.length === 0) return false; // all positions are 100% overlap — skip
-    newCellCandidates.sort((a, b) => b.overlaps - a.overlaps);
-    const topTier = newCellCandidates.filter(c => c.overlaps === newCellCandidates[0].overlaps);
-    const chosen  = topTier[Math.floor(Math.random() * topTier.length)];
-    placeWord(grid, word, chosen.startRow, chosen.startCol, chosen.dir, wordPositions);
-    return true;
-  }
-  // Fallback: random placement avoiding protected cells
-  const shuffledDirs = fisherYates([...directions]);
-  for (const dir of shuffledDirs) {
-    for (let attempt = 0; attempt < 30; attempt++) {
-      const startRow = Math.floor(Math.random() * gridSize);
-      const startCol = Math.floor(Math.random() * gridSize);
-      if (canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize, protectedKeys)) {
-        // Reject placements where every cell is already filled (no new coverage)
-        let overlaps = 0;
-        for (let i = 0; i < word.length; i++) {
-          if (grid[startRow + i * dir.row][startCol + i * dir.col] !== '') overlaps++;
-        }
-        if (overlaps === word.length) continue;
-        placeWord(grid, word, startRow, startCol, dir, wordPositions);
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function hasEmptyNonProtectedCell(grid, gridSize, protectedKeys) {
-  for (let r = 0; r < gridSize; r++) {
-    for (let c = 0; c < gridSize; c++) {
-      if (grid[r][c] === '' && !protectedKeys.has(`${r},${c}`)) return true;
-    }
-  }
-  return false;
 }
 
 // CR-05: Filler pool for Mystery Word mode is RESTRICTED to the active category.

@@ -5,28 +5,31 @@ A word-finding game app (formerly "WordFind Adventure") rebranded to **SoundFind
 Tagline: *Hear it. Find it.*
 GitHub: https://github.com/AusWazDev/WordFind-Adventure
 
+**Baseline commit:** `129f64f` — established 27 March 2026. All future changes managed via Change Register.
+
 ## Tech Stack
 - React 18 + Vite 6
 - Tailwind CSS + shadcn/ui component library
 - Framer Motion (animations)
 - React Router DOM v6
 - Web Speech API (TTS for Audio mode)
-- localStorage only — fully decoupled from Base44
+- localStorage only — fully offline, no backend
 - canvas-confetti (victory screen)
 
 ## Project Structure
 - `src/pages/` — Home, Game, DailyChallenge, Leaderboard, Stats, Settings
-- `src/components/game/` — GameBoard, GameHeader, WordList, VictoryModal, HintModal, RemoveAdsModal, voiceUtils, gameUtils, offlineStorage, trickySentences, etc.
+- `src/components/game/` — GameBoard, GameHeader, WordList, VictoryModal, HintModal, AdModal, RemoveAdsModal, HowToPlayModal, voiceUtils, gameUtils, offlineStorage, trickySentences, etc.
 - `src/components/ui/` — shadcn/ui base components
 - `src/utils/index.js` — createPageUrl() helper
 
 ## Game Modes
-- **Standard** — classic word find
-- **Audio** — words are spoken, grid labels hidden until revealed
-- **Anagram** — unscramble words
-- **Association** — theme-linked words
-- **Spelling Bee** — free-form letter set
-- **Tricky Sentences** — spot hidden words in sentences
+| Mode | Description |
+|------|-------------|
+| **Audio Challenge** | Words spoken aloud — find the spelling in the grid. Featured mode. |
+| **Mystery Word** | Find all words — remaining letters reveal a hidden mystery word. |
+| **Standard** | Classic word search — word list visible, find them all. |
+| **Anagram Hunt** | Words shown scrambled — unscramble then find them. |
+| **Word Association** | Hand-crafted clue shown instead of the word — works fully offline. |
 
 ## Difficulty Levels
 | Level | Grid | Words | Notes |
@@ -35,39 +38,46 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 | 2 Medium | 10×10 | 10 | Standard |
 | 3 Hard | 12×12 | 15 | Standard |
 | 4 Expert | 15×15 | 20 | Standard |
-| 5 Master | 15×15 | 25 | Dense crossword placement + bonus word |
+| 5 Master | 15×15 | 25 | Dense crossword placement + Mystery Word |
 
-## Master Level — Bonus Word Mechanic
-After all 25 words are found, a bonus hunt activates:
-- The bonus word letters occupy the **first N empty cells in reading order** (left→right, top→bottom) after all list words are placed
-- During bonus hunt those cells glow gold/amber in the grid
-- Player reads the gold letters, types the word into a text input and submits
-- Correct → word_length × 50 bonus points; wrong → error toast (unlimited tries)
-- Header hint button flashes the first gold cell
-- Skip button available to go straight to victory
+## Mystery Word Mode (all levels)
+- After placing all main words, ALL remaining empty cells become the mystery word area
+- Filler words (category-only) fill cells first; exact remaining cell count determines mystery word length
+- `findMysteryWord()` searches categoryBonusWordPairs → wordLists for exact-length match
+- Amber cells highlight when all main words found; player reveals the hidden word
+- Works across all 5 difficulty levels and all categories
 
-## Audio Mode — Word List Buttons
-Each unfound word shows 3 buttons (left to right):
-1. 🔊 **Speaker** (violet) — plays the word aloud, free
-2. 👁️ **Eye** (amber) — reveals word text, costs 1 hint
-3. 💡 **Lightbulb** (green) — flashes first letter on grid, costs 1 hint
-When hints = 0, Eye and Lightbulb open the hint purchase/watch-ad modal.
+## Hint System
+- Players start with **12 free hints** on first launch
+- **Lightbulb** (non-audio modes) — flashes first letter of a word on the grid. Costs 1 hint, −25% score penalty for that word.
+- **Eye** (Audio Challenge only) — reveals word text. Costs 1 hint, −50% score penalty for that word.
+- Out of hints: watch a short ad (1 hint) or purchase a hint pack via IAP
+- Both ad-watch and IAP are **disabled when offline** — greyed-out with "Go online" message
 
-## Monetisation (planned)
-- **Ads** — banner/interstitial (AdMob — placeholder Unsplash images currently)
-- **Remove Ads** — $2.99 one-time IAP (RevenueCat — alert() placeholder currently)
-- **Hint packs** — purchase extra hints (RevenueCat — alert() placeholder currently)
+## Monetisation (confirmed model)
+- **Free to download** — 12 hints preloaded on first launch
+- **Interstitial ads** — every 3 game starts (AdModal) — skipped silently when offline
+- **Watch ad** — earn 1 hint per ad (~15 seconds) — requires online
+- **Hint packs** — 3 hints $0.99 · 10 hints $1.99 · 25 hints $3.99 (prices TBC, RevenueCat TODO)
+- **Remove Ads** — $2.99 one-time purchase (RevenueCat TODO)
+- Real AdMob integration deferred to Phase 5 (Capacitor setup)
 
-## Multi-platform (planned)
-- Capacitor for iOS / Android / Windows / Mac builds
-- Target stores: App Store, Google Play, Microsoft Store
+## Multi-platform Roadmap
+- **Web PWA** — Vercel deployment (beta testing via `*.vercel.app` URL, testers add to home screen)
+- **Native** — Capacitor for iOS / Android builds (Phase 5)
+- **App Stores** — Apple App Store + Google Play (Phase 6)
+- **Domain** — `uniquegames.com.au` reserved on Hostgator (pending ABN); `play.uniquegames.com.au` → Vercel once active
+
+## Change Management
+All changes tracked in `Claude/SoundFind — Change Register.md` (in workspace folder).
+Raise a CR before making any code changes. Defects logged with commit references.
+Current baseline: commit `129f64f`
 
 ## Session Log
 
 ### 2026-03-27 (Mac — Cowork setup session)
 - Connected project to Cowork on Mac via GitHub clone
 - Set up STATUS.md for cross-device continuity
-- Repo cloned to ~/WordFind-Adventure on Mac
 - Rewrote README.md — removed all Base44 references, added accurate project description
 - Removed TypeScript dead code: @types packages, typescript dep, typecheck script, converted utils/index.ts → .js
 - Fixed RemoveAdsModal crash: added missing `success` setter and `purchasing` state vars
@@ -75,34 +85,52 @@ When hints = 0, Eye and Lightbulb open the hint purchase/watch-ad modal.
 - Agreed tech path: Capacitor for multi-platform, RevenueCat for purchases, AdMob for ads (future milestone)
 - Git push method on education network: SSH over port 443 (ssh://git@ssh.github.com:443/...)
 
-### 2026-03-27 (Session 3 — three major features implemented)
-- **Category/difficulty labels**: GameHeader now shows level name (incl. 'Master' fix) + category + mode as subtitle pill during gameplay; CategorySelector and LevelSelector button names upgraded to text-sm for better visibility
-- **Hint/reveal score penalty**: Eye (reveal word) = −50% score; Lightbulb (hint cell) = −25% score; penalty shown in toast; tracked via hintedWords state + revealedWordsRef/hintedWordsRef for stale-closure safety
-- **Bonus word redesign (full grid coverage)**:
-  - Bonus word is now category-themed (ELEPHANT for animals, CHOCOLATE for food, etc.) — 14 categories × 8 words each defined in `categoryBonusWordPairs`
-  - After placing 25 main words, algorithm reserves the first N empty cells (reading order) for the bonus word, then dynamically fills ALL remaining empty cells with extra words from the category pool (`buildFillerWordPool`)
-  - `tryPlaceWordDenseProtected` + `canPlaceWordAvoidingCells` ensure filler words never write into reserved bonus positions
-  - When all listed words are found, only the bonus letters remain unhighlighted — perfectly clean reveal
-  - Total word count is now dynamic (~40-50 for Master level)
+### 2026-03-27 (Session 3 — three major features)
+- Category/difficulty labels in GameHeader
+- Hint/reveal score penalty (Eye −50%, Lightbulb −25%)
+- Bonus word redesign with full grid coverage (categoryBonusWordPairs, buildFillerWordPool)
 
-### 2026-03-27 (Windows — Cowork session, continued from prior context)
-- Rebranded app: WordFind Adventure → SoundFind ("Hear it. Find it.")
+### 2026-03-27 (Windows — continued from prior context)
+- Rebranded app: WordFind Adventure → SoundFind
 - Removed all Base44 dependencies (18 packages), simplified App.jsx
-- Fixed 7 critical bugs: timer split effect, race condition in level nav, async errors, localStorage quota
+- Fixed 7 critical bugs: timer, race condition, async errors, localStorage quota
 - Fixed duplicate words bug (Fisher-Yates shuffle, Set() deduplication)
-- Improved TTS voice quality (Google voice priority, Desktop SAPI penalty, lowercase spoken words)
-- Added Master level (level 5): dense crossword placement, 25 words, Skull icon, col-span-2 card
-- Added bonus hidden word mechanic for Master level (reading-order letter placement)
-- Added 3-button audio word list: Speaker → Eye → Lightbulb (fixed disabled/modal bug)
-- Fixed hint button during bonus hunt (flashes first gold cell)
-- Fixed VictoryModal: level 5 "Master" label, Next Level cap, bonus result display
+- Improved TTS voice quality (Google voice priority)
+- Added Master level (level 5): dense crossword placement, 25 words
+- Added 3-button audio word list: Speaker → Eye → Lightbulb
+- Fixed hint button, VictoryModal, level labels
 
-## Next Steps
-- [ ] Test bonus word mechanic end-to-end in browser (Master level — full grid coverage)
-- [ ] Test audio mode 3-button layout and hint modal behaviour
-- [ ] Test hint/reveal score penalty in all game modes
-- [ ] Plan and begin Capacitor integration for multi-platform builds
-- [ ] Connect RevenueCat SDK (replace alert() in HintModal + RemoveAdsModal)
-- [ ] Connect AdMob (replace Unsplash placeholder ads in AdModal + HintModal AdPlayer)
-- [ ] Update domain: uniquegames.com.au → point to HostGator once DNS propagates
-- [ ] First production deployment to HostGator (npm run build → upload dist/)
+### 2026-03-27 (Windows — CR-01 to CR-06 + defect fixes)
+- CR-01: Removed Spelling Bee mode entirely
+- CR-02: Promoted Mystery Word to secondary hero card, reordered mode tiles
+- CR-03: Added Lightbulb hint button to all non-audio modes (−25% penalty)
+- CR-04: Expanded Word Association clues from ~50 to ~800 (all 13 categories + tricky audio words)
+- CR-05: Restricted Mystery Word filler pool to active category only
+- CR-06: Full-grid Mystery Word coverage — all remaining empty cells define mystery word length
+- DEF-01: Word list uppercase fix
+- DEF-02: 100% overlap placement prevention
+- DEF-03: Homophone label gated to audio mode only
+- DEF-04: Compact header max-width increased to prevent category truncation
+- Removed pill tags from Audio and Mystery Word hero cards
+
+### 2026-03-27 (Windows — CR-07 to CR-12 + baseline)
+- CR-07: Removed dead `spelling` entry from GameHeader modeLabels
+- CR-08: Emptied REQUIRES_ONLINE set; Word Association now correctly marked offline-capable
+- CR-09: HowToPlayModal updated — Mystery Word added, Spelling Bee removed, clue description fixed, hint penalties documented, nav buttons and tile text fixed
+- CR-10: 12 free hints on first launch; interstitial ad skipped offline; HintModal offline placeholders
+- CR-11: Removed 3 dead functions from gameUtils.jsx (old Mystery Word algorithm)
+- CR-12: Settings page refreshed — all 5 levels, all 23 categories, back button, auto-save indicator, Theme stub removed, "Delete Account" → "Reset Game Data"
+- **Baseline established at commit `129f64f`**
+- Launch Plan and Change Register created in workspace folder
+- All 6 decision points resolved (app name, Mac/Xcode, monetisation, ads, domain, analytics)
+
+## Next Steps (Priority Order)
+- [ ] Deploy to Vercel for beta testing (Waz to complete — personal account selected)
+- [ ] Beta test all game modes, levels and categories — log defects via Change Register
+- [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
+- [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
+- [ ] App icon design (1024×1024 master)
+- [ ] PWA manifest + service worker (vite-plugin-pwa)
+- [ ] Capacitor setup for iOS/Android native builds
+- [ ] Analytics: PostHog + Sentry integration (before public launch)
+- [ ] Privacy Policy page on uniquegames.com.au (required for App Store submissions)

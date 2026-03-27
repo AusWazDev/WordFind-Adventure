@@ -12,6 +12,7 @@ const modeLabels = {
   anagram: 'Anagram Hunt',
   spelling: 'Spelling Bee',
   association: 'Word Association',
+  mystery_word: 'Mystery Word',
 };
 
 const categoryLabels = {
@@ -66,7 +67,7 @@ export default function GameHeader({
 
         {/* Category / mode subtitle pill */}
         {subtitle ? (
-          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium rounded-full shrink-0 truncate max-w-[120px]">
+          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium rounded-full shrink-0 truncate max-w-[200px]">
             {subtitle}
           </span>
         ) : isAudioMode && (
@@ -132,7 +133,7 @@ export default function GameHeader({
             )}
           </div>
           {subtitle && (
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+            <span className="px-3 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-full mt-0.5">
               {subtitle}
             </span>
           )}

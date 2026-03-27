@@ -125,7 +125,7 @@ export default function WordList({
                   )}>
                     {showWord ? word.toUpperCase() : '• • • • •'}
                   </span>
-                  {showWord && !isFound && trickyHint && (
+                  {isAudioMode && showWord && !isFound && trickyHint && (
                     <span className="text-xs text-muted-foreground truncate mt-0.5">
                       {trickyHint}
                     </span>

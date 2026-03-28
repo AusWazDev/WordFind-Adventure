@@ -45,7 +45,7 @@ All future changes must be raised as a Change Request, approved before implement
 | DEF-09 | WelcomeScreen feature grid references removed game mode "Spelling Bee" (🐝) — replaced with Mystery Word (🔍) | ✅ Fixed | `ce06d61` | Mar 2026 |
 | DEF-10 | Audio Challenge word list dots (• • • • •) wrapping onto second line in narrow containers — added `whitespace-nowrap` to dot span in `WordList.jsx` | ✅ Fixed | `0be8117` | Mar 2026 |
 | DEF-11 | Audio Challenge using robotic Microsoft voice instead of Google US English — `getVoices()` was caching only local (Microsoft) voices on first synchronous call before Chrome's `voiceschanged` fired with full list; removed early-return short-circuit in `voiceUtils.jsx` | ✅ Fixed | `b2ee77f` | Mar 2026 |
-| DEF-12 | Audio Challenge voice quality poor on Safari/Mac — root cause unknown; Chrome fix (DEF-11) may or may not apply; investigation required on Mac. See `docs/Safari Voice Investigation.md` for full diagnostic steps. | 🔍 Investigating | — | Mar 2026 |
+| DEF-12 | Audio Challenge voice quality poor on Safari/Mac — investigated on Mac (29 Mar). Safari returns 223 voices synchronously; no enhanced voices installed on test Mac. Scoring algorithm correctly selects Karen (en-AU, score 105). No code fix required — quality limited by macOS installed voices. iOS beta testers will have Karen (Enhanced) pre-installed and will get high-quality audio automatically. | ✅ Closed (no code change) | — | Mar 2026 |
 
 ---
 
@@ -72,4 +72,4 @@ All future changes must be raised as a Change Request, approved before implement
 
 ---
 
-*Last updated: 28 March 2026*
+*Last updated: 29 March 2026*

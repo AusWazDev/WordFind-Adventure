@@ -151,8 +151,17 @@ Current baseline: commit `129f64f`
 - DEF-11: Audio Challenge using robotic Microsoft voice instead of Google US English — `getVoices()` was short-circuiting on first synchronous call (only 8 local Microsoft voices) before Chrome's `voiceschanged` fired with all 27 voices including Google ones; removed early-return in `voiceUtils.jsx`
 - DEF-12 raised: Audio Challenge voice quality poor on Safari/Mac — separate issue from DEF-11; investigation handed off to Mac session. Full diagnostic steps in `docs/Safari Voice Investigation.md`
 
+### 2026-03-29 (Mac — DEF-12 investigation, beta message finalised)
+- Beta tester invite message finalised — deadline set to Saturday 11 April, links reformatted, signed off as "Thanks Waz!" — sent via iMessage
+- DEF-12 investigated on Mac using Safari Web Inspector console diagnostic
+  - Safari returns 223 voices synchronously (no voiceschanged timing issue)
+  - No enhanced voices installed on test Mac (Paula's MacBook Air) — only basic compact voices available
+  - Scoring algorithm working correctly — Karen (en-AU) selected at score 105, novelty voices correctly ignored
+  - **No code fix required** — voice quality limited by macOS installed voices, not a bug
+  - iOS beta testers will have Karen (Enhanced) pre-installed; they will get high-quality audio automatically
+  - DEF-12 closed with no code change; `docs/Safari Voice Investigation.md` retained for reference
+
 ## Next Steps (Priority Order)
-- [ ] **DEF-12: Safari/Mac voice quality** — run diagnostic in `docs/Safari Voice Investigation.md`, identify root cause, fix and log commit
 - [ ] **Beta testing in progress** — send invite message to testers, monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor

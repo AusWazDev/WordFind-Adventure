@@ -913,22 +913,35 @@ function buildFillerWordPool(category, usedSet) {
 // CR-06: After filling, find a mystery word whose length exactly matches the
 // remaining empty cells. Searches the active category word list first (for
 // thematic consistency), then the bonus pairs, then all categories for random.
-function findMysteryWord(category, usedSet, targetLength) {
+// placedLetters: Set of all letters already used by placed words — mystery word
+// is preferred when it contains at least one letter NOT in this set, ensuring it
+// contributes something the player cannot deduce purely from the regular word list.
+function findMysteryWord(category, usedSet, targetLength, placedLetters) {
   if (targetLength < 2) return null;
 
   const catKey = (category && category !== 'random' && !category.startsWith('tricky_') && wordLists[category])
     ? category
     : null;
 
-  // Helper: scan a word array for an exact length match not already used
-  const findIn = (arr) => arr.find(w => {
-    const up = w.toUpperCase();
-    return up.length === targetLength && !usedSet.has(up);
-  }) || null;
+  // True if the word adds at least one letter not already present in placed words.
+  // Falls back to allowing any word if placedLetters not provided.
+  const hasUniqueLetter = (word) =>
+    !placedLetters || word.toUpperCase().split('').some(l => !placedLetters.has(l));
+
+  // Helper: scan a word array for exact length matches not already used.
+  // Returns the first candidate with a unique letter; falls back to any valid match.
+  const findIn = (arr) => {
+    const candidates = arr.filter(w => {
+      const up = w.toUpperCase();
+      return up.length === targetLength && !usedSet.has(up);
+    });
+    return candidates.find(w => hasUniqueLetter(w)) || candidates[0] || null;
+  };
 
   // 1. Category bonus pairs (come with a nice hint)
   const bonusPairs = catKey ? (categoryBonusWordPairs[catKey] || []) : [];
-  const matchedPair = bonusPairs.find(e => e.word.length === targetLength && !usedSet.has(e.word));
+  const bonusCandidates = bonusPairs.filter(e => e.word.length === targetLength && !usedSet.has(e.word));
+  const matchedPair = bonusCandidates.find(e => hasUniqueLetter(e.word)) || bonusCandidates[0] || null;
   if (matchedPair) return matchedPair;
 
   // 2. Regular category word list (generate a generic hint)
@@ -939,13 +952,15 @@ function findMysteryWord(category, usedSet, targetLength) {
     return { word: matchedWord.toUpperCase(), hint: `A ${targetLength}-letter ${label} word 🔎` };
   }
 
-  // 3. Any bonus pair across all categories (better hints)
+  // 3. Any bonus pair across all categories — last resort only
+  // (filler loop should have stopped at a valid category length, making this rare)
   for (const pairs of Object.values(categoryBonusWordPairs)) {
-    const p = pairs.find(e => e.word.length === targetLength && !usedSet.has(e.word));
+    const candidates = pairs.filter(e => e.word.length === targetLength && !usedSet.has(e.word));
+    const p = candidates.find(e => hasUniqueLetter(e.word)) || candidates[0] || null;
     if (p) return p;
   }
 
-  // 4. Any word from any category
+  // 4. Any word from any category — final fallback
   const anyWord = findIn(Object.values(wordLists).flat());
   if (anyWord) return { word: anyWord.toUpperCase(), hint: `A hidden ${targetLength}-letter word 🔎` };
 
@@ -1024,11 +1039,27 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
   if (bonusWordMode) {
     const currentUsed = new Set(placedWords.map(w => w.toUpperCase()));
 
-    // ── Step 1: Fill as many empty cells as possible with category filler ──
+    // Pre-compute the word lengths available in the current category so the
+    // filler loop can stop as soon as the empty cell count matches one of them.
+    // This prevents the filler from overshooting, which would force findMysteryWord
+    // to fall through to a cross-category word (DEF-17 fix).
+    const _catKey = (category && category !== 'random' && !category.startsWith('tricky_') && wordLists[category])
+      ? category : null;
+    const _mysteryPool = _catKey
+      ? [...(categoryBonusWordPairs[_catKey] || []).map(e => e.word), ...(wordLists[_catKey] || [])]
+      : Object.values(wordLists).flat();
+    const validMysteryLengths = new Set(_mysteryPool.map(w => w.length).filter(l => l >= 2));
+
+    // ── Step 1: Fill empty cells with category filler, stopping when empty
+    //            cell count hits a length available in the category word pool ──
     const fillerPool = buildFillerWordPool(category, currentUsed);
 
     for (const wordRaw of fillerPool) {
-      if (countEmptyCells(grid, gridSize) === 0) break;
+      const currentEmpty = countEmptyCells(grid, gridSize);
+      if (currentEmpty === 0) break;
+      // Stop if we've landed on a count that matches a category mystery word length
+      if (validMysteryLengths.has(currentEmpty)) break;
+
       const word = wordRaw.toUpperCase();
       if (currentUsed.has(word)) continue;
 
@@ -1040,6 +1071,8 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
           // At least one new cell was filled — word is genuinely useful
           placedWords.push(word);
           currentUsed.add(word);
+          // Stop if the placement landed us on a valid mystery word length
+          if (validMysteryLengths.has(emptyAfter)) break;
         } else {
           // Pure overlap — word already existed in grid, grid unchanged
           // Just remove it from wordPositions (grid letters are the same)
@@ -1058,7 +1091,13 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
 
     // ── Step 3: Find mystery word of exactly length K ───────────────────────
     if (K >= 2) {
-      const mysteryEntry = findMysteryWord(category, currentUsed, K);
+      // Build the complete set of letters already present in placed words.
+      // Used by findMysteryWord to prefer mystery words that contribute at
+      // least one letter the player hasn't seen in the regular word list.
+      const placedLetters = new Set(
+        placedWords.map(w => w.toUpperCase()).join('').split('')
+      );
+      const mysteryEntry = findMysteryWord(category, currentUsed, K, placedLetters);
 
       if (mysteryEntry) {
         bonusWord = mysteryEntry.word.toUpperCase();

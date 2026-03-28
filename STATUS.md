@@ -146,6 +146,12 @@ Current baseline: commit `129f64f`
 - Created `docs/Beta Tester Invite Message.md` — committed to repo, 3 links: app URL, Google Form short URL, Test Script short URL
 - **Beta testing now active** — invite message ready to send, testers report via Google Form
 
+### 2026-03-29 (Windows — DEF-16 + DEF-17 mystery word fixes)
+- DEF-17: Mystery word selected from wrong category (INTERSTELLAR in a Food game) — filler loop overshot all valid food word lengths, leaving K=11 which matched a space bonus pair; fix: pre-compute `validMysteryLengths` from category pool; filler loop stops when empty cell count hits a valid length; cross-category fallback retained as genuine last resort
+- DEF-16: Mystery word could use only letters already present in regular word list — fix: build `placedLetters` set and prefer candidates with at least one unique letter
+- DEF-16: Mystery word could be selected where all its letters already appeared in the regular word list — rule was never implemented in `findMysteryWord`
+- Fix: `placedLetters` set built from all placed words before calling `findMysteryWord`; function now prefers candidates with at least one letter not in that set; falls back to any valid word only if no better option exists at the target length
+
 ### 2026-03-29 (Windows — DEF-15 level selector hover appearance)
 - DEF-15: Medium difficulty tile in level selector appeared permanently hovered — selected state styling (`shadow-lg shadow-violet-200`) was visually identical to the hover shadow
 - Fix: replaced shadow with `ring-2 ring-violet-300 ring-offset-1` in `LevelSelector.jsx` — ring clearly indicates selection without resembling hover elevation

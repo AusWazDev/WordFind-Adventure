@@ -177,16 +177,18 @@ export default function AudioCategorySelector({ onSelectCategory }) {
               onHoverStart={() => setHoveredId(cat.id)}
               onHoverEnd={() => setHoveredId(null)}
             >
-              <div className={cn(
-                'w-8 h-8 mb-1.5 rounded-lg bg-gradient-to-br shadow-sm flex items-center justify-center',
-                cat.gradient
-              )}>
-                <Icon className="w-4 h-4 text-white" />
+              <div className="flex items-center gap-2 mb-1">
+                <div className={cn(
+                  'w-8 h-8 rounded-lg bg-gradient-to-br shadow-sm flex items-center justify-center shrink-0',
+                  cat.gradient
+                )}>
+                  <Icon className="w-4 h-4 text-white" />
+                </div>
+                <h4 className="font-bold text-slate-800 text-sm leading-tight">
+                  {cat.name}
+                </h4>
               </div>
-              <h4 className="font-bold text-slate-800 dark:text-slate-100 text-xs leading-tight">
-                {cat.name}
-              </h4>
-              <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-2 leading-tight">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-tight">
                 {cat.description}
               </p>
             </motion.button>

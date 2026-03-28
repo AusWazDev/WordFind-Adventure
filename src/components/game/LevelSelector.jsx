@@ -80,25 +80,25 @@ export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLev
               whileHover={isUnlocked ? { scale: 1.02 } : {}}
               whileTap={isUnlocked ? { scale: 0.98 } : {}}
             >
-              <div className="flex items-start justify-between gap-1.5">
+              <div className="flex items-center gap-2 mb-1">
                 <div className={cn(
                   "p-1.5 rounded-lg bg-gradient-to-br shadow-sm flex items-center justify-center shrink-0",
                   isUnlocked ? level.gradient : "from-slate-300 to-slate-400"
                 )}>
                   <Icon className="w-3.5 h-3.5 text-white" />
                 </div>
+                <h4 className={cn(
+                  "font-bold text-sm leading-tight flex-1",
+                  isUnlocked ? "text-slate-800" : "text-slate-400"
+                )}>
+                  {level.name}
+                </h4>
                 {!isUnlocked && (
                   <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 )}
               </div>
-              <h4 className={cn(
-                "font-bold mt-1 text-sm leading-tight",
-                isUnlocked ? "text-slate-800 dark:text-slate-100" : "text-slate-400"
-              )}>
-                {level.name}
-              </h4>
               <p className={cn(
-                "text-[11px] leading-tight line-clamp-2 mt-0.5",
+                "text-[11px] leading-tight line-clamp-2",
                 isUnlocked ? "text-slate-600 dark:text-slate-400" : "text-slate-400"
               )}>
                 {level.description}

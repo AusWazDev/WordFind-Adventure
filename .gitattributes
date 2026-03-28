@@ -1,0 +1,13 @@
+# Normalise line endings to LF in the repo; convert to CRLF on Windows checkouts
+* text=auto eol=lf
+
+# Treat these as binary so they are never converted
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

@@ -69,7 +69,7 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 - **Domain** — `uniquegames.com.au` reserved on Hostgator (pending ABN); `play.uniquegames.com.au` → Vercel once active
 
 ## Change Management
-All changes tracked in `Claude/SoundFind — Change Register.md` (in workspace folder).
+All changes tracked in `docs/Change Register.md` and `docs/Launch Plan.md` (now inside the repo — accessible from any machine via git pull).
 Raise a CR before making any code changes. Defects logged with commit references.
 Current baseline: commit `129f64f`
 
@@ -123,6 +123,11 @@ Current baseline: commit `129f64f`
 - **Baseline established at commit `129f64f`**
 - Launch Plan and Change Register created in workspace folder
 - All 6 decision points resolved (app name, Mac/Xcode, monetisation, ads, domain, analytics)
+
+### 2026-03-28 (Windows — docs into repo, line endings, DEF-08)
+- Moved Change Register and Launch Plan into `docs/` inside the repo — now available from Mac and any machine via git pull
+- Added `.gitattributes` (`* text=auto eol=lf`) to prevent CRLF/LF conflicts between Windows and Mac checkouts
+- DEF-08: Fixed dark mode text colour inheritance on category and level selector tiles (same class as DEF-07); icon and title now displayed inline
 
 ## Next Steps (Priority Order)
 - [ ] Deploy to Vercel for beta testing (Waz to complete — personal account selected)

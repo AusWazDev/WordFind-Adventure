@@ -125,7 +125,19 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 
 ---
 
-### 10. Welcome Screen & Mode Selector
+### 10. Level & Category Selectors
+
+| | Files |
+|---|---|
+| **Primary source** | `src/components/game/LevelSelector.jsx`, `src/components/game/CategorySelector.jsx` |
+| **Supporting source** | `src/components/game/AudioCategorySelector.jsx`, `src/pages/Home.jsx` |
+| **Related docs** | `docs/Change Register.md`, `STATUS.md` |
+| **Beta test cases** | TC-25 (settings save), TC-26 (category selection persists), TC-27 (level selection persists) |
+| **Also check when changed** | Does the selected state look clearly different from hover? (DEF-15) Are all 5 levels shown? Are all 23 categories present in CategorySelector? Does dark mode text render correctly? (DEF-08) |
+
+---
+
+### 11. Welcome Screen & Mode Selector
 
 | | Files |
 |---|---|

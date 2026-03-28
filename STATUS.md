@@ -174,7 +174,6 @@ Current baseline: commit `129f64f`
   - DEF-12 closed with no code change; `docs/Safari Voice Investigation.md` retained for reference
 
 ## Next Steps (Priority Order)
-- [ ] **Install hooks on Mac** — run `bash scripts/install-hooks.sh` after `git pull` so Mac session also gets traceability warnings at commit time
 - [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor

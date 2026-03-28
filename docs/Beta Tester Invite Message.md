@@ -4,6 +4,7 @@ I've built a word puzzle game and would love your feedback before the full launc
 
 **Play here:** https://word-find-adventure.vercel.app
 **Submit feedback:** https://forms.gle/5n1bdni6jrVNVz487
+**Test cases (what to test):** https://tinyurl.com/2bw3jdod
 
 To install as an app on your phone:
 - **iPhone:** Open in Safari → Share → Add to Home Screen

@@ -146,6 +146,10 @@ Current baseline: commit `129f64f`
 - Created `docs/Beta Tester Invite Message.md` — committed to repo, 3 links: app URL, Google Form short URL, Test Script short URL
 - **Beta testing now active** — invite message ready to send, testers report via Google Form
 
+### 2026-03-29 (Windows — DEF-15 level selector hover appearance)
+- DEF-15: Medium difficulty tile in level selector appeared permanently hovered — selected state styling (`shadow-lg shadow-violet-200`) was visually identical to the hover shadow
+- Fix: replaced shadow with `ring-2 ring-violet-300 ring-offset-1` in `LevelSelector.jsx` — ring clearly indicates selection without resembling hover elevation
+
 ### 2026-03-29 (Windows — DEF-14 substring word acceptance)
 - DEF-14: Highlighting CAKE within PANCAKE's grid cells incorrectly marked CAKE as found — `checkWord` matched on spelling only, never validated cell positions
 - Fix: added position guard in `handleWordFound` — after spelling match, compares selected `cells` against `wordPositions[word]` using a set comparison; rejects if they don't align exactly

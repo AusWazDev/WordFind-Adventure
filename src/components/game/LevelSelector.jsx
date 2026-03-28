@@ -73,8 +73,8 @@ export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLev
                 isUnlocked 
                   ? `bg-gradient-to-br ${level.bgGradient} hover:shadow-md cursor-pointer`
                   : "bg-slate-100 dark:bg-slate-800 cursor-not-allowed",
-                isSelected 
-                  ? "border-violet-500 shadow-lg shadow-violet-200" 
+                isSelected
+                  ? "border-violet-500 ring-2 ring-violet-300 ring-offset-1"
                   : "border-transparent"
               )}
               whileHover={isUnlocked ? { scale: 1.02 } : {}}

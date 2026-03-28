@@ -43,6 +43,7 @@ All future changes must be raised as a Change Request, approved before implement
 | DEF-07 | HowToPlay Other Modes tile titles incorrectly inherited dark mode text colour | ✅ Fixed | `129f64f` | Mar 2026 |
 | DEF-08 | Category and Level selector tile titles incorrectly inherited dark mode text colour (same class as DEF-07); icon and title now displayed inline | ✅ Fixed | `6931b72` | Mar 2026 |
 | DEF-09 | WelcomeScreen feature grid references removed game mode "Spelling Bee" (🐝) — replaced with Mystery Word (🔍) | ✅ Fixed | `ce06d61` | Mar 2026 |
+| DEF-10 | Audio Challenge word list dots (• • • • •) wrapping onto second line in narrow containers — added `whitespace-nowrap` to dot span in `WordList.jsx` | ✅ Fixed | pending | Mar 2026 |
 
 ---
 

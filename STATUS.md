@@ -149,8 +149,10 @@ Current baseline: commit `129f64f`
 ### 2026-03-28 (Windows — DEF-10, DEF-11 defect fixes)
 - DEF-10: Audio Challenge word list dots wrapping onto second line — added `whitespace-nowrap` to dot span in `WordList.jsx`
 - DEF-11: Audio Challenge using robotic Microsoft voice instead of Google US English — `getVoices()` was short-circuiting on first synchronous call (only 8 local Microsoft voices) before Chrome's `voiceschanged` fired with all 27 voices including Google ones; removed early-return in `voiceUtils.jsx`
+- DEF-12 raised: Audio Challenge voice quality poor on Safari/Mac — separate issue from DEF-11; investigation handed off to Mac session. Full diagnostic steps in `docs/Safari Voice Investigation.md`
 
 ## Next Steps (Priority Order)
+- [ ] **DEF-12: Safari/Mac voice quality** — run diagnostic in `docs/Safari Voice Investigation.md`, identify root cause, fix and log commit
 - [ ] **Beta testing in progress** — send invite message to testers, monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor

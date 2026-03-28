@@ -146,6 +146,10 @@ Current baseline: commit `129f64f`
 - Created `docs/Beta Tester Invite Message.md` — committed to repo, 3 links: app URL, Google Form short URL, Test Script short URL
 - **Beta testing now active** — invite message ready to send, testers report via Google Form
 
+### 2026-03-28 (Windows — DEF-10, DEF-11 defect fixes)
+- DEF-10: Audio Challenge word list dots wrapping onto second line — added `whitespace-nowrap` to dot span in `WordList.jsx`
+- DEF-11: Audio Challenge using robotic Microsoft voice instead of Google US English — `getVoices()` was short-circuiting on first synchronous call (only 8 local Microsoft voices) before Chrome's `voiceschanged` fired with all 27 voices including Google ones; removed early-return in `voiceUtils.jsx`
+
 ## Next Steps (Priority Order)
 - [ ] **Beta testing in progress** — send invite message to testers, monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity

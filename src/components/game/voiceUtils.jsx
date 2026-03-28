@@ -33,15 +33,12 @@ export function getVoices() {
   }
 
   return new Promise(resolve => {
-    // First try — voices may already be ready
-    const immediate = window.speechSynthesis.getVoices();
-    if (immediate.length > 0) {
-      cachedVoices = immediate;
-      resolve(immediate);
-      return;
-    }
+    // NOTE: Do NOT cache the synchronous result from the first getVoices() call.
+    // On Chrome/Windows, getVoices() returns only local (Microsoft) voices synchronously,
+    // then fires voiceschanged a moment later with the full list including Google voices.
+    // Caching early locks in the robotic Microsoft voice instead of Google US English.
+    // Always wait for voiceschanged (or the poll) so the full voice list is cached.
 
-    // iOS/Safari: voices load asynchronously — wait for the event
     let resolved = false;
 
     const onChanged = () => {
@@ -57,8 +54,12 @@ export function getVoices() {
 
     window.speechSynthesis.onvoiceschanged = onChanged;
 
+    // Trigger voice loading on browsers that need an explicit call (Chrome, some Android)
+    window.speechSynthesis.getVoices();
+
     // Poll every 200ms for up to 5 seconds — iOS enhanced voices
-    // (Karen, Siri, Daniel etc.) often appear 1-3s after page load
+    // (Karen, Siri, Daniel etc.) often appear 1-3s after page load.
+    // On Chrome, voiceschanged fires before the first poll tick so this is a no-op.
     let elapsed = 0;
     const poll = setInterval(() => {
       elapsed += 200;

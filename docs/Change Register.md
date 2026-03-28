@@ -25,7 +25,8 @@ All future changes must be raised as a Change Request, approved before implement
 | CR-10 | Offline monetisation — 12 free hints on first launch; interstitial ad skipped offline; HintModal buttons greyed out offline | ✅ Completed | `129f64f` | Mar 2026 |
 | CR-11 | Remove dead code in `gameUtils.jsx` — `pickCategoryBonusWord`, `tryPlaceWordDenseProtected`, `hasEmptyNonProtectedCell` | ✅ Completed | `3aba629` | Mar 2026 |
 | CR-12 | Settings page refresh — add Master level, all 23 categories, back button, auto-save indicator, remove Theme stub, rename Delete Account → Reset Game Data | ✅ Completed | `3aba629` | Mar 2026 |
-| CR-13 | Daily Challenge overhaul — fixed viewport layout matching Game.jsx, orientation support, board sizing, remove SpellingBeeWordList, add mystery_word support, fix hintCell→hintCells, fix hints hardcoded to 3; replace 2 spelling templates in DailyChallengeUtils; fix MODE_LABELS in DailyChallengeCard | ✅ Completed | pending | Mar 2026 |
+| CR-13 | Daily Challenge overhaul — fixed viewport layout matching Game.jsx, orientation support, board sizing, remove SpellingBeeWordList, add mystery_word support, fix hintCell→hintCells, fix hints hardcoded to 3; replace 2 spelling templates in DailyChallengeUtils; fix MODE_LABELS in DailyChallengeCard | ✅ Completed | `7470c5c` | Mar 2026 |
+| CR-14 | Delete orphaned `SpellingBeeWordList.jsx` — no longer imported anywhere after CR-13 | ✅ Completed | pending | Mar 2026 |
 
 ---
 

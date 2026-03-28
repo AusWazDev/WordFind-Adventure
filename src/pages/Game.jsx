@@ -166,6 +166,18 @@ export default function Game() {
     // ── Regular word check ────────────────────────────────────────────────────
     const foundWord = checkWord(selectedWord, currentGame.words, currentFound);
     if (foundWord) {
+      // Guard: verify selected cells match the stored grid positions for this word.
+      // Without this, highlighting a substring (e.g. CAKE within PANCAKE) would
+      // incorrectly mark the shorter word as found.
+      const storedPositions = currentGame.wordPositions[foundWord.toUpperCase()];
+      if (storedPositions) {
+        const selectedSet = new Set(cells.map(c => `${c.row},${c.col}`));
+        const storedSet   = new Set(storedPositions.map(p => `${p.row},${p.col}`));
+        const positionsMatch = selectedSet.size === storedSet.size &&
+          [...selectedSet].every(k => storedSet.has(k));
+        if (!positionsMatch) return;
+      }
+
       const newFoundWords = [...currentFound, foundWord];
       setFoundWords(newFoundWords);
 

@@ -25,6 +25,7 @@ All future changes must be raised as a Change Request, approved before implement
 | CR-10 | Offline monetisation — 12 free hints on first launch; interstitial ad skipped offline; HintModal buttons greyed out offline | ✅ Completed | `129f64f` | Mar 2026 |
 | CR-11 | Remove dead code in `gameUtils.jsx` — `pickCategoryBonusWord`, `tryPlaceWordDenseProtected`, `hasEmptyNonProtectedCell` | ✅ Completed | `3aba629` | Mar 2026 |
 | CR-12 | Settings page refresh — add Master level, all 23 categories, back button, auto-save indicator, remove Theme stub, rename Delete Account → Reset Game Data | ✅ Completed | `3aba629` | Mar 2026 |
+| CR-13 | Daily Challenge overhaul — fixed viewport layout matching Game.jsx, orientation support, board sizing, remove SpellingBeeWordList, add mystery_word support, fix hintCell→hintCells, fix hints hardcoded to 3; replace 2 spelling templates in DailyChallengeUtils; fix MODE_LABELS in DailyChallengeCard | ✅ Completed | pending | Mar 2026 |
 
 ---
 
@@ -40,7 +41,7 @@ All future changes must be raised as a Change Request, approved before implement
 | DEF-06 | HowToPlay nav buttons appeared permanently hovered/pressed | ✅ Fixed | `129f64f` | Mar 2026 |
 | DEF-07 | HowToPlay Other Modes tile titles incorrectly inherited dark mode text colour | ✅ Fixed | `129f64f` | Mar 2026 |
 | DEF-08 | Category and Level selector tile titles incorrectly inherited dark mode text colour (same class as DEF-07); icon and title now displayed inline | ✅ Fixed | `6931b72` | Mar 2026 |
-| DEF-09 | WelcomeScreen feature grid references removed game mode "Spelling Bee" (🐝) — replaced with Mystery Word (🔍) | ✅ Fixed | pending | Mar 2026 |
+| DEF-09 | WelcomeScreen feature grid references removed game mode "Spelling Bee" (🐝) — replaced with Mystery Word (🔍) | ✅ Fixed | `ce06d61` | Mar 2026 |
 
 ---
 

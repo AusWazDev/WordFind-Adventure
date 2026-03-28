@@ -7,11 +7,11 @@ import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 
 const MODE_LABELS = {
-  standard: 'Word Find',
-  audio: 'Audio',
-  anagram: 'Anagram',
-  association: 'Clue Hunt',
-  spelling: 'Spelling Bee',
+  standard:     'Word Find',
+  audio:        'Audio',
+  anagram:      'Anagram',
+  association:  'Clue Hunt',
+  mystery_word: 'Mystery Word',
 };
 
 export default function DailyChallengeCard() {

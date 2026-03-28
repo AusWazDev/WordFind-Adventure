@@ -2,7 +2,7 @@
 const CHALLENGE_TEMPLATES = [
   { title: "Beast Mode", description: "Hunt animals before time runs out!", category: "animals", mode: "standard", level: 3, time_limit: 120, bonus_multiplier: 3, reward_hints: 2 },
   { title: "Galaxy Brain", description: "Navigate the cosmos with anagrams!", category: "space", mode: "anagram", level: 2, time_limit: 150, bonus_multiplier: 2.5, reward_hints: 2 },
-  { title: "Spell It Out", description: "Spelling bee challenge — technology edition!", category: "technology", mode: "spelling", level: 3, time_limit: 180, bonus_multiplier: 3, reward_hints: 3 },
+  { title: "Tech Hunt", description: "Find technology words — expert level challenge!", category: "technology", mode: "standard", level: 3, time_limit: 180, bonus_multiplier: 3, reward_hints: 3 },
   { title: "Myth Busted", description: "Uncover mythological legends by clue!", category: "mythology", mode: "association", level: 2, time_limit: 120, bonus_multiplier: 2.5, reward_hints: 2 },
   { title: "Ocean Deep", description: "Dive into ocean words on expert difficulty!", category: "ocean", mode: "standard", level: 4, time_limit: 0, bonus_multiplier: 2, reward_hints: 3 },
   { title: "Scramble Scientist", description: "Unscramble scientific terms!", category: "science", mode: "anagram", level: 3, time_limit: 150, bonus_multiplier: 3, reward_hints: 2 },
@@ -11,7 +11,7 @@ const CHALLENGE_TEMPLATES = [
   { title: "Sound Check", description: "Audio challenge — listen and find!", category: "music", mode: "audio", level: 2, time_limit: 180, bonus_multiplier: 2.5, reward_hints: 2 },
   { title: "World Tour", description: "Find countries in record time!", category: "countries", mode: "standard", level: 3, time_limit: 120, bonus_multiplier: 2, reward_hints: 2 },
   { title: "Nature Sprint", description: "Sprint through nature words!", category: "nature", mode: "standard", level: 2, time_limit: 90, bonus_multiplier: 2, reward_hints: 1 },
-  { title: "Food for Thought", description: "Spell delicious foods correctly!", category: "food", mode: "spelling", level: 2, time_limit: 150, bonus_multiplier: 2.5, reward_hints: 2 },
+  { title: "Food for Thought", description: "Find delicious foods using clues!", category: "food", mode: "association", level: 2, time_limit: 150, bonus_multiplier: 2.5, reward_hints: 2 },
   { title: "Grandmaster", description: "Maximum difficulty — no time limit, all categories!", category: "random", mode: "standard", level: 4, time_limit: 0, bonus_multiplier: 4, reward_hints: 3 },
   { title: "Color Coded", description: "Find colors at lightning speed!", category: "colors", mode: "standard", level: 2, time_limit: 60, bonus_multiplier: 3, reward_hints: 2 },
 ];

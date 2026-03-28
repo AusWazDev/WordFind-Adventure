@@ -130,9 +130,15 @@ Current baseline: commit `129f64f`
 - DEF-08: Fixed dark mode text colour inheritance on category and level selector tiles (same class as DEF-07); icon and title now displayed inline
 - DEF-09: WelcomeScreen feature grid referenced removed mode "Spelling Bee" — replaced with Mystery Word
 
+### 2026-03-28 (Windows — CR-13 Daily Challenge overhaul)
+- CR-13: Daily Challenge page fully rewritten — fixed viewport layout (matching Game.jsx), landscape/portrait orientation, board sizing via JS measurement
+- CR-13: Removed SpellingBeeWordList import/usage; added mystery_word mode; fixed hintCell → hintCells array
+- CR-13: Fixed hints hardcoded to 3 in DailyChallenge.jsx (missed by CR-10) — now correctly uses `?? 12`
+- CR-13: Replaced 2 broken "spelling" mode templates in DailyChallengeUtils.jsx ("Tech Hunt" → standard, "Food for Thought" → association)
+- CR-13: Fixed MODE_LABELS in DailyChallengeCard.jsx (removed spelling, added mystery_word)
+
 ## Next Steps (Priority Order)
 - [ ] ~~Deploy to Vercel for beta testing~~ ✅ Live at word-find-adventure.vercel.app
-- [ ] Beta test all game modes, levels and categories — log defects via Change Register
 - [ ] Beta test all game modes, levels and categories — log defects via Change Register
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
 - [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor

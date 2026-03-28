@@ -128,9 +128,11 @@ Current baseline: commit `129f64f`
 - Moved Change Register and Launch Plan into `docs/` inside the repo — now available from Mac and any machine via git pull
 - Added `.gitattributes` (`* text=auto eol=lf`) to prevent CRLF/LF conflicts between Windows and Mac checkouts
 - DEF-08: Fixed dark mode text colour inheritance on category and level selector tiles (same class as DEF-07); icon and title now displayed inline
+- DEF-09: WelcomeScreen feature grid referenced removed mode "Spelling Bee" — replaced with Mystery Word
 
 ## Next Steps (Priority Order)
-- [ ] Deploy to Vercel for beta testing (Waz to complete — personal account selected)
+- [ ] ~~Deploy to Vercel for beta testing~~ ✅ Live at word-find-adventure.vercel.app
+- [ ] Beta test all game modes, levels and categories — log defects via Change Register
 - [ ] Beta test all game modes, levels and categories — log defects via Change Register
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
 - [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor

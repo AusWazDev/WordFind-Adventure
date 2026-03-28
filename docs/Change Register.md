@@ -39,7 +39,8 @@ All future changes must be raised as a Change Request, approved before implement
 | DEF-05 | Non-category words appearing in themed Mystery Word filler (e.g. RUIN/SAD in Food game) | ✅ Fixed | `a80a6ae` | Mar 2026 |
 | DEF-06 | HowToPlay nav buttons appeared permanently hovered/pressed | ✅ Fixed | `129f64f` | Mar 2026 |
 | DEF-07 | HowToPlay Other Modes tile titles incorrectly inherited dark mode text colour | ✅ Fixed | `129f64f` | Mar 2026 |
-| DEF-08 | Category and Level selector tile titles incorrectly inherited dark mode text colour (same class as DEF-07); icon and title now displayed inline | ✅ Fixed | pending | Mar 2026 |
+| DEF-08 | Category and Level selector tile titles incorrectly inherited dark mode text colour (same class as DEF-07); icon and title now displayed inline | ✅ Fixed | `6931b72` | Mar 2026 |
+| DEF-09 | WelcomeScreen feature grid references removed game mode "Spelling Bee" (🐝) — replaced with Mystery Word (🔍) | ✅ Fixed | pending | Mar 2026 |
 
 ---
 

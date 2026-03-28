@@ -113,7 +113,7 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
               {[
                 { icon: '🔤', title: 'Word Search',   desc: 'Classic grid gameplay' },
                 { icon: '🔀', title: 'Anagram Hunt',  desc: 'Unscramble & find' },
-                { icon: '🐝', title: 'Spelling Bee',  desc: 'Spell to reveal' },
+                { icon: '🔍', title: 'Mystery Word',  desc: 'Hidden word challenge' },
                 { icon: '✈️', title: 'Offline Play',  desc: 'Works on a plane' },
               ].map(item => (
                 <div key={item.title} className="bg-white/10 backdrop-blur-sm rounded-xl p-3">

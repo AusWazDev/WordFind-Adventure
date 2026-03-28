@@ -1,0 +1,129 @@
+#!/bin/bash
+# ============================================================
+# SoundFind — Pre-commit Traceability Hook
+# ============================================================
+# Warns when key source files are changed without the
+# corresponding docs/tests being updated in the same commit.
+#
+# This is a WARNING-ONLY hook — it never blocks a commit.
+# Install via: scripts/install-hooks.sh
+# Reference:   docs/Traceability.md
+# ============================================================
+
+STAGED=$(git diff --cached --name-only)
+WARNINGS=0
+
+warn() {
+  echo ""
+  echo "  ⚠️  $1"
+  echo "     → Also check: $2"
+  WARNINGS=$((WARNINGS + 1))
+}
+
+echo ""
+echo "🔍 SoundFind traceability check..."
+
+# ── Voice / Audio Challenge ─────────────────────────────────
+if echo "$STAGED" | grep -q "voiceUtils.jsx"; then
+  if ! echo "$STAGED" | grep -qE "Change Register|Safari Voice Investigation"; then
+    warn "voiceUtils.jsx changed" "docs/Change Register.md · docs/Safari Voice Investigation.md · STATUS.md"
+  fi
+fi
+
+# ── Word List Display (dots, reveal, layout) ────────────────
+if echo "$STAGED" | grep -q "WordList.jsx"; then
+  if ! echo "$STAGED" | grep -q "Change Register"; then
+    warn "WordList.jsx changed" "docs/Change Register.md · STATUS.md"
+  fi
+fi
+
+# ── Core Game Logic / Word Placement ───────────────────────
+if echo "$STAGED" | grep -q "gameUtils.jsx"; then
+  if ! echo "$STAGED" | grep -q "Change Register"; then
+    warn "gameUtils.jsx changed" "docs/Change Register.md · STATUS.md"
+  fi
+fi
+
+# ── Daily Challenge ─────────────────────────────────────────
+if echo "$STAGED" | grep -qE "DailyChallenge"; then
+  if ! echo "$STAGED" | grep -q "Change Register"; then
+    warn "DailyChallenge files changed" "docs/Change Register.md · STATUS.md"
+  fi
+fi
+
+# ── Hint System ─────────────────────────────────────────────
+if echo "$STAGED" | grep -qE "HintModal|offlineStorage"; then
+  if ! echo "$STAGED" | grep -q "Change Register"; then
+    warn "Hint/storage files changed" "docs/Change Register.md · STATUS.md · HowToPlayModal.jsx (penalty % still correct?)"
+  fi
+fi
+
+# ── How to Play Modal ───────────────────────────────────────
+if echo "$STAGED" | grep -q "HowToPlayModal"; then
+  if ! echo "$STAGED" | grep -q "Change Register"; then
+    warn "HowToPlayModal.jsx changed" "docs/Change Register.md · STATUS.md"
+  fi
+fi
+
+# ── Welcome Screen / Mode Selector ─────────────────────────
+if echo "$STAGED" | grep -qE "WelcomeScreen|GameModeSelector"; then
+  if ! echo "$STAGED" | grep -q "Change Register"; then
+    warn "Welcome/mode selector changed" "docs/Change Register.md · STATUS.md · README.md (game modes section)"
+  fi
+fi
+
+# ── Settings Page ───────────────────────────────────────────
+if echo "$STAGED" | grep -qE "Settings\.jsx|ReminderSettings"; then
+  if ! echo "$STAGED" | grep -q "Change Register"; then
+    warn "Settings page changed" "docs/Change Register.md · STATUS.md"
+  fi
+fi
+
+# ── Game Mode logic — does HowToPlay / README need updating? ─
+if echo "$STAGED" | grep -qE "AnagramWordList|AssociationWordList|AudioCategorySelector|trickySentences"; then
+  if ! echo "$STAGED" | grep -qE "HowToPlayModal|README"; then
+    warn "Game mode logic changed" "HowToPlayModal.jsx · README.md (if user-visible behaviour changed)"
+  fi
+fi
+
+# ── Build / Deploy config ───────────────────────────────────
+if echo "$STAGED" | grep -qE "vite\.config|package\.json|vercel"; then
+  if ! echo "$STAGED" | grep -q "README"; then
+    warn "Build/deploy config changed" "README.md (check tech stack section)"
+  fi
+fi
+
+# ── New source file added — traceability map needs updating ─
+NEW_SRC=$(echo "$STAGED" | grep "^src/")
+if [ -n "$NEW_SRC" ]; then
+  if ! echo "$STAGED" | grep -q "Traceability"; then
+    warn "Source file(s) added/changed" "docs/Traceability.md (add new files to dependency map if needed)"
+  fi
+fi
+
+# ── Universal: STATUS.md must accompany any src/ change ─────
+SRC_CHANGES=$(echo "$STAGED" | grep "^src/")
+if [ -n "$SRC_CHANGES" ]; then
+  if ! echo "$STAGED" | grep -q "STATUS.md"; then
+    warn "src/ files changed without STATUS.md" "STATUS.md (add a session log entry)"
+  fi
+fi
+
+# ── Universal: Change Register must accompany any src/ change ─
+if [ -n "$SRC_CHANGES" ]; then
+  if ! echo "$STAGED" | grep -q "Change Register"; then
+    warn "src/ files changed without Change Register" "docs/Change Register.md (add DEF or CR entry)"
+  fi
+fi
+
+# ── Summary ─────────────────────────────────────────────────
+echo ""
+if [ "$WARNINGS" -gt 0 ]; then
+  echo "  ⚠️  $WARNINGS traceability reminder(s) above — review docs/Traceability.md"
+  echo "  Committing anyway. Update missed docs in a follow-up commit if needed."
+else
+  echo "  ✅ All traceability checks passed."
+fi
+echo ""
+
+exit 0

@@ -146,6 +146,12 @@ Current baseline: commit `129f64f`
 - Created `docs/Beta Tester Invite Message.md` — committed to repo, 3 links: app URL, Google Form short URL, Test Script short URL
 - **Beta testing now active** — invite message ready to send, testers report via Google Form
 
+### 2026-03-29 (Windows — traceability infrastructure)
+- Created `docs/Traceability.md` — full dependency matrix mapping all 15 feature areas to their source files, related docs, and beta test cases; includes cross-cutting rules and document ownership table
+- Created `scripts/hooks/pre-commit` — git hook that warns at commit time when source file changes are made without the corresponding docs being updated (Change Register, STATUS.md, Traceability.md, README.md, etc.)
+- Created `scripts/install-hooks.sh` — one-command installer to copy hooks into `.git/hooks/` on any machine after cloning
+- **To activate on each machine:** run `bash scripts/install-hooks.sh` from repo root
+
 ### 2026-03-28 (Windows — DEF-10, DEF-11 defect fixes)
 - DEF-10: Audio Challenge word list dots wrapping onto second line — added `whitespace-nowrap` to dot span in `WordList.jsx`
 - DEF-11: Audio Challenge using robotic Microsoft voice instead of Google US English — `getVoices()` was short-circuiting on first synchronous call (only 8 local Microsoft voices) before Chrome's `voiceschanged` fired with all 27 voices including Google ones; removed early-return in `voiceUtils.jsx`
@@ -162,7 +168,8 @@ Current baseline: commit `129f64f`
   - DEF-12 closed with no code change; `docs/Safari Voice Investigation.md` retained for reference
 
 ## Next Steps (Priority Order)
-- [ ] **Beta testing in progress** — send invite message to testers, monitor Google Form responses, log defects via Change Register
+- [ ] **Install hooks on Mac** — run `bash scripts/install-hooks.sh` after `git pull` so Mac session also gets traceability warnings at commit time
+- [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
 - [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor

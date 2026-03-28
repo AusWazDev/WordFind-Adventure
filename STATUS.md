@@ -146,6 +146,12 @@ Current baseline: commit `129f64f`
 - Created `docs/Beta Tester Invite Message.md` — committed to repo, 3 links: app URL, Google Form short URL, Test Script short URL
 - **Beta testing now active** — invite message ready to send, testers report via Google Form
 
+### 2026-03-29 (Windows — DEF-13 Next Level crash)
+- DEF-13: App crashed when clicking Next Level — `window.location.assign('/Game?...')` caused a hard page reload; Vercel returned 404 because no SPA routing was configured
+- Fix 1: added `vercel.json` with `rewrites` rule to serve `index.html` for all routes (standard SPA fix for Vercel)
+- Fix 2: replaced `window.location.assign()` with React Router `navigate()` in `handleNextLevel` — eliminates the hard reload entirely
+- Fix 3: updated `useEffect` in `Game.jsx` to depend on `[level, mode, category]` so the game re-initialises automatically when URL params change via client-side navigation
+
 ### 2026-03-29 (Windows — traceability infrastructure)
 - Created `docs/Traceability.md` — full dependency matrix mapping all 15 feature areas to their source files, related docs, and beta test cases; includes cross-cutting rules and document ownership table
 - Created `scripts/hooks/pre-commit` — git hook that warns at commit time when source file changes are made without the corresponding docs being updated (Change Register, STATUS.md, Traceability.md, README.md, etc.)

@@ -127,10 +127,14 @@ export default function Game() {
     };
   }, [isLandscape, gameData]);
 
+  // Re-initialise whenever URL params change (e.g. Next Level navigation)
+  // NOTE: initGame and loadProgressData intentionally omitted from deps — they
+  // are stable within a render and adding them would cause unnecessary reruns.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     initGame();
     loadProgressData();
-  }, []);
+  }, [level, mode, category]);
 
   const loadProgressData = async () => {
     const p = await loadProgress();
@@ -322,9 +326,10 @@ export default function Game() {
 
   const handleNextLevel = () => {
     const nextLevel = Math.min(level + 1, 5);
-    // Use location.assign for a single atomic navigation — avoids the race condition
-    // of calling navigate() then reload() separately (progress could be lost between the two)
-    window.location.assign(createPageUrl('Game') + `?mode=${mode}&category=${category}&level=${nextLevel}`);
+    // Use React Router navigate() for client-side navigation — avoids a hard reload
+    // which would 404 on Vercel (no server-side route for /Game exists).
+    // The useEffect watching [level, mode, category] re-initialises the game automatically.
+    navigate(`${createPageUrl('Game')}?mode=${mode}&category=${category}&level=${nextLevel}`);
   };
 
   const handleReplay = () => initGame();

@@ -46,6 +46,7 @@ All future changes must be raised as a Change Request, approved before implement
 | DEF-10 | Audio Challenge word list dots (• • • • •) wrapping onto second line in narrow containers — added `whitespace-nowrap` to dot span in `WordList.jsx` | ✅ Fixed | `0be8117` | Mar 2026 |
 | DEF-11 | Audio Challenge using robotic Microsoft voice instead of Google US English — `getVoices()` was caching only local (Microsoft) voices on first synchronous call before Chrome's `voiceschanged` fired with full list; removed early-return short-circuit in `voiceUtils.jsx` | ✅ Fixed | `b2ee77f` | Mar 2026 |
 | DEF-12 | Audio Challenge voice quality poor on Safari/Mac — investigated on Mac (29 Mar). Safari returns 223 voices synchronously; no enhanced voices installed on test Mac. Scoring algorithm correctly selects Karen (en-AU, score 105). No code fix required — quality limited by macOS installed voices. iOS beta testers will have Karen (Enhanced) pre-installed and will get high-quality audio automatically. | ✅ Closed (no code change) | — | Mar 2026 |
+| DEF-13 | App crashes when clicking Next Level after completing a level — `handleNextLevel` used `window.location.assign()` causing a hard reload to `/Game` which Vercel serves as 404 (no SPA routing configured). Fix: added `vercel.json` with SPA rewrites; replaced `window.location.assign()` with React Router `navigate()`; updated `useEffect` deps to `[level, mode, category]` so game re-initialises on client-side URL change. | ✅ Fixed | pending | Mar 2026 |
 
 ---
 
@@ -59,17 +60,4 @@ All future changes must be raised as a Change Request, approved before implement
 
 1. Describe the defect — steps to reproduce, expected vs actual behaviour, mode/category/level if relevant
 2. A fix will be scoped and may be raised as a CR if significant, or applied directly if minor
-3. Record the fix here with commit hash and date
-
----
-
----
-
-## Pending Changes (Awaiting Approval)
-
-| CR # | Title | Raised | Status |
-|------|-------|--------|--------|
-
----
-
-*Last updated: 29 March 2026*
+3. Record 

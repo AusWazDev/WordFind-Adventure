@@ -87,7 +87,7 @@ Once installed as a PWA, the app:
 
 ## Phase 4 — Hosting & Deployment
 
-### 4.1 Recommended Platform: **Vercel** (free tier)
+### 4.1 Recommended Platform: **Vercel** (free tier) ✅ DEPLOYED
 
 | Criteria | Vercel | Netlify | GitHub Pages | Cloudflare Pages |
 |----------|--------|---------|--------------|-----------------|
@@ -114,11 +114,23 @@ Once installed as a PWA, the app:
 - **Game hosting:** Point `play.uniquegames.com.au` subdomain to Vercel via CNAME record (takes ~10 min once domain is active)
 - **In the interim:** Use Vercel's auto-generated `*.vercel.app` URL for beta testing — no domain needed
 
-### 4.4 Beta Testing (Pre-Domain / Pre-Store)
-1. Deploy to Vercel → share `soundfind.vercel.app` (or similar) URL with testers
-2. Testers open in Safari (iOS) or Chrome (Android) → Add to Home Screen → installs as PWA
-3. Full offline play, full-screen — indistinguishable from a native app for testing purposes
-4. Once Capacitor is set up: **TestFlight** (iOS internal, up to 25 people, no review) and **Google Play Internal Testing** (up to 100 testers, no review)
+### 4.4 Beta Testing (Pre-Domain / Pre-Store) ✅ ACTIVE
+
+**Live URL:** https://word-find-adventure.vercel.app (auto-deploys on push to `main`)
+
+**Beta test infrastructure (all committed to `docs/`):**
+- `docs/Beta Tester Invite Message.md` — ready-to-send message with 3 links
+- Google Form for feedback: https://forms.gle/5n1bdni6jrVNVz487
+- Test Script (29 test cases): https://tinyurl.com/2bw3jdod
+- Results sheet: SoundFind Beta Testing (Responses) — Google Sheets (owner: warwick.lindsay@gmail.com)
+- Full test plan XLSX: `SoundFind Beta Test Plan.xlsx` (4 tabs: Test Script, Results Tracker, Defect Log, Setup Guide)
+
+**Process:**
+1. Send `docs/Beta Tester Invite Message.md` via iMessage group (update `[YOUR DEADLINE]` first)
+2. Testers open app in Safari (iOS) or Chrome (Android) → Add to Home Screen → installs as PWA
+3. Testers work through test cases in the Google Sheet and submit results via Google Form
+4. Monitor responses sheet, log confirmed defects in `docs/Change Register.md`
+5. Once Capacitor is set up: **TestFlight** (iOS internal, up to 25 people, no review) and **Google Play Internal Testing** (up to 100 testers, no review)
 
 ### 4.4 Environment & Config
 - No environment variables currently needed (all client-side)

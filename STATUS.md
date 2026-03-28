@@ -137,9 +137,18 @@ Current baseline: commit `129f64f`
 - CR-13: Replaced 2 broken "spelling" mode templates in DailyChallengeUtils.jsx ("Tech Hunt" → standard, "Food for Thought" → association)
 - CR-13: Fixed MODE_LABELS in DailyChallengeCard.jsx (removed spelling, added mystery_word)
 
+### 2026-03-28 (Windows — CR-14, Vercel deployment, beta test setup)
+- CR-14: Deleted orphaned `SpellingBeeWordList.jsx` — no longer imported anywhere after CR-13
+- **Vercel deployment complete** ✅ — live at `word-find-adventure.vercel.app` (auto-deploys on push to `main`)
+- Created `SoundFind Beta Test Plan.xlsx` (4 tabs: Test Script, Results Tracker, Defect Log, Setup Guide) — saved in workspace
+- Beta tester Google Form created by user — responses sheet: `SoundFind Beta Testing (Responses)`, 7 columns confirmed correct
+- Created public Google Sheet "SoundFind Beta Test Script" — all 29 test cases, formatted, viewer access, short URL: https://tinyurl.com/2bw3jdod
+- Created `docs/Beta Tester Invite Message.md` — committed to repo, 3 links: app URL, Google Form short URL, Test Script short URL
+- **Beta testing now active** — invite message ready to send, testers report via Google Form
+
 ## Next Steps (Priority Order)
-- [ ] ~~Deploy to Vercel for beta testing~~ ✅ Live at word-find-adventure.vercel.app
-- [ ] Beta test all game modes, levels and categories — log defects via Change Register
+- [ ] **Beta testing in progress** — send invite message to testers, monitor Google Form responses, log defects via Change Register
+- [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
 - [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
 - [ ] App icon design (1024×1024 master)

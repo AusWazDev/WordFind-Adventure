@@ -181,7 +181,19 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Supporting source** | `src/Layout.jsx`, `src/lib/AuthContext.jsx`, `src/pages.config.js` |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md`, `README.md` |
 | **Beta test cases** | TC-01 (app loads), TC-13 (navigation works) |
-| **Also check when changed** | Does `README.md` still accurately describe the tech stack? Is Vercel deployment config (`vite.config.js`, `package.json`) still consistent? |
+| **Also check when changed** | Does `README.md` still accurately describe the tech stack? Is Vercel deployment config (`vite.config.js`, `package.json`, `vercel.json`) still consistent? |
+
+---
+
+### 16. Vercel Deployment Config
+
+| | Files |
+|---|---|
+| **Primary source** | `vercel.json` |
+| **Supporting source** | `vite.config.js`, `package.json` |
+| **Related docs** | `docs/Change Register.md`, `STATUS.md` |
+| **Beta test cases** | TC-01 (app loads on Vercel URL), TC-13 (direct URL navigation works) |
+| **Also check when changed** | Do all React Router routes still resolve after a hard reload? Does Next Level still work after navigating directly to `/Game`? |
 
 ---
 

@@ -117,6 +117,7 @@ export default function WordList({
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className={cn(
                     'font-medium text-sm',
+                    !showWord && 'whitespace-nowrap',
                     isFound
                       ? 'text-emerald-700 line-through'
                       : hintWord === word.toLowerCase()

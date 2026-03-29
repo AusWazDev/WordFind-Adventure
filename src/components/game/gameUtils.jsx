@@ -771,7 +771,7 @@ function fisherYates(arr) {
 
 // ─── Word selection ───────────────────────────────────────────────────────────
 
-function pickWords({ count, minLen, maxLen, pool, trickyPool, trickyRatio }) {
+function pickWords({ count, minLen, maxLen, pool, trickyPool, trickyRatio, preferUniqueLetters = false }) {
   const fits = (w) => w.length >= minLen && w.length <= maxLen;
 
   if (trickyPool && trickyRatio > 0) {
@@ -795,7 +795,38 @@ function pickWords({ count, minLen, maxLen, pool, trickyPool, trickyRatio }) {
   }
 
   // Deduplicate standard pool (some words appear in multiple category lists)
-  return fisherYates([...new Set(pool.filter(fits))]).slice(0, count);
+  const shuffled = fisherYates([...new Set(pool.filter(fits))]);
+
+  if (!preferUniqueLetters) {
+    return shuffled.slice(0, count);
+  }
+
+  // Mystery Word mode: prefer words that each contribute at least one letter
+  // not already covered by the other selected words. This avoids situations
+  // where a short word like IRAN has all its letters present in other words,
+  // making it trivially guessable before the player even starts on the mystery.
+  const selected = [];
+  const usedLetters = new Set();
+  const fallbacks = [];
+
+  for (const word of shuffled) {
+    if (selected.length >= count) break;
+    const upper = word.toUpperCase();
+    if (upper.split('').some(l => !usedLetters.has(l))) {
+      selected.push(word);
+      upper.split('').forEach(l => usedLetters.add(l));
+    } else {
+      fallbacks.push(word);
+    }
+  }
+
+  // Fill any remaining slots from fallbacks (all 26 letters already covered)
+  for (const word of fallbacks) {
+    if (selected.length >= count) break;
+    selected.push(word);
+  }
+
+  return fisherYates(selected.slice(0, count));
 }
 
 // ─── Grid placement ───────────────────────────────────────────────────────────
@@ -1002,13 +1033,16 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
     : coreAudioWords;
   const effectiveTrickyRatio = isTrickyCategory ? 1.0 : trickyRatio;
 
+  // Word pool: both Standard and Mystery Word modes draw from the same themed category
+  // pool (or all categories if random). In Mystery Word mode the mystery word itself
+  // also comes from this same pool via findMysteryWord.
   const standardPool = (category && category !== 'random' && !isTrickyCategory && wordLists[category])
     ? wordLists[category]
     : Object.values(wordLists).flat();
 
   const selectedWords = isAudioMode
     ? pickWords({ count: wordCount, minLen: minWordLen, maxLen: maxWordLen, pool: standardPool, trickyPool, trickyRatio: effectiveTrickyRatio })
-    : pickWords({ count: wordCount, minLen: minWordLen, maxLen: maxWordLen, pool: standardPool });
+    : pickWords({ count: wordCount, minLen: minWordLen, maxLen: maxWordLen, pool: standardPool, preferUniqueLetters: bonusWordMode });
 
   const grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
   const wordPositions = {};

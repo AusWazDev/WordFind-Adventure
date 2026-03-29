@@ -146,6 +146,11 @@ Current baseline: commit `129f64f`
 - Created `docs/Beta Tester Invite Message.md` — committed to repo, 3 links: app URL, Google Form short URL, Test Script short URL
 - **Beta testing now active** — invite message ready to send, testers report via Google Form
 
+### 2026-03-29 (Windows — DEF-18: unique-letter preference rule extended to word list selection)
+- DEF-18: The unique-letter preference rule (DEF-16) was only applied to the mystery word selection, not to the regular word list — so short words like IRAN could appear in the list with all their letters already covered by other words
+- Word pool remains the same themed category as Standard mode (e.g. Countries game uses `wordLists['countries']` for both the word list and mystery word)
+- Fix: added `preferUniqueLetters` parameter to `pickWords`; in Mystery Word mode, words are greedily selected so each contributes at least one letter not already in the other selected words; fallback to any valid word only if all 26 letters are already exhausted
+
 ### 2026-03-29 (Windows — DEF-16 + DEF-17 mystery word fixes)
 - DEF-17: Mystery word selected from wrong category (INTERSTELLAR in a Food game) — filler loop overshot all valid food word lengths, leaving K=11 which matched a space bonus pair; fix: pre-compute `validMysteryLengths` from category pool; filler loop stops when empty cell count hits a valid length; cross-category fallback retained as genuine last resort
 - DEF-16: Mystery word could use only letters already present in regular word list — fix: build `placedLetters` set from all placed words; `findMysteryWord` now prefers candidates with at least one letter not in that set; falls back gracefully if no unique-letter candidate exists at the target length

@@ -17,7 +17,7 @@ import { loadProgress } from '@/components/game/offlineStorage';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
-const AD_FREQUENCY = 3;
+const AD_FREQUENCY = 6; // show interstitial after every 6th completed game (not start)
 
 export default function Home() {
   const navigate = useNavigate();
@@ -63,9 +63,14 @@ export default function Home() {
   const handleSelectLevel = (level) => {
     const url = createPageUrl('Game') + `?mode=${selectedMode}&category=${selectedCategory}&level=${level}`;
     if (adsRemoved || !isOnline) { navigate(url); return; } // skip ad if offline or ads removed
-    const gameCount = parseInt(localStorage.getItem('game_start_count') || '0') + 1;
-    localStorage.setItem('game_start_count', String(gameCount));
-    if (gameCount % AD_FREQUENCY === 0) {
+    // CR-15: Gate ads on completed games (written by Game.jsx on victory),
+    // not game starts. Show ad when the player has crossed a new multiple of
+    // AD_FREQUENCY completions since the last ad was shown.
+    const completedCount = parseInt(localStorage.getItem('games_completed_count') || '0');
+    const lastAdAt = parseInt(localStorage.getItem('last_ad_completed_at') || '0');
+    if (completedCount >= AD_FREQUENCY &&
+        Math.floor(completedCount / AD_FREQUENCY) > Math.floor(lastAdAt / AD_FREQUENCY)) {
+      localStorage.setItem('last_ad_completed_at', String(completedCount));
       setPendingGameUrl(url);
       setShowAd(true);
     } else {

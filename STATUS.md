@@ -191,6 +191,11 @@ Current baseline: commit `129f64f`
   - iOS beta testers will have Karen (Enhanced) pre-installed; they will get high-quality audio automatically
   - DEF-12 closed with no code change; `docs/Safari Voice Investigation.md` retained for reference
 
+### 2026-03-31 (Windows — DEF-19, CR-15, CR-16/CR-17 mockups)
+- DEF-19: Fixed touch scroll / pull-to-refresh conflict on mobile web — React 17+ passive touch listeners silently ignore `e.preventDefault()`; fixed by adding non-passive DOM listeners (`{ passive: false }`) for `touchstart` and `touchmove` directly on the grid element in `GameBoard.jsx`. Added `overscrollBehavior: 'none'` to board container for CSS-level pull-to-refresh suppression.
+- CR-15: Changed interstitial ad trigger from every 3 game **starts** to every 6 **completed** games. `Game.jsx` now increments `games_completed_count` in localStorage on victory; `Home.jsx` reads this counter (with `last_ad_completed_at` to prevent double-triggering) rather than the old `game_start_count`. `AD_FREQUENCY` changed from 3 → 6.
+- CR-16 & CR-17: HTML mockups created (`CR-16-CR-17 Mockups.html` in workspace) for Waz review — showing collapsible word list (tap-to-toggle, auto-expand on victory) and responsive full-width grid sizing vs landscape nudge banner. Awaiting Waz sign-off before implementation.
+
 ## Next Steps (Priority Order)
 - [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity

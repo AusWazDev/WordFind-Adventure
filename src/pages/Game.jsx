@@ -225,6 +225,11 @@ export default function Game() {
 
   const saveProgress = async (wordsFoundCount) => {
     if (!progress) return;
+    // CR-15: track completed games in localStorage so Home.jsx can gate ads
+    // on completions rather than starts (every 6 completed games).
+    const completed = parseInt(localStorage.getItem('games_completed_count') || '0') + 1;
+    localStorage.setItem('games_completed_count', String(completed));
+
     const updated = await updateProgress(null, progress, {
       total_score: (progress.total_score || 0) + score,
       games_played: (progress.games_played || 0) + 1,

@@ -29,6 +29,22 @@ export default function GameBoard({
     setFoundCells(cells);
   }, [foundWords, wordPositions]);
 
+  // DEF-19: React 17+ registers touch listeners as passive by default, so
+  // e.preventDefault() in synthetic handlers is silently ignored — the browser
+  // still scrolls/pull-to-refreshes through the game board. Adding a direct
+  // non-passive listener on the DOM node forces preventDefault() to be honoured.
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const suppressScroll = (e) => { e.preventDefault(); };
+    el.addEventListener('touchstart', suppressScroll, { passive: false });
+    el.addEventListener('touchmove',  suppressScroll, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', suppressScroll);
+      el.removeEventListener('touchmove',  suppressScroll);
+    };
+  }, []);
+
   const getCellFromPoint = (x, y) => {
     if (!gridRef.current) return null;
     const rect = gridRef.current.getBoundingClientRect();
@@ -135,7 +151,7 @@ export default function GameBoard({
     <div
       ref={gridRef}
       className="w-full h-full bg-card rounded-2xl shadow-lg select-none"
-      style={{ touchAction: 'none', padding: '6px' }}
+      style={{ touchAction: 'none', overscrollBehavior: 'none', padding: '6px' }}
       onMouseDown={handleStart}
       onMouseMove={handleMove}
       onMouseUp={handleEnd}

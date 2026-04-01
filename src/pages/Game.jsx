@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import GameBoard from '@/components/game/GameBoard';
@@ -90,6 +91,9 @@ export default function Game() {
   const [bonusPoints, setBonusPoints] = useState(0);
   const [bonusInput, setBonusInput] = useState('');
 
+  // CR-16: word list collapsed by default during play; expands on bonus hunt / victory
+  const [wordListCollapsed, setWordListCollapsed] = useState(true);
+
   // Track words where hint tools were used — for score penalties
   const [hintedWords, setHintedWords] = useState(new Set());   // lightbulb used → -25%
 
@@ -125,7 +129,7 @@ export default function Game() {
       window.removeEventListener('resize', measure);
       clearTimeout(t);
     };
-  }, [isLandscape, gameData]);
+  }, [isLandscape, gameData, wordListCollapsed]);
 
   // Re-initialise whenever URL params change (e.g. Next Level navigation)
   // NOTE: initGame and loadProgressData intentionally omitted from deps — they
@@ -150,6 +154,7 @@ export default function Game() {
     setHintedWords(new Set());
     setScore(0);
     setShowVictory(false);
+    setWordListCollapsed(true);   // CR-16: collapse list on new game
     setBonusHuntActive(false);
     setBonusFound(false);
     setBonusPoints(0);
@@ -206,6 +211,7 @@ export default function Game() {
         // Master level with a valid bonus word → start bonus hunt instead of victory
         if (currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current) {
           setBonusHuntActive(true);
+          setWordListCollapsed(false);  // CR-16: reveal list so player sees all words ticked
           if (mode === 'audio' && audioEnabled) {
             unlockAudio();
             loadSettings().then(settings =>
@@ -217,7 +223,7 @@ export default function Game() {
             duration: 5000,
           });
         } else {
-          setTimeout(() => { setShowVictory(true); saveProgress(newFoundWords.length); }, 500);
+          setTimeout(() => { setWordListCollapsed(false); setShowVictory(true); saveProgress(newFoundWords.length); }, 500);
         }
       }
     }
@@ -505,7 +511,7 @@ export default function Game() {
         </div>
 
       ) : (
-        // PORTRAIT: header, board (capped height), scrollable word list
+        // PORTRAIT: header · board (CR-17: bigger when list collapsed) · collapsible word list (CR-16)
         <div style={{
           display: 'flex', flexDirection: 'column',
           width: '100%', height: '100%',
@@ -515,12 +521,14 @@ export default function Game() {
             <GameHeader {...headerProps} />
           </div>
 
+          {/* CR-17: maxHeight grows from 55→75dvh when word list is collapsed */}
           <div
             ref={boardAreaRef}
             style={{
               flexShrink: 0, width: '100%',
-              maxHeight: 'min(55dvh, 100vw)',
+              maxHeight: wordListCollapsed ? 'min(75dvh, 100vw)' : 'min(55dvh, 100vw)',
               aspectRatio: '1 / 1', overflow: 'hidden',
+              transition: 'max-height 0.25s ease',
             }}
           >
             {boardSize > 0 && (
@@ -530,9 +538,63 @@ export default function Game() {
             )}
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: '0.5rem' }}>
+          {/* CR-16: collapsible word list panel */}
+          <div style={wordListCollapsed
+            ? { flexShrink: 0 }
+            : { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }
+          }>
+            {/* Bonus banner always visible above the toggle bar */}
             {bonusBannerEl}
-            <WordListSwitch {...wordListProps} />
+
+            {/* Toggle bar — always visible, tap to expand/collapse */}
+            <button
+              onClick={() => setWordListCollapsed(v => !v)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'var(--card)',
+                borderRadius: wordListCollapsed ? 12 : '12px 12px 0 0',
+                padding: '10px 16px', boxSizing: 'border-box',
+                border: '1px solid var(--border)',
+                borderBottom: wordListCollapsed ? '1px solid var(--border)' : 'none',
+                cursor: 'pointer', userSelect: 'none',
+              }}
+            >
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)' }}>
+                {mode === 'audio' ? 'Listen & Find' : 'Words to Find'}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  fontSize: 12, fontWeight: 700,
+                  background: foundWords.length === gameData.words.length
+                    ? 'var(--primary)' : 'var(--muted)',
+                  color: foundWords.length === gameData.words.length
+                    ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
+                  borderRadius: 20, padding: '2px 10px',
+                  transition: 'background 0.3s',
+                }}>
+                  {foundWords.length} / {gameData.words.length}
+                </span>
+                <ChevronDown style={{
+                  width: 18, height: 18, color: 'var(--muted-foreground)',
+                  transform: wordListCollapsed ? 'rotate(0deg)' : 'rotate(180deg)',
+                  transition: 'transform 0.25s ease',
+                }} />
+              </div>
+            </button>
+
+            {/* Expandable list — slides in below the toggle bar */}
+            {!wordListCollapsed && (
+              <div style={{
+                flex: 1, overflowY: 'auto', overflowX: 'hidden',
+                paddingBottom: '0.5rem',
+                border: '1px solid var(--border)', borderTop: 'none',
+                borderRadius: '0 0 12px 12px',
+                background: 'var(--card)',
+              }}>
+                <WordListSwitch {...wordListProps} />
+              </div>
+            )}
           </div>
         </div>
       )}

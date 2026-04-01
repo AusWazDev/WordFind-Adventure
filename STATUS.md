@@ -198,7 +198,13 @@ Current baseline: commit `129f64f`
 - DEF-20: Fixed off-theme mystery word (e.g. SINGULARITY in a Sports game). Root cause: category word lists had length gaps — sports had no 11-letter words, so when filler exhausted at K=11 the cross-category fallback fired. Fix: expanded all 14 wordLists to cover every length 4–12 (137 new themed words added). The filler loop's validMysteryLengths check now always finds a matching stop point and findMysteryWord always returns a themed word. Also improves game variety.
 - CR-16 & CR-17: HTML mockups created (`CR-16-CR-17 Mockups.html` in workspace) for Waz review — showing collapsible word list (tap-to-toggle, auto-expand on victory) and responsive full-width grid sizing vs landscape nudge banner. Awaiting Waz sign-off before implementation.
 
+### 2026-04-01 (Windows — CR-16, CR-17 implemented)
+- CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
+- CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
+
 ## Next Steps (Priority Order)
+- [x] CR-16: Collapsible word list ✅
+- [x] CR-17: Responsive grid sizing ✅
 - [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor

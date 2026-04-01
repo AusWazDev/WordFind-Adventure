@@ -414,11 +414,12 @@ export default function Game() {
             autoCapitalize="characters"
             autoCorrect="off"
             spellCheck="false"
+            autoFocus={false}
             style={{
               width: '100%', boxSizing: 'border-box',
               background: 'rgba(255,255,255,0.92)', color: '#1e1b4b',
               border: 'none', borderRadius: 8,
-              padding: '6px 10px', fontSize: 14, fontWeight: 700,
+              padding: '6px 10px', fontSize: 16, fontWeight: 700,
               letterSpacing: 3, textAlign: 'center', marginBottom: 6,
             }}
           />

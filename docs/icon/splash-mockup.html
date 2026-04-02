@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundFind — Splash Screen Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1b2e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 40px 24px;
+    color: white;
+  }
+  h1  { font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #c4b5fd; }
+  p   { font-size: 13px; color: #94a3b8; margin-bottom: 24px; }
+  hr  { border: none; border-top: 1px solid #2d2a3e; margin: 8px 0 24px; }
+  h2  { font-size: 14px; font-weight: 700; color: #c4b5fd; margin-bottom: 6px; }
+  .note { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+
+  .layout { display: flex; gap: 48px; align-items: flex-start; flex-wrap: wrap; }
+
+  /* ── Phone frame ── */
+  .phone-wrap {
+    position: relative;
+    width: 320px;
+    flex-shrink: 0;
+  }
+  .phone-frame {
+    width: 320px;
+    height: 640px;
+    background: #0f0e1a;
+    border-radius: 44px;
+    border: 3px solid #3d3a55;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  /* Notch */
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 28px;
+    background: #0f0e1a;
+    border-radius: 0 0 18px 18px;
+    z-index: 10;
+    border: 2px solid #3d3a55;
+    border-top: none;
+  }
+  /* Side buttons */
+  .phone-frame::after {
+    content: '';
+    position: absolute;
+    right: -5px; top: 120px;
+    width: 4px; height: 60px;
+    background: #3d3a55;
+    border-radius: 2px;
+  }
+
+  /* ── Splash canvas ── */
+  #splashCanvas {
+    width: 320px;
+    height: 640px;
+    display: block;
+  }
+
+  /* ── Controls panel ── */
+  .controls {
+    background: #2d2a3e;
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 280px;
+    flex: 1;
+  }
+  .section-title {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: .08em; color: #7c3aed; font-weight: 700;
+  }
+  .ctrl-row { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl-row label {
+    font-size: 13px; color: #c4b5fd;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ctrl-row label span { font-size: 12px; color: #94a3b8; }
+  input[type=range] { accent-color: #7c3aed; width: 100%; }
+  select {
+    background: #1e1b2e; color: white;
+    border: 1px solid #4c1d95; border-radius: 6px;
+    padding: 6px 10px; font-size: 12px; width: 100%;
+  }
+  .btn {
+    background: #7c3aed; color: white; border: none;
+    border-radius: 10px; padding: 12px 20px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: background .15s;
+  }
+  .btn:hover { background: #6d28d9; }
+  .btn-outline {
+    background: transparent; color: #c4b5fd;
+    border: 1.5px solid #4c1d95; border-radius: 10px;
+    padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .btn-outline:hover { background: #2d2a3e; }
+  .timing-note {
+    font-size: 11px; color: #64748b;
+    background: #1e1b2e; border-radius: 8px;
+    padding: 10px 14px; line-height: 1.6;
+  }
+  .timing-note strong { color: #94a3b8; }
+
+  /* ── Size comparison row ── */
+  .comp-row { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-end; margin-top: 8px; }
+  .comp-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .comp-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing:.05em; }
+</style>
+</head>
+<body>
+
+<h1>SoundFind — Splash Screen</h1>
+<p>App launch splash · icon + name · fades into Home screen</p>
+
+<div class="layout">
+
+  <!-- Phone preview -->
+  <div class="phone-wrap">
+    <div class="phone-frame">
+      <canvas id="splashCanvas" width="320" height="640"></canvas>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="section-title">Layout</div>
+
+    <div class="ctrl-row">
+      <label>Icon size <span id="iconSizeVal">40%</span></label>
+      <input type="range" id="iconSize" min="20" max="60" value="40">
+    </div>
+    <div class="ctrl-row">
+      <label>Icon vertical position <span id="iconPosVal">40%</span></label>
+      <input type="range" id="iconPos" min="25" max="60" value="40">
+    </div>
+    <div class="ctrl-row">
+      <label>Name spacing below icon <span id="nameGapVal">10%</span></label>
+      <input type="range" id="nameGap" min="2" max="15" value="10">
+    </div>
+    <div class="ctrl-row">
+      <label>Tagline</label>
+      <select id="tagline">
+        <option value="none">None — icon + name only</option>
+        <option value="wordfind" selected>Find the words. Feel the sound.</option>
+        <option value="short">Where words meet sound.</option>
+        <option value="custom">Word + Sound puzzle game</option>
+      </select>
+    </div>
+
+    <hr style="border-color:#3d3a55; margin:4px 0;">
+    <div class="section-title">Background</div>
+
+    <div class="ctrl-row">
+      <label>Style</label>
+      <select id="bgStyle">
+        <option value="dark-gradient">Dark violet → indigo (matches icon)</option>
+        <option value="light-gradient">Light violet → indigo (matches app home)</option>
+        <option value="deep-dark" selected>Deep dark — near black</option>
+        <option value="brand-solid">Brand violet solid</option>
+      </select>
+    </div>
+    <div class="ctrl-row">
+      <label>Grid overlay opacity <span id="gridOpacityVal">10%</span></label>
+      <input type="range" id="gridOverlay" min="0" max="35" value="10">
+    </div>
+
+    <hr style="border-color:#3d3a55; margin:4px 0;">
+    <div class="section-title">Animation timing</div>
+
+    <div class="ctrl-row">
+      <label>Hold duration (ms) <span id="holdVal">2000ms</span></label>
+      <input type="range" id="holdDuration" min="500" max="3000" step="100" value="2000">
+    </div>
+
+    <div class="timing-note">
+      <strong>Sequence:</strong> fade in icon (400ms) → hold → fade to Home screen (300ms)<br>
+      <strong>Total:</strong> <span id="totalTime">2.2s</span>
+    </div>
+
+    <button class="btn" id="previewBtn">▶ Preview animation</button>
+    <button class="btn-outline" id="resetBtn">Reset to defaults</button>
+  </div>
+</div>
+
+<hr>
+<h2>Background style comparison</h2>
+<p class="note">Same layout, four background options at 160×320</p>
+<div class="comp-row" id="compRow"></div>
+
+<script>
+// ─── Icon draw (matches icon-mockup.html locked settings) ─────────────────────
+const ICON_CFG = {
+  gridOpacity:    0.38,
+  gridFade:       0.60,
+  waveReach:      0.72,
+  speakerSize:    0.20,
+  soundStyle:     'found',
+  speakerColour:  'teal',
+  speakerStyle:   'rounded',
+  speakerElongate: 1.50,
+  waveStart:      0.10,
+  gridBleed:      0.40,
+  gridTopBleed:   0.47,
+  showDivider:    false,
+  showGap:        false,
+};
+const ICON_SPK = { x: 0.15, y: 0.15 };
+
+const GRID_LETTERS = [
+  ['S','P','A','R','K','L','E'],
+  ['O','W','O','R','D','S','T'],
+  ['U','I','N','E','A','R','D'],
+  ['N','K','D','H','I','N','D'],
+  ['D','F','I','G','U','N','D'],
+  ['A','I','N','O','I','R','S'],
+  ['R','E','S','F','I','N','G'],
+];
+const SOUND_CELLS = [[6,2],[5,3],[4,4],[3,5],[2,6]];
+const FIND_CELLS  = [[6,3],[5,4],[4,5],[3,6]];
+function isSoundCell(r,c){ return SOUND_CELLS.some(([sr,sc])=>sr===r&&sc===c); }
+function isFindCell(r,c) { return FIND_CELLS.some(([fr,fc])=>fr===r&&fc===c); }
+
+function roundRect(c,x,y,w,h,r){
+  if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);return;}
+  c.beginPath();
+  c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);
+  c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();
+}
+
+function drawIconOnCanvas(canvas, sz) {
+  const cfg = ICON_CFG;
+  const ox = ICON_SPK.x, oy = ICON_SPK.y;
+  const c = canvas.getContext('2d');
+  canvas.width = sz; canvas.height = sz;
+  c.clearRect(0,0,sz,sz);
+
+  // Background
+  const bg = c.createLinearGradient(sz,0,0,sz);
+  bg.addColorStop(0,'#6d28d9'); bg.addColorStop(0.5,'#5b21b6'); bg.addColorStop(1,'#3730a3');
+  c.fillStyle=bg; c.fillRect(0,0,sz,sz);
+
+  // Vignette
+  const vig=c.createRadialGradient(sz*.5,sz*.5,sz*.2,sz*.5,sz*.5,sz*.85);
+  vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.28)');
+  c.fillStyle=vig; c.fillRect(0,0,sz,sz);
+
+  // Grid
+  const COLS=7,ROWS=7,gridPad=sz*0.03,cellSz=(sz-gridPad*2)/COLS;
+  c.save();
+  for(let row=0;row<ROWS;row++){
+    for(let col=0;col<COLS;col++){
+      const cx=gridPad+col*cellSz+cellSz/2, cy=gridPad+row*cellSz+cellSz/2;
+      const rawDist=(cx+cy-sz)/Math.SQRT2;
+      const fadeZone=sz*cfg.gridFade*0.55;
+      const rowFraction=cy/sz;
+      const bottomBleed=Math.max(0,rowFraction-0.35)*sz*cfg.gridBleed;
+      const topBleed=Math.max(0,0.50-rowFraction)*sz*cfg.gridTopBleed;
+      const bleedExtra=bottomBleed+topBleed;
+      const threshold=-(sz*0.06+bleedExtra);
+      let alpha=0;
+      if(rawDist>threshold){
+        alpha=Math.min(1,(rawDist-threshold)/fadeZone);
+        alpha=Math.pow(alpha,0.65);
+      }
+      if(alpha<=0.01)continue;
+      const isSound=isSoundCell(row,col), isFind=isFindCell(row,col);
+      const tx=gridPad+col*cellSz+cellSz*.07, ty=gridPad+row*cellSz+cellSz*.07;
+      const tw=cellSz*.86, th=cellSz*.86, tr=cellSz*.14;
+      c.beginPath(); roundRect(c,tx,ty,tw,th,tr);
+      if((isSound||isFind)&&cfg.soundStyle==='found'){
+        c.fillStyle=isSound?`rgba(20,184,166,${0.88*alpha})`:`rgba(13,148,136,${0.80*alpha})`;
+      } else {
+        c.fillStyle=`rgba(255,255,255,${cfg.gridOpacity*alpha*0.22})`;
+      }
+      c.fill();
+      const fontSize=Math.max(6,cellSz*0.44);
+      c.font=`700 ${fontSize}px -apple-system,sans-serif`;
+      c.textAlign='center'; c.textBaseline='middle'; c.shadowBlur=0;
+      if(isSound||isFind){
+        c.fillStyle=`rgba(255,255,255,${Math.min(1,alpha*1.1)})`;
+      } else {
+        c.fillStyle=`rgba(255,255,255,${cfg.gridOpacity*alpha*1.9})`;
+      }
+      c.fillText(GRID_LETTERS[row][col],cx,cy);
+    }
+  }
+  c.restore();
+
+  // Waves
+  const speakerU=sz*cfg.speakerSize/100;
+  const hornOffset=speakerU*0.18*cfg.speakerElongate*Math.SQRT2;
+  const wox=ox*sz+hornOffset, woy=oy*sz+hornOffset;
+  const maxR=sz*cfg.waveReach;
+  const angleCenter=Math.PI*0.25, spread=Math.PI*0.38;
+  c.save(); c.lineCap='round';
+  for(let i=4;i>=0;i--){
+    const t=(i+1)/5, r=maxR*(0.18+t*0.82);
+    c.beginPath(); c.arc(wox,woy,r,angleCenter-spread,angleCenter+spread);
+    c.strokeStyle=`rgba(167,139,250,${0.07+t*0.13})`; c.lineWidth=sz*(0.008+t*0.004); c.stroke();
+  }
+  const startOffset=cfg.waveStart;
+  [0.10,0.17,0.24,0.32].forEach((f,i)=>{
+    const r=maxR*(f+startOffset);
+    c.beginPath(); c.arc(wox,woy,r,angleCenter-spread*.7,angleCenter+spread*.7);
+    c.strokeStyle=i<2?`rgba(252,211,77,${0.90-i*0.15})`:`rgba(251,191,36,${0.55-(i-2)*0.18})`;
+    c.lineWidth=sz*(0.013-i*0.001); c.stroke();
+  });
+  c.restore();
+
+  // Speaker
+  const s=sz*cfg.speakerSize, u=s/100;
+  c.save();
+  c.translate(ox*sz,oy*sz); c.rotate(Math.PI*0.25);
+  c.fillStyle='rgba(20,184,166,0.97)'; c.strokeStyle='rgba(20,184,166,0.97)';
+  c.lineJoin='round'; c.lineCap='round';
+  c.shadowColor='rgba(0,0,0,0.45)'; c.shadowBlur=sz*0.018;
+  const el=cfg.speakerElongate;
+  const bx=-24*u,by=-13*u,bw=16*u,bh=26*u,br=4*u;
+  c.beginPath();
+  c.moveTo(bx+br,by); c.lineTo(bx+bw-br,by); c.quadraticCurveTo(bx+bw,by,bx+bw,by+br);
+  c.lineTo(bx+bw,by+bh-br); c.quadraticCurveTo(bx+bw,by+bh,bx+bw-br,by+bh);
+  c.lineTo(bx+br,by+bh); c.quadraticCurveTo(bx,by+bh,bx,by+bh-br);
+  c.lineTo(bx,by+br); c.quadraticCurveTo(bx,by,bx+br,by); c.closePath(); c.fill();
+  c.shadowBlur=0;
+  const hornTip=18*el;
+  c.beginPath();
+  c.moveTo(-8*u,-13*u); c.bezierCurveTo(4*u,-13*u,hornTip*u,-28*u,hornTip*u,-32*u);
+  c.lineTo(hornTip*u,32*u); c.bezierCurveTo(hornTip*u,28*u,4*u,13*u,-8*u,13*u);
+  c.closePath(); c.fill();
+  c.restore();
+
+  // Rim
+  const rim=c.createLinearGradient(sz,0,sz*.5,sz*.5);
+  rim.addColorStop(0,'rgba(255,255,255,0.12)'); rim.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=rim; c.fillRect(0,0,sz,sz);
+}
+
+// ─── BG helpers ───────────────────────────────────────────────────────────────
+function drawBackground(c, w, h, style) {
+  let bg;
+  switch(style) {
+    case 'light-gradient':
+      bg = c.createLinearGradient(w, 0, 0, h);
+      bg.addColorStop(0,  '#f5f3ff');  // violet-50
+      bg.addColorStop(0.5,'#ede9fe');  // violet-100
+      bg.addColorStop(1,  '#e0e7ff');  // indigo-100
+      break;
+    case 'deep-dark':
+      bg = c.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0,  '#0f0e1a');
+      bg.addColorStop(1,  '#1a1830');
+      break;
+    case 'brand-solid':
+      bg = '#7c3aed';
+      break;
+    default: // dark-gradient — matches icon
+      bg = c.createLinearGradient(w, 0, 0, h);
+      bg.addColorStop(0,  '#6d28d9');
+      bg.addColorStop(0.5,'#5b21b6');
+      bg.addColorStop(1,  '#3730a3');
+  }
+  if(typeof bg === 'string') { c.fillStyle=bg; } else { c.fillStyle=bg; }
+  c.fillRect(0, 0, w, h);
+}
+
+function isLightBg(style) {
+  return style === 'light-gradient';
+}
+
+// ─── MAIN SPLASH DRAW ─────────────────────────────────────────────────────────
+function drawSplash(canvas, alpha=1.0) {
+  const W = canvas.width, H = canvas.height;
+  const c = canvas.getContext('2d');
+  const bgStyle   = document.getElementById('bgStyle').value;
+  const iconSzPct = parseInt(document.getElementById('iconSize').value) / 100;
+  const iconYPct  = parseInt(document.getElementById('iconPos').value)  / 100;
+  const nameGapPct= parseInt(document.getElementById('nameGap').value)  / 100;
+  const gridAlpha = parseInt(document.getElementById('gridOverlay').value) / 100;
+  const tagline   = document.getElementById('tagline').value;
+  const light     = isLightBg(bgStyle);
+
+  c.clearRect(0, 0, W, H);
+
+  // Overall alpha for animation
+  c.save();
+  c.globalAlpha = alpha;
+
+  // 1. Background
+  drawBackground(c, W, H, bgStyle);
+
+  // 2. Subtle word-grid background texture (faint, non-distracting)
+  if(gridAlpha > 0.005) {
+    const rows=9, cols=6;
+    const cw=W/cols, ch=H/rows;
+    const letters='SOUNDFINDWORDGAMEPLAYLETTER'.split('');
+    c.save();
+    c.globalAlpha = gridAlpha * alpha;
+    c.font=`600 ${Math.round(cw*0.4)}px -apple-system,sans-serif`;
+    c.textAlign='center'; c.textBaseline='middle';
+    c.fillStyle = light ? 'rgba(109,40,217,0.5)' : 'rgba(255,255,255,0.6)';
+    let li=0;
+    for(let row=0;row<rows;row++){
+      for(let col=0;col<cols;col++){
+        const x=col*cw+cw/2, y=row*ch+ch/2;
+        // Slightly randomise per cell for a natural look (seeded)
+        const seed=(row*cols+col)*7+3;
+        const lIdx=seed % letters.length;
+        const tileAlpha=0.35+((seed*13)%100)/100*0.3;
+        c.globalAlpha=gridAlpha*tileAlpha*alpha;
+        c.fillText(letters[lIdx], x, y);
+      }
+    }
+    c.restore();
+  }
+
+  // 3. Soft radial vignette / glow behind icon
+  const iconSz  = Math.round(Math.min(W, H) * iconSzPct);
+  const iconX   = W / 2;
+  const iconY   = H * iconYPct;
+  const glowR   = iconSz * 1.2;
+  const glow = c.createRadialGradient(iconX, iconY, 0, iconX, iconY, glowR);
+  glow.addColorStop(0, light ? 'rgba(109,40,217,0.12)' : 'rgba(139,92,246,0.25)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = glow;
+  c.fillRect(0, 0, W, H);
+
+  // 4. Icon (rounded square)
+  const offscreen = document.createElement('canvas');
+  drawIconOnCanvas(offscreen, iconSz);
+  const iconRadius = iconSz * 0.2237;
+  c.save();
+  c.beginPath();
+  roundRect(c, iconX - iconSz/2, iconY - iconSz/2, iconSz, iconSz, iconRadius);
+  c.clip();
+  c.drawImage(offscreen, iconX - iconSz/2, iconY - iconSz/2, iconSz, iconSz);
+  c.restore();
+
+  // Icon shadow/ring
+  c.save();
+  c.beginPath();
+  roundRect(c, iconX - iconSz/2 - 1, iconY - iconSz/2 - 1, iconSz+2, iconSz+2, iconRadius+1);
+  c.strokeStyle = light ? 'rgba(109,40,217,0.2)' : 'rgba(255,255,255,0.12)';
+  c.lineWidth = 1.5;
+  c.stroke();
+  c.restore();
+
+  // 5. App name
+  const nameY = iconY + iconSz/2 + H * nameGapPct;
+  const nameFontSize = Math.round(W * 0.115);
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+
+  // Measure "Sound" and "Find" separately for two-colour rendering
+  c.font = `700 ${nameFontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif`;
+  const soundW = c.measureText('Sound').width;
+  const findW  = c.measureText('Find').width;
+  const totalW = soundW + findW;
+  const nameStartX = iconX - totalW / 2;
+
+  // "Sound" — white (dark bg) or slate-900 (light bg)
+  c.fillStyle = light ? '#1e1b4b' : '#ffffff';
+  c.shadowColor = light ? 'transparent' : 'rgba(0,0,0,0.3)';
+  c.shadowBlur  = 8;
+  c.fillText('Sound', nameStartX + soundW/2, nameY);
+
+  // "Find" — violet-500 (dark) / violet-600 (light)
+  c.fillStyle = light ? '#7c3aed' : '#a78bfa';
+  c.fillText('Find', nameStartX + soundW + findW/2, nameY);
+  c.shadowBlur = 0;
+
+  // 6. Tagline
+  if(tagline !== 'none') {
+    const tagMap = {
+      wordfind: 'Find the words. Feel the sound.',
+      short:    'Where words meet sound.',
+      custom:   'Word + Sound puzzle game',
+    };
+    const tagText = tagMap[tagline] || '';
+    const tagFontSize = Math.round(W * 0.042);
+    c.font = `400 ${tagFontSize}px -apple-system, sans-serif`;
+    c.fillStyle = light ? 'rgba(99,80,190,0.75)' : 'rgba(196,181,253,0.75)';
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    c.fillText(tagText, iconX, nameY + tagFontSize * 1.7);
+  }
+
+  // 7. Bottom loader dots
+  const dotY = H * 0.88;
+  const dotR = W * 0.012;
+  const dotGap = dotR * 3.5;
+  [-1, 0, 1].forEach((i, idx) => {
+    c.beginPath();
+    c.arc(iconX + i * dotGap, dotY, dotR, 0, Math.PI*2);
+    c.fillStyle = light
+      ? `rgba(109,40,217,${0.3 + idx*0.15})`
+      : `rgba(167,139,250,${0.3 + idx*0.15})`;
+    c.fill();
+  });
+
+  c.restore(); // globalAlpha
+}
+
+// ─── Animation state ──────────────────────────────────────────────────────────
+let animFrame = null;
+let animating = false;
+
+function previewAnimation() {
+  if(animating) return;
+  animating = true;
+  const canvas = document.getElementById('splashCanvas');
+  const holdMs = parseInt(document.getElementById('holdDuration').value);
+  const fadeInMs  = 400;
+  const fadeOutMs = 300;
+  const totalMs   = fadeInMs + holdMs + fadeOutMs;
+  const start = performance.now();
+
+  function tick(now) {
+    const elapsed = now - start;
+    let alpha;
+    if(elapsed < fadeInMs) {
+      alpha = elapsed / fadeInMs;
+    } else if(elapsed < fadeInMs + holdMs) {
+      alpha = 1.0;
+    } else {
+      alpha = 1 - (elapsed - fadeInMs - holdMs) / fadeOutMs;
+    }
+    alpha = Math.max(0, Math.min(1, alpha));
+    drawSplash(canvas, alpha);
+    if(elapsed < totalMs) {
+      animFrame = requestAnimationFrame(tick);
+    } else {
+      // Final state — draw static at full alpha
+      drawSplash(canvas, 1.0);
+      animating = false;
+      document.getElementById('previewBtn').textContent = '▶ Preview animation';
+    }
+  }
+  document.getElementById('previewBtn').textContent = '⏸ Playing…';
+  animFrame = requestAnimationFrame(tick);
+}
+
+// ─── Comparison row ───────────────────────────────────────────────────────────
+const BG_OPTIONS = [
+  { value: 'dark-gradient', label: 'Dark gradient',  sub: 'Matches icon — recommended' },
+  { value: 'light-gradient', label: 'Light gradient', sub: 'Matches app home screen' },
+  { value: 'deep-dark',      label: 'Deep dark',      sub: 'Near-black, minimal' },
+  { value: 'brand-solid',    label: 'Brand violet',   sub: 'Bold solid colour' },
+];
+
+function buildCompRow() {
+  const row = document.getElementById('compRow');
+  row.innerHTML = '';
+  const CW = 120, CH = 240;
+  BG_OPTIONS.forEach(opt => {
+    const wrap = document.createElement('div');
+    wrap.className = 'comp-item';
+    const cv = document.createElement('canvas');
+    cv.width = CW; cv.height = CH;
+    cv.style.cssText = `width:${CW}px;height:${CH}px;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,0.5);display:block;`;
+    // temporarily override select
+    const sel = document.getElementById('bgStyle');
+    const prev = sel.value;
+    sel.value = opt.value;
+    drawSplash(cv, 1.0);
+    sel.value = prev;
+    const lbl = document.createElement('div');
+    lbl.className = 'comp-label';
+    lbl.textContent = opt.label;
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font-size:10px;color:#475569;text-align:center;';
+    sub.textContent = opt.sub;
+    wrap.appendChild(cv); wrap.appendChild(lbl); wrap.appendChild(sub);
+    row.appendChild(wrap);
+  });
+}
+
+// ─── Render & wire-up ─────────────────────────────────────────────────────────
+function render() {
+  const canvas = document.getElementById('splashCanvas');
+  if(!animating) drawSplash(canvas, 1.0);
+  buildCompRow();
+  updateLabels();
+}
+
+function updateLabels() {
+  document.getElementById('iconSizeVal').textContent    = document.getElementById('iconSize').value + '%';
+  document.getElementById('iconPosVal').textContent     = document.getElementById('iconPos').value + '%';
+  document.getElementById('nameGapVal').textContent     = document.getElementById('nameGap').value + '%';
+  document.getElementById('gridOpacityVal').textContent = document.getElementById('gridOverlay').value + '%';
+  const hold = parseInt(document.getElementById('holdDuration').value);
+  document.getElementById('holdVal').textContent = hold + 'ms';
+  document.getElementById('totalTime').textContent = ((400 + hold + 300)/1000).toFixed(1) + 's';
+}
+
+['iconSize','iconPos','nameGap','gridOverlay','holdDuration'].forEach(id => {
+  document.getElementById(id).addEventListener('input', render);
+});
+['bgStyle','tagline'].forEach(id => {
+  document.getElementById(id).addEventListener('change', render);
+});
+
+document.getElementById('previewBtn').addEventListener('click', previewAnimation);
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('iconSize').value     = 40;
+  document.getElementById('iconPos').value      = 40;
+  document.getElementById('nameGap').value      = 10;
+  document.getElementById('gridOverlay').value  = 10;
+  document.getElementById('holdDuration').value = 2000;
+  document.getElementById('bgStyle').value      = 'deep-dark';
+  document.getElementById('tagline').value      = 'wordfind';
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

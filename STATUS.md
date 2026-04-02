@@ -202,6 +202,11 @@ Current baseline: commit `129f64f`
 - CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
 - CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
 
+### 2026-04-03 (Windows — CR-18, CR-19, CR-20: Icon & Splash Screen)
+- CR-18: App icon designed — interactive HTML5 Canvas mockup built (`docs/icon/icon-mockup.html`). Concept D: diagonal split, 7×7 word grid top-right fading to diagonal with SOUND+FIND spelled in teal cells, rounded iOS-style teal speaker top-left with gold accent waves. Final 1024px PNG exported (`docs/icon/soundfind-icon-d.png`). Locked settings: grid opacity 38%, grid fade 60%, wave reach 72%, wave start gap 10%, speaker size 20%, length 150%, bottom bleed 40%, top bleed 47%, position x=15% y=15%.
+- CR-19: Splash screen designed — interactive HTML5 Canvas mockup built (`docs/icon/splash-mockup.html`). Deep dark near-black background, icon centred at 40%, "SoundFind" name, tagline "Find the words. Feel the sound.", animated Preview button. Locked settings approved by Waz: icon 40%, vertical 40%, name gap 10%, deep dark bg, grid overlay 10%, hold 2000ms (total 2.7s).
+- CR-20: Splash screen implemented — `src/components/game/SplashScreen.jsx` created from CR-19 approved design. Framer Motion sequence: fade in 400ms → hold 2000ms → fade out 300ms → Home. Wired into `App.jsx` via `showSplash` state. `public/icon.png` added (1024px master). `index.html` favicon updated from emoji to `icon.png`.
+
 ## Next Steps (Priority Order)
 - [x] CR-16: Collapsible word list ✅
 - [x] CR-17: Responsive grid sizing ✅
@@ -209,7 +214,8 @@ Current baseline: commit `129f64f`
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
 - [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
-- [ ] App icon design (1024×1024 master)
+- [x] App icon design — CR-18 ✅
+- [x] Splash screen — CR-19/CR-20 ✅
 - [ ] PWA manifest + service worker (vite-plugin-pwa)
 - [ ] Capacitor setup for iOS/Android native builds
 - [ ] Analytics: PostHog + Sentry integration (before public launch)

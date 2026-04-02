@@ -197,6 +197,18 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 
 ---
 
+### 17. Splash Screen
+
+| | Files |
+|---|---|
+| **Primary source** | `src/components/game/SplashScreen.jsx` |
+| **Supporting source** | `src/App.jsx` (`showSplash` state), `public/icon.png` |
+| **Related docs** | `docs/Change Register.md` (CR-19, CR-20), `docs/icon/splash-mockup.html`, `STATUS.md` |
+| **Beta test cases** | TC-01 (splash shows on load, fades to Home after ~2.7s) |
+| **Also check when changed** | Does the icon still load from `public/icon.png`? Does `onComplete` correctly unmount the splash and reveal Home? Does the animation feel right on both mobile and desktop? |
+
+---
+
 ### 16. Vercel Deployment Config
 
 | | Files |

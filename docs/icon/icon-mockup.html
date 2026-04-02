@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundFind Icon Mockup — Option D</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1b2e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 40px 24px;
+    color: white;
+  }
+  h1  { font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #c4b5fd; }
+  p   { font-size: 13px; color: #94a3b8; margin-bottom: 24px; }
+  hr  { border: none; border-top: 1px solid #2d2a3e; margin: 8px 0 24px; }
+  h2  { font-size: 14px; font-weight: 700; color: #c4b5fd; margin-bottom: 6px; }
+  .note { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+  .badge { background:#7c3aed; color:white; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; }
+
+  .row { display:flex; flex-wrap:wrap; gap:40px; align-items:flex-end; margin-bottom:48px; }
+  .variant { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .label   { font-size:12px; color:#94a3b8; font-weight:500; letter-spacing:.05em; text-transform:uppercase; }
+  .sublabel{ font-size:11px; color:#64748b; }
+
+  .icon-wrap {
+    border-radius: calc(var(--sz) * 0.2237);
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+  }
+
+  /* draggable canvas shows move cursor */
+  #mainCanvas { cursor: grab; display:block; }
+  #mainCanvas.dragging { cursor: grabbing; }
+
+  .drag-hint {
+    font-size:12px; color:#7c3aed; font-weight:600;
+    display:flex; align-items:center; gap:6px; margin-top:4px;
+  }
+  .pos-display {
+    font-size:11px; color:#64748b; font-family:monospace; margin-top:2px;
+  }
+
+  .controls {
+    background:#2d2a3e; border-radius:12px; padding:20px 24px;
+    margin-bottom:32px; display:flex; flex-wrap:wrap; gap:16px 32px; align-items:center;
+  }
+  .controls label { font-size:13px; color:#c4b5fd; display:flex; align-items:center; gap:8px; cursor:pointer; }
+  .controls input[type=range] { accent-color:#7c3aed; width:120px; }
+  .controls input[type=checkbox] { accent-color:#7c3aed; width:16px; height:16px; cursor:pointer; }
+  .controls span.val { font-size:12px; color:#94a3b8; min-width:30px; }
+  .section-title { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#7c3aed; font-weight:700; width:100%; }
+  select { background:#1e1b2e; color:white; border:1px solid #4c1d95; border-radius:6px; padding:4px 8px; font-size:12px; }
+</style>
+</head>
+<body>
+
+<h1>SoundFind — Icon Concept D</h1>
+<p>Diagonal split · SOUND + FIND on the grid diagonals · speaker faces the words · drag speaker to reposition</p>
+
+<div class="controls">
+  <div class="section-title">Tweak the design</div>
+  <label>Grid opacity
+    <input type="range" id="gridOpacity" min="10" max="90" value="38">
+    <span class="val" id="gridOpacityVal">38%</span>
+  </label>
+  <label>Grid fade
+    <input type="range" id="gridFade" min="20" max="95" value="60">
+    <span class="val" id="gridFadeVal">60%</span>
+  </label>
+  <label>Wave reach
+    <input type="range" id="waveReach" min="30" max="100" value="72">
+    <span class="val" id="waveReachVal">72%</span>
+  </label>
+  <label>Wave start gap
+    <input type="range" id="waveStart" min="0" max="35" value="10">
+    <span class="val" id="waveStartVal">10%</span>
+  </label>
+  <label>Speaker size
+    <input type="range" id="speakerSize" min="8" max="30" value="20">
+    <span class="val" id="speakerSizeVal">20%</span>
+  </label>
+  <label>Speaker length
+    <input type="range" id="speakerElongate" min="80" max="220" value="150">
+    <span class="val" id="speakerElongateVal">150%</span>
+  </label>
+  <label>Grid bottom bleed
+    <input type="range" id="gridBleed" min="0" max="40" value="40">
+    <span class="val" id="gridBleedVal">40%</span>
+  </label>
+  <label>Grid top bleed
+    <input type="range" id="gridTopBleed" min="0" max="100" value="47">
+    <span class="val" id="gridTopBleedVal">47%</span>
+  </label>
+  <label>SOUND style
+    <select id="soundStyle">
+      <option value="found" selected>Teal highlight ← recommended</option>
+      <option value="bold">Bold white</option>
+      <option value="glow">Glow outline</option>
+    </select>
+  </label>
+  <label>Speaker colour
+    <select id="speakerColour">
+      <option value="teal" selected>Teal — matches word highlights</option>
+      <option value="white">White</option>
+      <option value="violet">Violet-300 — matches waves</option>
+      <option value="gold">Gold / amber</option>
+      <option value="gradient">Teal → white gradient</option>
+    </select>
+  </label>
+  <label>Speaker style
+    <select id="speakerStyle">
+      <option value="classic">Classic trapezoid</option>
+      <option value="rounded" selected>Rounded modern (iOS-style)</option>
+      <option value="megaphone">Megaphone / horn</option>
+      <option value="minimal">Minimal flat</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="showDivider"> Show diagonal guide</label>
+  <label><input type="checkbox" id="showGap"> Show gap analysis</label>
+</div>
+
+<!-- Full size + drag -->
+<h2>Full size — drag the speaker to reposition</h2>
+<p class="note">Click and drag the speaker anywhere on the canvas</p>
+<div class="row">
+  <div class="variant">
+    <div class="icon-wrap" id="mainWrap" style="--sz:420px; width:420px; height:420px;">
+      <canvas id="mainCanvas" width="420" height="420"></canvas>
+    </div>
+    <div class="drag-hint">✦ Drag speaker to move it</div>
+    <div class="pos-display" id="posDisplay">position: x=15% y=15%</div>
+  </div>
+  <button id="downloadBtn" style="align-self:flex-end; background:#7c3aed; color:white; border:none; border-radius:8px; padding:10px 20px; font-size:13px; cursor:pointer; font-weight:600;">
+    ⬇ Download 1024px PNG
+  </button>
+</div>
+
+<hr>
+<h2>At every platform size</h2>
+<p class="note">The real legibility test</p>
+<div class="row" id="sizeRow"></div>
+
+<hr>
+<h2>Speaker style comparison</h2>
+<p class="note">All four icon shapes at 280px — uses your current colour selection</p>
+<div class="row" id="speakerStyleRow"></div>
+
+<hr>
+<h2>Speaker colour comparison</h2>
+<p class="note">All five colours at 280px — uses your current speaker style</p>
+<div class="row" id="speakerColourRow"></div>
+
+<hr>
+<h2>SOUND letter style comparison</h2>
+<p class="note">At 280px, all three options side-by-side</p>
+<div class="row" id="styleRow"></div>
+
+<script>
+// ─── Speaker position (as fraction of icon size, draggable) ──────────────────
+let spkX = 0.15;
+let spkY = 0.15;
+
+const SIZES = [
+  { sz: 180, label: 'App icon',     sub: 'iPhone home screen' },
+  { sz:  80, label: 'Spotlight',    sub: '80px' },
+  { sz:  60, label: 'Home (small)', sub: '60px' },
+  { sz:  29, label: 'Settings',     sub: '29px' },
+];
+
+const STYLE_COMPARE = [
+  { style: 'found', label: '★ Teal (recommended)', sub: 'Mirrors the "found word" mechanic' },
+  { style: 'bold',  label: 'Bold white',            sub: 'Clean, high contrast' },
+  { style: 'glow',  label: 'Glow outline',           sub: 'More dramatic' },
+];
+
+// ─── Grid letters — SOUND at (6,2)(5,3)(4,4)(3,5)(2,6) bottom→top ────────────
+//                    FIND  at (6,3)(5,4)(4,5)(3,6) bottom→top
+const GRID_LETTERS = [
+  ['S','P','A','R','K','L','E'],   // row 0
+  ['O','W','O','R','D','S','T'],   // row 1
+  ['U','I','N','E','A','R','D'],   // row 2  [2][6] D  (SOUND D)
+  ['N','K','D','H','I','N','D'],   // row 3  [3][5] N  (SOUND N)  [3][6] D (FIND D)
+  ['D','F','I','G','U','N','D'],   // row 4  [4][4] U  (SOUND U)  [4][5] N (FIND N)
+  ['A','I','N','O','I','R','S'],   // row 5  [5][3] O  (SOUND O)  [5][4] I (FIND I)
+  ['R','E','S','F','I','N','G'],   // row 6  [6][2] S  (SOUND S)  [6][3] F (FIND F)
+];
+
+// SOUND diagonal: (row,col) pairs, bottom→top
+const SOUND_CELLS = [[6,2],[5,3],[4,4],[3,5],[2,6]];
+// FIND diagonal: one step to the right of SOUND, bottom→top
+const FIND_CELLS  = [[6,3],[5,4],[4,5],[3,6]];
+// Cells sitting right on the anti-diagonal (cx+cy ≈ sz) — forced visible so they don't fade out
+const DIAGONAL_ANCHORS = [[3,3],[2,4]];
+
+function isSoundCell(r, c)    { return SOUND_CELLS.some(([sr,sc])       => sr===r && sc===c); }
+function isFindCell(r, c)     { return FIND_CELLS.some(([fr,fc])        => fr===r && fc===c); }
+function isDiagAnchor(r, c)   { return DIAGONAL_ANCHORS.some(([ar,ac]) => ar===r && ac===c); }
+
+function getConfig() {
+  return {
+    gridOpacity:   parseInt(document.getElementById('gridOpacity').value)  / 100,
+    gridFade:      parseInt(document.getElementById('gridFade').value)     / 100,
+    waveReach:     parseInt(document.getElementById('waveReach').value)    / 100,
+    speakerSize:   parseInt(document.getElementById('speakerSize').value)  / 100,
+    soundStyle:    document.getElementById('soundStyle').value,
+    showDivider:   document.getElementById('showDivider').checked,
+    speakerColour:    document.getElementById('speakerColour').value,
+    speakerStyle:     document.getElementById('speakerStyle').value,
+    speakerElongate:  parseInt(document.getElementById('speakerElongate').value) / 100,
+    waveStart:        parseInt(document.getElementById('waveStart').value) / 100,
+    gridBleed:        parseInt(document.getElementById('gridBleed').value) / 100,
+    gridTopBleed:     parseInt(document.getElementById('gridTopBleed').value) / 100,
+    showGap:          document.getElementById('showGap').checked,
+  };
+}
+
+// ─── Resolve speaker colour to canvas fill/stroke value ───────────────────────
+function resolveSpeakerColour(c, sz, cfg, ox, oy) {
+  switch (cfg.speakerColour) {
+    case 'teal':     return 'rgba(20,184,166,0.97)';          // teal-500
+    case 'violet':   return 'rgba(196,181,253,0.97)';         // violet-300
+    case 'gold':     return 'rgba(251,191,36,0.97)';          // amber-400
+    case 'gradient': {
+      const g = c.createLinearGradient(ox-sz*.08, oy-sz*.08, ox+sz*.12, oy+sz*.12);
+      g.addColorStop(0, 'rgba(20,184,166,0.97)');
+      g.addColorStop(1, 'rgba(255,255,255,0.97)');
+      return g;
+    }
+    default:         return 'rgba(255,255,255,0.97)';          // white
+  }
+}
+
+// ─── MAIN DRAW ────────────────────────────────────────────────────────────────
+function drawIcon(canvas, sz, cfg, ox, oy) {
+  const c = canvas.getContext('2d');
+  canvas.width  = sz;
+  canvas.height = sz;
+  c.clearRect(0, 0, sz, sz);
+
+  // 1. Background gradient
+  const bg = c.createLinearGradient(sz, 0, 0, sz);
+  bg.addColorStop(0,   '#6d28d9');
+  bg.addColorStop(0.5, '#5b21b6');
+  bg.addColorStop(1,   '#3730a3');
+  c.fillStyle = bg;
+  c.fillRect(0, 0, sz, sz);
+
+  // 2. Vignette
+  const vig = c.createRadialGradient(sz*.5,sz*.5,sz*.2, sz*.5,sz*.5,sz*.85);
+  vig.addColorStop(0,'rgba(0,0,0,0)');
+  vig.addColorStop(1,'rgba(0,0,0,0.28)');
+  c.fillStyle = vig; c.fillRect(0,0,sz,sz);
+
+  // 3. Grid
+  drawGrid(c, sz, cfg);
+
+  // 4. Diagonal guide
+  if (cfg.showDivider) {
+    c.save();
+    c.strokeStyle='rgba(255,255,255,0.3)'; c.lineWidth=sz*.004;
+    c.setLineDash([sz*.025,sz*.015]);
+    c.beginPath(); c.moveTo(sz,0); c.lineTo(0,sz); c.stroke();
+    c.setLineDash([]); c.restore();
+  }
+
+  // 5. Sound waves — origin offset to horn mouth for rounded/megaphone styles
+  const speakerU   = (sz * cfg.speakerSize) / 100;
+  // Wave origin tracks the elongated horn tip — 18*elongate for rounded, 26*elongate for megaphone
+  // Horn tip is in local X space; after 45° rotation, both X and Y offsets = tip * u / sqrt(2) * sqrt(2) = tip * u
+  const hornOffset = cfg.speakerStyle === 'rounded'
+    ? speakerU * 0.18 * cfg.speakerElongate * Math.SQRT2
+    : cfg.speakerStyle === 'megaphone'
+    ? speakerU * 0.26 * cfg.speakerElongate * Math.SQRT2
+    : 0;
+  const wox = ox*sz + hornOffset;
+  const woy = oy*sz + hornOffset;
+  drawWaves(c, sz, cfg, wox, woy);
+
+  // 6. Speaker
+  drawSpeaker(c, sz, cfg, ox*sz, oy*sz);
+
+  // store for gap overlay
+  drawIcon._wox = wox; drawIcon._woy = woy;
+
+  // 7. Gap analysis overlay
+  if (cfg.showGap) {
+    c.save();
+
+    // Shade the speaker's half (top-left triangle: x+y < sz) in red-orange tint
+    c.beginPath();
+    c.moveTo(0, 0); c.lineTo(sz, 0); c.lineTo(0, sz); c.closePath();
+    c.fillStyle = 'rgba(239,68,68,0.18)';
+    c.fill();
+
+    // Diagonal boundary line
+    c.beginPath(); c.moveTo(sz,0); c.lineTo(0,sz);
+    c.strokeStyle='rgba(239,68,68,0.7)'; c.lineWidth=sz*0.004;
+    c.setLineDash([sz*0.02,sz*0.012]); c.stroke(); c.setLineDash([]);
+
+    // Speaker footprint circle — shows how much of the half it occupies
+    const spkPx = drawIcon._wox || ox*sz, spkPy = drawIcon._woy || oy*sz;
+    const footR = sz * cfg.speakerSize * 0.9;
+    c.beginPath(); c.arc(spkPx, spkPy, footR, 0, Math.PI*2);
+    c.strokeStyle='rgba(252,211,77,0.85)'; c.lineWidth=sz*0.005;
+    c.setLineDash([sz*0.015,sz*0.01]); c.stroke(); c.setLineDash([]);
+
+    // Label the gap zones
+    const fs = Math.max(10, sz*0.028);
+    c.font=`600 ${fs}px -apple-system,sans-serif`;
+    c.textAlign='center'; c.textBaseline='middle';
+    c.fillStyle='rgba(255,255,255,0.75)';
+
+    // Top-left gap (above speaker)
+    c.fillText('gap', sz*0.10, sz*0.10);
+    // Bottom-left gap (below speaker)
+    c.fillText('gap', sz*0.12, sz*0.72);
+    // The speaker zone centroid
+    c.fillStyle='rgba(252,211,77,0.9)';
+    c.fillText('speaker zone', spkPx, spkPy - footR - fs*1.2);
+
+    c.restore();
+  }
+
+  // 8. Highlight rim
+  const rim = c.createLinearGradient(sz,0,sz*.5,sz*.5);
+  rim.addColorStop(0,'rgba(255,255,255,0.12)');
+  rim.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=rim; c.fillRect(0,0,sz,sz);
+}
+
+// ─── GRID ─────────────────────────────────────────────────────────────────────
+function drawGrid(c, sz, cfg) {
+  const COLS=7, ROWS=7;
+  const gridPad = sz*0.03;
+  const cellSz  = (sz - gridPad*2) / COLS;
+  c.save();
+
+  for (let row=0; row<ROWS; row++) {
+    for (let col=0; col<COLS; col++) {
+      const cx = gridPad + col*cellSz + cellSz/2;
+      const cy = gridPad + row*cellSz + cellSz/2;
+
+      // Fade: cells closer to bottom-right are more visible; fade toward anti-diagonal
+      const rawDist = (cx + cy - sz) / Math.SQRT2;
+      const fadeZone = sz * cfg.gridFade * 0.55;
+      // Bottom bleed — lower rows bleed past diagonal; top bleed — upper rows do the same
+      const rowFraction = cy / sz;
+      const bottomBleed = Math.max(0, rowFraction - 0.35) * sz * cfg.gridBleed;
+      const topBleed    = Math.max(0, 0.50 - rowFraction) * sz * cfg.gridTopBleed;
+      const bleedExtra  = bottomBleed + topBleed;
+      const threshold   = -(sz * 0.06 + bleedExtra);
+      let alpha = 0;
+      if (rawDist > threshold) {
+        alpha = Math.min(1, (rawDist - threshold) / fadeZone);
+        alpha = Math.pow(alpha, 0.65);
+      }
+      if (alpha <= 0.01) continue;
+
+      const isSound = isSoundCell(row, col);
+      const isFind  = isFindCell(row, col);
+
+      // Cell tile
+      const tx=gridPad+col*cellSz+cellSz*.07, ty=gridPad+row*cellSz+cellSz*.07;
+      const tw=cellSz*.86, th=cellSz*.86, tr=cellSz*.14;
+      c.beginPath(); roundRect(c, tx, ty, tw, th, tr);
+
+      if ((isSound || isFind) && cfg.soundStyle==='found') {
+        // FIND uses a slightly warmer teal to subtly distinguish from SOUND
+        const col1 = isSound ? `rgba(20,184,166,${0.88*alpha})`   // teal-500
+                             : `rgba(13,148,136,${0.80*alpha})`;   // teal-600
+        c.fillStyle = col1; c.fill();
+      } else {
+        c.fillStyle = `rgba(255,255,255,${cfg.gridOpacity*alpha*0.22})`; c.fill();
+      }
+
+      // Letter
+      const fontSize = Math.max(6, cellSz*0.44);
+      c.font = `700 ${fontSize}px -apple-system,system-ui,sans-serif`;
+      c.textAlign='center'; c.textBaseline='middle'; c.shadowBlur=0;
+
+      if (isSound || isFind) {
+        if (cfg.soundStyle==='found') {
+          c.fillStyle = `rgba(255,255,255,${Math.min(1,alpha*1.1)})`;
+        } else if (cfg.soundStyle==='glow') {
+          c.shadowColor='rgba(196,181,253,0.95)'; c.shadowBlur=cellSz*.35;
+          c.fillStyle = `rgba(255,255,255,${alpha})`;
+        } else {
+          c.fillStyle = `rgba(255,255,255,${alpha})`;
+        }
+      } else {
+        c.fillStyle = `rgba(255,255,255,${cfg.gridOpacity*alpha*1.9})`;
+      }
+      c.fillText(GRID_LETTERS[row][col], cx, cy);
+      c.shadowBlur=0;
+    }
+  }
+  c.restore();
+}
+
+// ─── WAVES ────────────────────────────────────────────────────────────────────
+function drawWaves(c, sz, cfg, ox, oy) {
+  const maxR = sz * cfg.waveReach;
+  const angleCenter =  Math.PI*0.25;   // 90° clockwise — waves flow top-left → bottom-right
+  const spread      =  Math.PI*0.38;
+  c.save(); c.lineCap='round';
+
+  // Background soft waves
+  for (let i=4; i>=0; i--) {
+    const t = (i+1)/5;
+    const r = maxR*(0.18+t*0.82);
+    c.beginPath();
+    c.arc(ox, oy, r, angleCenter-spread, angleCenter+spread);
+    c.strokeStyle=`rgba(167,139,250,${0.07+t*0.13})`;
+    c.lineWidth=sz*(0.008+t*0.004);
+    c.stroke();
+  }
+
+  // Accent arcs — gold, 4 waves, fading outward
+  // waveStart pushes all arcs further from the speaker origin
+  const startOffset = cfg.waveStart;
+  [0.10, 0.17, 0.24, 0.32].forEach((f, i) => {
+    const r = maxR * (f + startOffset);
+    c.beginPath();
+    c.arc(ox, oy, r, angleCenter-spread*.7, angleCenter+spread*.7);
+    c.strokeStyle = i < 2
+      ? `rgba(252,211,77,${0.90 - i*0.15})`
+      : `rgba(251,191,36,${0.55 - (i-2)*0.18})`;
+    c.lineWidth = sz * (0.013 - i*0.001);
+    c.stroke();
+  });
+  c.restore();
+}
+
+// ─── SPEAKER ──────────────────────────────────────────────────────────────────
+function drawSpeaker(c, sz, cfg, ox, oy) {
+  const s     = sz * cfg.speakerSize;
+  const u     = s / 100;
+  const color = resolveSpeakerColour(c, sz, cfg, ox, oy);
+
+  c.save();
+  c.translate(ox, oy);
+  c.rotate(Math.PI * 0.25);
+  c.fillStyle   = color;
+  c.strokeStyle = color;
+  c.lineJoin    = 'round';
+  c.lineCap     = 'round';
+  c.shadowColor = 'rgba(0,0,0,0.45)';
+  c.shadowBlur  = sz * 0.018;
+
+  switch (cfg.speakerStyle) {
+
+    // ── 1. Classic trapezoid (original) ───────────────────────────────────────
+    case 'classic':
+    default:
+      c.beginPath();
+      c.moveTo(-22*u,-14*u); c.lineTo(-8*u,-14*u);
+      c.lineTo( 10*u,-30*u); c.lineTo(10*u, 30*u);
+      c.lineTo( -8*u, 14*u); c.lineTo(-22*u,14*u);
+      c.closePath(); c.fill();
+      break;
+
+    // ── 2. Rounded modern (iOS SF Symbol style) ───────────────────────────────
+    case 'rounded': {
+      const el = cfg.speakerElongate;          // elongation multiplier along horn axis
+      const bx=-24*u, by=-13*u, bw=16*u, bh=26*u, br=4*u;
+      // Body (rounded rect) — unchanged, elongation only affects the horn
+      c.beginPath();
+      c.moveTo(bx+br, by);
+      c.lineTo(bx+bw-br, by); c.quadraticCurveTo(bx+bw, by, bx+bw, by+br);
+      c.lineTo(bx+bw, by+bh-br); c.quadraticCurveTo(bx+bw, by+bh, bx+bw-br, by+bh);
+      c.lineTo(bx+br, by+bh); c.quadraticCurveTo(bx, by+bh, bx, by+bh-br);
+      c.lineTo(bx, by+br); c.quadraticCurveTo(bx, by, bx+br, by);
+      c.closePath(); c.fill();
+      // Horn — elongated along x (the pointing axis before rotation)
+      c.shadowBlur = 0;
+      const hornTip = 18 * el;   // how far the horn extends — grows with elongation
+      c.beginPath();
+      c.moveTo(-8*u, -13*u);
+      c.bezierCurveTo(4*u, -13*u,  hornTip*u, -28*u,  hornTip*u, -32*u);
+      c.lineTo(hornTip*u,  32*u);
+      c.bezierCurveTo(hornTip*u,  28*u,  4*u,  13*u, -8*u,  13*u);
+      c.closePath(); c.fill();
+      break;
+    }
+
+    // ── 3. Megaphone / bullhorn ────────────────────────────────────────────────
+    // Wide flared cone with a handle, more dynamic and energetic
+    case 'megaphone': {
+      // Main cone — narrow at left, wide flare at right
+      c.beginPath();
+      c.moveTo(-28*u,  -8*u);
+      c.lineTo(  0*u,  -8*u);
+      c.bezierCurveTo( 8*u, -8*u,  22*u, -28*u,  26*u, -36*u);
+      c.lineTo( 26*u,  36*u);
+      c.bezierCurveTo( 22*u,  28*u,  8*u,   8*u,   0*u,   8*u);
+      c.lineTo(-28*u,   8*u);
+      c.closePath(); c.fill();
+      // Handle/grip nub at the back
+      c.shadowBlur = 0;
+      c.beginPath();
+      c.arc(-30*u, 0, 10*u, 0, Math.PI*2);
+      c.fill();
+      // Mouth rim — bold ellipse at the wide end
+      c.lineWidth = u * 5;
+      c.strokeStyle = color;
+      c.globalAlpha = 0.55;
+      c.beginPath();
+      c.ellipse(26*u, 0, 8*u, 36*u, 0, 0, Math.PI*2);
+      c.stroke();
+      c.globalAlpha = 1;
+      break;
+    }
+
+    // ── 4. Minimal flat ────────────────────────────────────────────────────────
+    // Pure geometric — two rectangles + a triangle, very icon-design-forward
+    case 'minimal': {
+      const lw = u * 7;
+      c.lineWidth = lw;
+      c.strokeStyle = color;
+      c.fillStyle   = color;
+      // Box (square end of speaker)
+      c.beginPath();
+      c.rect(-26*u, -12*u, 14*u, 24*u);
+      c.fill();
+      // Triangle horn
+      c.beginPath();
+      c.moveTo(-12*u, -12*u);
+      c.lineTo(  14*u, -30*u);
+      c.lineTo(  14*u,  30*u);
+      c.lineTo(-12*u,  12*u);
+      c.closePath(); c.fill();
+      break;
+    }
+  }
+
+  c.shadowBlur = 0;
+  c.restore();
+}
+
+// ─── HIT TEST: is (px,py) near speaker? ──────────────────────────────────────
+function nearSpeaker(px, py, sz) {
+  const ox = spkX*sz, oy = spkY*sz;
+  const s  = sz * (parseInt(document.getElementById('speakerSize').value)/100);
+  const hitR = s * 0.6;
+  return Math.hypot(px-ox, py-oy) < hitR;
+}
+
+// ─── ROUNDED RECT ─────────────────────────────────────────────────────────────
+function roundRect(c, x, y, w, h, r) {
+  if (c.roundRect) { c.beginPath(); c.roundRect(x,y,w,h,r); return; }
+  c.beginPath();
+  c.moveTo(x+r,y); c.lineTo(x+w-r,y);
+  c.quadraticCurveTo(x+w,y,x+w,y+r); c.lineTo(x+w,y+h-r);
+  c.quadraticCurveTo(x+w,y+h,x+w-r,y+h); c.lineTo(x+r,y+h);
+  c.quadraticCurveTo(x,y+h,x,y+h-r); c.lineTo(x,y+r);
+  c.quadraticCurveTo(x,y,x+r,y); c.closePath();
+}
+
+// ─── DRAG STATE ───────────────────────────────────────────────────────────────
+let dragging = false;
+let dragOffX = 0, dragOffY = 0;
+const MAIN_SZ = 420;
+const mainCanvas = document.getElementById('mainCanvas');
+
+function canvasPos(e) {
+  const rect = mainCanvas.getBoundingClientRect();
+  const src  = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+}
+
+mainCanvas.addEventListener('mousedown', e => {
+  const {x,y} = canvasPos(e);
+  if (nearSpeaker(x, y, MAIN_SZ)) {
+    dragging = true;
+    dragOffX = x - spkX*MAIN_SZ;
+    dragOffY = y - spkY*MAIN_SZ;
+    mainCanvas.classList.add('dragging');
+    e.preventDefault();
+  }
+});
+mainCanvas.addEventListener('touchstart', e => {
+  const {x,y} = canvasPos(e);
+  if (nearSpeaker(x, y, MAIN_SZ)) {
+    dragging = true;
+    dragOffX = x - spkX*MAIN_SZ;
+    dragOffY = y - spkY*MAIN_SZ;
+    e.preventDefault();
+  }
+}, { passive:false });
+
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const {x,y} = canvasPos(e);
+  spkX = Math.max(0.05, Math.min(0.95, (x-dragOffX)/MAIN_SZ));
+  spkY = Math.max(0.05, Math.min(0.95, (y-dragOffY)/MAIN_SZ));
+  renderMain();
+  renderSizes();
+  document.getElementById('posDisplay').textContent =
+    `position: x=${Math.round(spkX*100)}%  y=${Math.round(spkY*100)}%`;
+});
+window.addEventListener('touchmove', e => {
+  if (!dragging) return;
+  const {x,y} = canvasPos(e);
+  spkX = Math.max(0.05, Math.min(0.95, (x-dragOffX)/MAIN_SZ));
+  spkY = Math.max(0.05, Math.min(0.95, (y-dragOffY)/MAIN_SZ));
+  renderMain();
+  renderSizes();
+  document.getElementById('posDisplay').textContent =
+    `position: x=${Math.round(spkX*100)}%  y=${Math.round(spkY*100)}%`;
+  e.preventDefault();
+}, { passive:false });
+
+window.addEventListener('mouseup',  () => { dragging=false; mainCanvas.classList.remove('dragging'); });
+window.addEventListener('touchend', () => { dragging=false; });
+
+// cursor feedback on hover
+mainCanvas.addEventListener('mousemove', e => {
+  if (dragging) return;
+  const {x,y} = canvasPos(e);
+  mainCanvas.style.cursor = nearSpeaker(x,y,MAIN_SZ) ? 'grab' : 'default';
+});
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderMain() {
+  const cfg = getConfig();
+  drawIcon(mainCanvas, MAIN_SZ, cfg, spkX, spkY);
+}
+
+function renderSizes() {
+  const cfg = getConfig();
+  const sizeRow = document.getElementById('sizeRow');
+  sizeRow.innerHTML='';
+  SIZES.forEach(s => {
+    const wv = document.createElement('div'); wv.className='variant';
+    const iw = document.createElement('div');
+    iw.className='icon-wrap';
+    iw.style.setProperty('--sz',s.sz+'px');
+    iw.style.width=s.sz+'px'; iw.style.height=s.sz+'px';
+    const cv = document.createElement('canvas');
+    drawIcon(cv, s.sz, cfg, spkX, spkY);
+    iw.appendChild(cv);
+    const lbl=document.createElement('div'); lbl.className='label'; lbl.textContent=s.label;
+    const sub=document.createElement('div'); sub.className='sublabel'; sub.textContent=s.sub;
+    wv.appendChild(iw); wv.appendChild(lbl); wv.appendChild(sub);
+    sizeRow.appendChild(wv);
+  });
+}
+
+function renderStyles() {
+  const cfg = getConfig();
+  const styleRow = document.getElementById('styleRow');
+  styleRow.innerHTML='';
+  STYLE_COMPARE.forEach(sc => {
+    const overCfg = {...cfg, soundStyle:sc.style};
+    const wv=document.createElement('div'); wv.className='variant';
+    const iw=document.createElement('div'); iw.className='icon-wrap';
+    iw.style.setProperty('--sz','280px'); iw.style.width='280px'; iw.style.height='280px';
+    const cv=document.createElement('canvas');
+    drawIcon(cv, 280, overCfg, spkX, spkY);
+    iw.appendChild(cv);
+    const lbl=document.createElement('div'); lbl.className='label'; lbl.textContent=sc.label;
+    const sub=document.createElement('div'); sub.className='sublabel'; sub.textContent=sc.sub;
+    wv.appendChild(iw); wv.appendChild(lbl); wv.appendChild(sub);
+    if (sc.style==='found') {
+      const b=document.createElement('div'); b.className='badge'; b.textContent='MY PICK';
+      wv.appendChild(b);
+    }
+    styleRow.appendChild(wv);
+  });
+}
+
+const SPEAKER_STYLES = [
+  { style:'classic',   label:'Classic',   sub:'Trapezoid — simple & bold' },
+  { style:'rounded',   label:'Rounded',   sub:'iOS SF Symbol-style' },
+  { style:'megaphone', label:'Megaphone', sub:'Horn / bullhorn — dynamic' },
+  { style:'minimal',   label:'Minimal',   sub:'Pure geometric flat' },
+];
+
+const SPEAKER_COLOURS = [
+  { colour:'teal',     label:'Teal',     sub:'Matches word highlights' },
+  { colour:'white',    label:'White',    sub:'Clean, classic' },
+  { colour:'violet',   label:'Violet',   sub:'Matches wave colour' },
+  { colour:'gold',     label:'Gold',     sub:'Warm, distinctive' },
+  { colour:'gradient', label:'Gradient', sub:'Teal → white' },
+];
+
+function makeComparisonRow(rowId, items, overrideKey, labelKey, subKey) {
+  const cfg = getConfig();
+  const row = document.getElementById(rowId);
+  row.innerHTML = '';
+  items.forEach(item => {
+    const overCfg = { ...cfg, [overrideKey]: item[overrideKey] || item.style || item.colour };
+    const wv = document.createElement('div'); wv.className = 'variant';
+    const iw = document.createElement('div'); iw.className = 'icon-wrap';
+    iw.style.setProperty('--sz','240px'); iw.style.width='240px'; iw.style.height='240px';
+    const cv = document.createElement('canvas');
+    drawIcon(cv, 240, overCfg, spkX, spkY);
+    iw.appendChild(cv);
+    const lbl = document.createElement('div'); lbl.className='label'; lbl.textContent=item[labelKey];
+    const sub = document.createElement('div'); sub.className='sublabel'; sub.textContent=item[subKey];
+    wv.appendChild(iw); wv.appendChild(lbl); wv.appendChild(sub);
+    row.appendChild(wv);
+  });
+}
+
+function renderAll() {
+  renderMain();
+  renderSizes();
+  renderStyles();
+  makeComparisonRow('speakerStyleRow',  SPEAKER_STYLES,  'speakerStyle',  'label', 'sub');
+  makeComparisonRow('speakerColourRow', SPEAKER_COLOURS, 'speakerColour', 'label', 'sub');
+}
+
+// Wire controls
+['gridOpacity','gridFade','gridBleed','gridTopBleed','waveReach','waveStart','speakerSize','speakerElongate'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function() {
+    document.getElementById(id+'Val').textContent = this.value+'%';
+    renderAll();
+  });
+});
+['soundStyle','showDivider','speakerColour','speakerStyle','showGap'].forEach(id =>
+  document.getElementById(id).addEventListener('change', renderAll)
+);
+
+document.getElementById('downloadBtn').onclick = () => {
+  const cfg = getConfig();
+  const big = document.createElement('canvas');
+  drawIcon(big, 1024, cfg, spkX, spkY);
+  const a=document.createElement('a');
+  a.download='soundfind-icon-d.png';
+  a.href=big.toDataURL('image/png');
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+};
+
+renderAll();
+</script>
+</body>
+</html>

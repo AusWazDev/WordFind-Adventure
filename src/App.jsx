@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
+import SplashScreen from './components/game/SplashScreen';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -12,8 +14,13 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout
   : <>{children}</>;
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
     <Router>
+      {showSplash && (
+        <SplashScreen onComplete={() => setShowSplash(false)} />
+      )}
       <Routes>
         <Route path="/" element={
           <LayoutWrapper currentPageName={mainPageKey}>

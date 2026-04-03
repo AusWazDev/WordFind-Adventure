@@ -121,7 +121,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Supporting source** | `src/components/game/ReminderSettings.jsx`, `src/components/game/offlineStorage.jsx` |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-25 (settings save), TC-26 (category selection persists), TC-27 (level selection persists) |
-| **Also check when changed** | Are all 23 categories present? Is Master level included? Does Reset Game Data clear everything? Is auto-save indicator working? |
+| **Also check when changed** | Are all 23 categories present? Is Master level included? Does Reset Game Data preserve `hints_remaining` and `ads_removed` (DEF-23)? Is auto-save indicator working? |
 
 ---
 
@@ -145,7 +145,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Supporting source** | `src/pages/Home.jsx` |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md`, `README.md` |
 | **Beta test cases** | TC-01 (welcome screen loads), TC-13 (all 5 modes accessible) |
-| **Also check when changed** | Does `README.md` still list the correct game modes? Is the feature grid (WelcomeScreen) still referencing correct modes? No Spelling Bee references remain? |
+| **Also check when changed** | Does `README.md` still list the correct game modes? Is the feature grid (WelcomeScreen) still referencing correct modes? No Spelling Bee references remain? Does `icon.png` exist in `public/` (CR-21)? Is the background dark near-black and "Find" violet? |
 
 ---
 
@@ -157,7 +157,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Supporting source** | `src/pages/Game.jsx` |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-28 (How to Play opens), TC-29 (content accurate) |
-| **Also check when changed** | Are all 5 current modes documented? Are hint penalties accurate? Is Mystery Word description current? Are nav buttons rendering correctly (not stuck hover state — DEF-06)? |
+| **Also check when changed** | Are all 5 current modes documented? Are hint penalties accurate? Is Mystery Word description current? Are nav buttons rendering correctly (not stuck hover state — DEF-06)? Is Audio Challenge header teal/indigo (not amber — CR-21)? |
 
 ---
 

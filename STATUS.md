@@ -202,6 +202,9 @@ Current baseline: commit `129f64f`
 - CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
 - CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
 
+### 2026-04-03 (Windows — CR-21 follow-up: Home header icon + WelcomeScreen centering)
+- CR-21 follow-up: Replaced `Volume2` placeholder icon with `icon.png` in `Home.jsx` header (40px, iOS border-radius). Removed unused `Volume2` import from `Home.jsx`. Fixed `WelcomeScreen.jsx` icon centering — Tailwind Preflight sets `img { display: block }` so `text-center` had no effect; added `mx-auto` to explicitly centre the icon above the app name.
+
 ### 2026-04-03 (Windows — DEF-23, CR-21: Hints exploit fix + brand alignment)
 - DEF-23: Fixed Settings reset exploiting free hints. `handleResetData` in `Settings.jsx` now preserves `hints_remaining` and `ads_removed` across reset. Uses selective key removal instead of `localStorage.clear()`.
 - CR-21: WelcomeScreen and HowToPlayModal aligned to dark brand theme. Background → deep dark near-black. Volume2 icon → `icon.png` (72px). "Find" text → violet-400. Audio Challenge card and HowToPlay featured header → teal/indigo gradient.

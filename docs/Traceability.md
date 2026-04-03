@@ -145,7 +145,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Supporting source** | `src/pages/Home.jsx` |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md`, `README.md` |
 | **Beta test cases** | TC-01 (welcome screen loads), TC-13 (all 5 modes accessible) |
-| **Also check when changed** | Does `README.md` still list the correct game modes? Is the feature grid (WelcomeScreen) still referencing correct modes? No Spelling Bee references remain? Does `icon.png` exist in `public/` (CR-21)? Is the background dark near-black and "Find" violet? |
+| **Also check when changed** | Does `README.md` still list the correct game modes? Is the feature grid (WelcomeScreen) still referencing correct modes? No Spelling Bee references remain? Does `icon.png` exist in `public/` (CR-21)? Is the background dark near-black, "Find" violet, and icon centred with `mx-auto`? |
 
 ---
 

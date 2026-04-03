@@ -74,7 +74,7 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
             <img
               src="/icon.png"
               alt="SoundFind"
-              className="mb-4 shadow-2xl"
+              className="mb-4 mx-auto"
               style={{
                 width: '72px', height: '72px',
                 borderRadius: 'calc(72px * 0.2237)',

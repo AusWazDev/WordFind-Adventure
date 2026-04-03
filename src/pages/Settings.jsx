@@ -79,8 +79,23 @@ export default function Settings() {
   };
 
   const handleResetData = () => {
-    localStorage.clear();
-    toast.success('All game data cleared.');
+    // DEF-23: preserve monetisation values across reset so players cannot
+    // exploit the reset button to restore free hints or bypass IAP purchases.
+    const adsRemoved      = localStorage.getItem('ads_removed');
+    const savedProgress   = JSON.parse(localStorage.getItem('wf_progress') || '{}');
+    const hintsRemaining  = savedProgress.hints_remaining ?? 0;
+
+    // Clear all game-progress keys
+    ['wf_progress', 'wf_settings', 'wf_daily', 'wf_welcome_seen',
+     'games_completed_count', 'last_ad_completed_at'].forEach(key => {
+      localStorage.removeItem(key);
+    });
+
+    // Restore monetisation values
+    if (adsRemoved) localStorage.setItem('ads_removed', adsRemoved);
+    localStorage.setItem('wf_progress', JSON.stringify({ hints_remaining: hintsRemaining }));
+
+    toast.success('Game data cleared. Your hints and purchases are preserved.');
   };
 
   if (loading) {

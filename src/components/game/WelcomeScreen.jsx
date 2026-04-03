@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Search, Sparkles, ChevronRight } from 'lucide-react';
+import { Volume2, Sparkles, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const WELCOME_KEY = 'wf_welcome_seen';
@@ -34,7 +34,7 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
   return (
     <motion.div
       className="fixed inset-0 z-50 overflow-y-auto"
-      style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)' }}
+      style={{ background: 'linear-gradient(160deg, #0f0e1a 0%, #1a1830 100%)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -42,7 +42,7 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
       {/* Decorative blobs */}
       <div
         className="absolute top-0 left-0 w-64 h-64 rounded-full opacity-20 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #f59e0b, transparent)', transform: 'translate(-30%, -30%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.3), transparent)', transform: 'translate(-30%, -30%)' }}
       />
       <div
         className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-15 pointer-events-none"
@@ -71,11 +71,18 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-sm mb-4 shadow-xl">
-              <Volume2 className="w-8 h-8 text-white" />
-            </div>
+            <img
+              src="/icon.png"
+              alt="SoundFind"
+              className="mb-4 shadow-2xl"
+              style={{
+                width: '72px', height: '72px',
+                borderRadius: 'calc(72px * 0.2237)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)',
+              }}
+            />
             <h1 className="text-4xl font-black text-white tracking-tight">
-              Sound<span className="text-amber-400">Find</span>
+              Sound<span className="text-violet-400">Find</span>
             </h1>
             <p className="text-white/60 text-sm mt-1">Hear it. Find it.</p>
           </motion.div>
@@ -88,7 +95,7 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
             transition={{ delay: 0.2 }}
           >
             {/* Audio Challenge — featured */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 p-4 shadow-lg shadow-orange-900/30">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-500 to-indigo-600 p-4 shadow-lg shadow-indigo-900/40">
               <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-white/10 -translate-y-6 translate-x-6 pointer-events-none" />
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-xl bg-white/20 shrink-0">

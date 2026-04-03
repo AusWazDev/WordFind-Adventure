@@ -265,7 +265,7 @@ export default function HowToPlayModal({ isOpen, onClose }) {
             <div className={cn(
               'px-5 pt-5 pb-4',
               slide.featured
-                ? 'bg-gradient-to-br from-amber-400 to-orange-500'
+                ? 'bg-gradient-to-br from-teal-500 to-indigo-600'
                 : 'bg-gradient-to-br from-violet-500 to-indigo-600'
             )}>
               <div className="flex items-start justify-between">

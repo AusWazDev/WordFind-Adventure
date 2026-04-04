@@ -202,6 +202,11 @@ Current baseline: commit `129f64f`
 - CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
 - CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
 
+### 2026-04-05 (Windows — DEF-25: Settings test voice + completion audio overlap)
+- DEF-25: Settings "Test Voice" was still calling `speakText()` (Web Speech API) — replaced with `speakPhraseAndWord('great_you_found', 'RAIN', ...)` so test button plays Hannah/Neil via ElevenLabs.
+- DEF-25: When last word found, `speakPhraseAndWord('great_you_found')` and `speakFixedPhrase('all_words_found')` were both scheduling audio simultaneously → inaudible celebration. Fixed by consolidating last-word audio logic: bonus hunt → only `all_words_found`; non-bonus → new `game_complete` phrase.
+- DEF-25: Non-bonus game completions had no celebration audio — added new `game_complete` phrase "Incredible! You found all the words!" to `generate-audio.mjs`; 2 new MP3s generated and deployed. Commit `38cbbbf`.
+
 ### 2026-04-05 (Windows — CR-22: Sentence MP3s, Web Audio API gapless playback, Vercel deploy)
 - Root cause of robotic voices identified: all Audio Challenge words have `hasSentence() = true` → `speakSentenceAudio` path always taken → only Web Speech API was ever reached (ElevenLabs word MP3s were unreachable). Fix: generate sentence MP3s as single seamless files and add `speakSentenceAudio()` to play them.
 - `scripts/generate-audio.mjs` extended with Phase 3 — parses `trickySentences.jsx` for all WORD → sentence pairs, generates `public/audio/sentences/{gender}_{WORD}.mp3` with full text "word... sentence... word." as one continuous recording. 313 sentences × 2 genders = 626 files generated (zero errors).

@@ -42,6 +42,7 @@ All future changes must be raised as a Change Request, approved before implement
 
 | DEF # | Description | Status | Fix Commit | Date |
 |-------|-------------|--------|------------|------|
+| DEF-25 | Settings "Test Voice" button played robotic Web Speech API audio instead of ElevenLabs MP3s — `testVoice()` was still calling `speakText()` directly. Separately, when the last word was found, `speakPhraseAndWord('great_you_found')` and `speakFixedPhrase('all_words_found')` both fired simultaneously on the AudioContext, causing them to play over each other and the celebration to be inaudible. Also, non-bonus game completions had no celebration audio at all. Fix: `Settings.jsx` — replaced `speakText` import with `speakPhraseAndWord` + `unlockAudio`; test now plays "Great! You found rain!" via ElevenLabs. `Game.jsx` — consolidated last-word audio logic: when last word + bonus hunt, skip `great_you_found` entirely; when last word + no bonus, play new `game_complete` phrase instead. New phrase `game_complete` = "Incredible! You found all the words!" added to `generate-audio.mjs` and generated (2 new MP3s). | ✅ Fixed | `38cbbbf` | Apr 2026 |
 | DEF-01 | Word list displayed words in lowercase | ✅ Fixed | `a80a6ae` | Mar 2026 |
 | DEF-02 | Words 100% formed from already-placed letters incorrectly included in word list | ✅ Fixed | `a80a6ae` | Mar 2026 |
 | DEF-03 | "Homophone" label showing under RAIN in non-audio Mystery Word mode | ✅ Fixed | `ef74286` | Mar 2026 |

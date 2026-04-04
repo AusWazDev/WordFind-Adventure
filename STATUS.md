@@ -202,6 +202,16 @@ Current baseline: commit `129f64f`
 - CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
 - CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
 
+### 2026-04-05 (Windows — CR-22: Sentence MP3s, Web Audio API gapless playback, Vercel deploy)
+- Root cause of robotic voices identified: all Audio Challenge words have `hasSentence() = true` → `speakSentenceAudio` path always taken → only Web Speech API was ever reached (ElevenLabs word MP3s were unreachable). Fix: generate sentence MP3s as single seamless files and add `speakSentenceAudio()` to play them.
+- `scripts/generate-audio.mjs` extended with Phase 3 — parses `trickySentences.jsx` for all WORD → sentence pairs, generates `public/audio/sentences/{gender}_{WORD}.mp3` with full text "word... sentence... word." as one continuous recording. 313 sentences × 2 genders = 626 files generated (zero errors).
+- Voices confirmed: Hannah (`M7ya1YbaeFaPXljg9BpK`) female AU, Neil (`iIg0uI51lssRFauz7W21`) male AU.
+- `voiceUtils.jsx` rewritten to use Web Audio API (`AudioContext`) for gapless playback. `fetchBuffer()` decodes MP3s, `scheduleBuffers()` places clips at sample-accurate start times, `playSeamless()` fetches all files in parallel then schedules them back-to-back with zero gap. `speakWordAudio()` plays word twice with intentional 400ms gap. `speakSentenceAudio()` plays single-file sentence recording. `speakPhraseAndWord()` / `speakFixedPhrase()` use gapless scheduling. `unlockAudio()` now initialises/resumes `AudioContext` on first user gesture (iOS requirement).
+- `WordList.jsx` import updated to include `speakSentenceAudio`; sentence path uses `speakSentenceAudio()`; non-sentence path uses `speakWordAudio()`.
+- Vercel build cache issue resolved — `vercel --prod --force` still served old bundle; fix: push to GitHub and let git-based auto-deploy trigger a clean build.
+- All code committed `922ac7e` + `7de9b53` + `a4bd127`, Vercel auto-deploy triggered.
+- Total audio library: 1,714 word MP3s × 2 genders + 6 phrase MP3s + 626 sentence MP3s = 4,060 files.
+
 ### 2026-04-04 (Windows — CR-22: Pre-generated ElevenLabs audio)
 - `scripts/generate-audio.mjs` created — Node.js batch script to call ElevenLabs API (Rachel female / Adam male, `eleven_turbo_v2_5`) and generate `public/audio/{female|male}/{WORD}.mp3` for every word in `gameUtils.jsx` plus `public/audio/phrases/{gender}_{key}.mp3` for three fixed in-game phrases. Reads words via regex on `gameUtils.jsx` (auto-picks up new words on re-run). Concurrency 2, 250ms delay. Skips existing files — fully resumable. Dry-run mode with `--dry-run`.
 - `voiceUtils.jsx` — added `playAudioFile()`, `speakWordAudio()`, `speakPhraseAndWord()`, `speakFixedPhrase()`. All fall back to Web Speech API if the MP3 is missing or playback fails.
@@ -232,7 +242,7 @@ Current baseline: commit `129f64f`
 ## Next Steps (Priority Order)
 - [x] CR-16: Collapsible word list ✅
 - [x] CR-17: Responsive grid sizing ✅
-- [x] CR-22: Pre-generated ElevenLabs audio (code done) — **run `node scripts/generate-audio.mjs` to generate MP3 library, then commit + push** ✅ (pending audio generation)
+- [x] CR-22: Pre-generated ElevenLabs audio ✅ — Hannah (AU female) + Neil (AU male), 4,060 MP3 files generated + deployed
 - [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor

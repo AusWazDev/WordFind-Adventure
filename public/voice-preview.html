@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voice Preview — Option B</title>
+<style>
+  body { font-family: sans-serif; max-width: 480px; margin: 60px auto; padding: 0 20px; }
+  h2 { color: #4c1d95; }
+  .word-btn {
+    display: block; width: 100%; margin: 8px 0; padding: 14px;
+    background: #ede9fe; border: 2px solid #7c3aed; border-radius: 10px;
+    font-size: 18px; font-weight: bold; cursor: pointer; text-align: left;
+    letter-spacing: 1px;
+  }
+  .word-btn:hover { background: #ddd6fe; }
+  .word-btn.playing { background: #7c3aed; color: white; }
+  p { color: #555; font-size: 14px; }
+</style>
+</head>
+<body>
+<h2>Option B — Voice Preview</h2>
+<p>Tap a word to hear what it will sound like in Audio Challenge.<br>
+Each word plays <strong>twice</strong> with a short pause — exactly as it would in the game.</p>
+
+<button class="word-btn" data-word="KNIGHT">KNIGHT</button>
+<button class="word-btn" data-word="BUTTERFLY">BUTTERFLY</button>
+<button class="word-btn" data-word="WRINKLE">WRINKLE</button>
+<button class="word-btn" data-word="CASTLE">CASTLE</button>
+<button class="word-btn" data-word="SALMON">SALMON</button>
+<button class="word-btn" data-word="RHYTHM">RHYTHM</button>
+<button class="word-btn" data-word="SCISSORS">SCISSORS</button>
+<button class="word-btn" data-word="THOROUGH">THOROUGH</button>
+
+<p style="margin-top:32px; font-size:12px; color:#aaa">Female voice: Hannah (AU) · Male voice: Neil (AU)<br>
+Toggle in Settings to compare.</p>
+
+<script>
+async function playWord(word, gender) {
+  const url = `/audio/${gender}/${word}.mp3`;
+  const play = () => new Promise((resolve, reject) => {
+    const a = new Audio(url);
+    a.onended = resolve;
+    a.onerror = reject;
+    a.play().catch(reject);
+  });
+  await play();
+  await new Promise(r => setTimeout(r, 400));
+  await play();
+}
+
+function getGender() {
+  try {
+    const s = JSON.parse(localStorage.getItem('wf_settings') || '{}');
+    return s.audio_voice || 'female';
+  } catch { return 'female'; }
+}
+
+document.querySelectorAll('.word-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (btn.classList.contains('playing')) return;
+    btn.classList.add('playing');
+    try {
+      await playWord(btn.dataset.word, getGender());
+    } catch(e) {
+      alert('Playback failed: ' + e.message);
+    }
+    btn.classList.remove('playing');
+  });
+});
+</script>
+</body>
+</html>

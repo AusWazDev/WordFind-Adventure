@@ -202,6 +202,13 @@ Current baseline: commit `129f64f`
 - CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
 - CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
 
+### 2026-04-04 (Windows — CR-22: Pre-generated ElevenLabs audio)
+- `scripts/generate-audio.mjs` created — Node.js batch script to call ElevenLabs API (Rachel female / Adam male, `eleven_turbo_v2_5`) and generate `public/audio/{female|male}/{WORD}.mp3` for every word in `gameUtils.jsx` plus `public/audio/phrases/{gender}_{key}.mp3` for three fixed in-game phrases. Reads words via regex on `gameUtils.jsx` (auto-picks up new words on re-run). Concurrency 2, 250ms delay. Skips existing files — fully resumable. Dry-run mode with `--dry-run`.
+- `voiceUtils.jsx` — added `playAudioFile()`, `speakWordAudio()`, `speakPhraseAndWord()`, `speakFixedPhrase()`. All fall back to Web Speech API if the MP3 is missing or playback fails.
+- `WordList.jsx` — non-sentence word playback now uses `speakWordAudio()` (MP3 twice, fallback to Web Speech). Tricky-word sentence path unchanged on `speakText`.
+- `Game.jsx` — three `speakText` calls replaced: "Great! You found [word]" → `speakPhraseAndWord('great_you_found', ...)`, "Incredible! All words found!" → `speakFixedPhrase('all_words_found', ...)`, "Amazing! The hidden word was [word]" → `speakPhraseAndWord('hidden_word_was', ...)`.
+- **Next step**: run `ELEVENLABS_API_KEY=sk_... node scripts/generate-audio.mjs` to generate the MP3 library before pushing. Commit hash TBD.
+
 ### 2026-04-04 (Windows — DEF-24: Mystery Word mode sporadically missing mystery word)
 - Root cause confirmed: category-restricted filler pool (40–65 words) too small for Expert/Master grids (15×15, 20–25 main words removed). Pool exhausts before K drops to a valid mystery length → `findMysteryWord` returns null → mystery phase never activates. Random category unaffected (~700-word pool).
 - Fix part 1: expanded all 14 `wordLists` categories from 40–65 to 86–112 words (~487 new themed words). Filler pool now large enough for Expert/Master on all categories.
@@ -225,6 +232,7 @@ Current baseline: commit `129f64f`
 ## Next Steps (Priority Order)
 - [x] CR-16: Collapsible word list ✅
 - [x] CR-17: Responsive grid sizing ✅
+- [x] CR-22: Pre-generated ElevenLabs audio (code done) — **run `node scripts/generate-audio.mjs` to generate MP3 library, then commit + push** ✅ (pending audio generation)
 - [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor

@@ -224,6 +224,77 @@ export async function speakText(text, settings = {}) {
   window.speechSynthesis.speak(utterance);
 }
 
+// ─── Pre-generated MP3 playback ───────────────────────────────────────────────
+// Falls back to Web Speech API when a file is missing (e.g. dev, new words).
+
+function playAudioFile(url) {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio(url);
+    audio.onended = resolve;
+    audio.onerror = reject;
+    audio.play().catch(reject);
+  });
+}
+
+/**
+ * Speak a word using its pre-generated MP3 (played twice for clarity),
+ * falling back to Web Speech API if the file is not found.
+ */
+export async function speakWordAudio(word, settings = {}) {
+  const gender = settings.audio_voice || 'female';
+  const upper  = word.toUpperCase();
+  const url    = `/audio/${gender}/${upper}.mp3`;
+
+  try {
+    await playAudioFile(url);
+    // Brief pause between repetitions
+    await new Promise(r => setTimeout(r, 400));
+    await playAudioFile(url);
+  } catch {
+    // File not found or playback error — fall back to Web Speech API
+    const spoken = word.toLowerCase();
+    await speakText(`${spoken}... ${spoken}.`, settings);
+  }
+}
+
+/**
+ * Play a fixed phrase MP3 followed by a word MP3.
+ * Used for "Great! You found [word]" and "Amazing! The hidden word was [word]".
+ * Falls back to speakText(fallbackText) on any error.
+ */
+export async function speakPhraseAndWord(phraseKey, word, fallbackText, settings = {}) {
+  const gender   = settings.audio_voice || 'female';
+  const upper    = word.toUpperCase();
+  const phraseUrl = `/audio/phrases/${gender}_${phraseKey}.mp3`;
+  const wordUrl   = `/audio/${gender}/${upper}.mp3`;
+
+  try {
+    await playAudioFile(phraseUrl);
+    await new Promise(r => setTimeout(r, 120));
+    await playAudioFile(wordUrl);
+  } catch {
+    await speakText(fallbackText, settings);
+  }
+}
+
+/**
+ * Play a fixed phrase MP3 with no following word.
+ * Used for "Incredible! All words found! Now find the hidden bonus word!".
+ * Falls back to speakText(fallbackText) on any error.
+ */
+export async function speakFixedPhrase(phraseKey, fallbackText, settings = {}) {
+  const gender    = settings.audio_voice || 'female';
+  const phraseUrl = `/audio/phrases/${gender}_${phraseKey}.mp3`;
+
+  try {
+    await playAudioFile(phraseUrl);
+  } catch {
+    await speakText(fallbackText, settings);
+  }
+}
+
+// ─── Debug ────────────────────────────────────────────────────────────────────
+
 /**
  * Debug helper — call from browser console to see what voices are available
  * and how they score on the current device:

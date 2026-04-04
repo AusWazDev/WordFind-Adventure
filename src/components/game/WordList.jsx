@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Eye, Volume2, WifiOff, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { speakText, unlockAudio } from '@/components/game/voiceUtils';
+import { speakText, speakWordAudio, unlockAudio } from '@/components/game/voiceUtils';
 import { getTrickyWordHint } from '@/components/game/gameUtils';
 import { getSentence, hasSentence } from '@/components/game/trickySentences';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
@@ -37,7 +37,7 @@ export default function WordList({
     // Always speak in lowercase — TTS engines can read ALL-CAPS as acronyms
     const spoken = word.toLowerCase();
 
-    // 1. Pre-generated sentence available — use it (works offline, no latency)
+    // 1. Pre-generated sentence — speak with context (tricky spelling words)
     if (hasSentence(upper)) {
       const sentence = getSentence(upper);
       await speakText(`${spoken}... ${sentence}... ${spoken}.`, settings);
@@ -45,16 +45,8 @@ export default function WordList({
       return;
     }
 
-    // 2. No pre-generated sentence — offline fallback: speak word twice
-    if (!isOnline) {
-      await speakText(`${spoken}... ${spoken}.`, settings);
-      onPlayAudio?.(word);
-      return;
-    }
-
-    // 3. Fallback — speak word twice clearly
-    await speakText(`${spoken}... ${spoken}.`, settings);
-
+    // 2. All other words — play pre-generated MP3, fall back to Web Speech
+    await speakWordAudio(word, settings);
     onPlayAudio?.(word);
   };
 

@@ -11,7 +11,7 @@ import GameLoadingScreen from '@/components/game/GameLoadingScreen';
 import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
-import { speakText, unlockAudio } from '@/components/game/voiceUtils';
+import { speakText, speakPhraseAndWord, speakFixedPhrase, unlockAudio } from '@/components/game/voiceUtils';
 import { loadProgress, updateProgress, loadSettings } from '@/components/game/offlineStorage';
 import { toast, Toaster } from 'sonner';
 
@@ -200,7 +200,7 @@ export default function Game() {
       if (mode === 'audio' && audioEnabled) {
         unlockAudio();
         loadSettings().then(settings => {
-          speakText(`Great! You found ${foundWord}!`, settings);
+          speakPhraseAndWord('great_you_found', foundWord, `Great! You found ${foundWord}!`, settings);
         });
       }
 
@@ -215,7 +215,7 @@ export default function Game() {
           if (mode === 'audio' && audioEnabled) {
             unlockAudio();
             loadSettings().then(settings =>
-              speakText('Incredible! All words found! Now find the hidden bonus word!', settings)
+              speakFixedPhrase('all_words_found', 'Incredible! All words found! Now find the hidden bonus word!', settings)
             );
           }
           toast.success('🎉 All words found!', {
@@ -338,7 +338,7 @@ export default function Game() {
       setScore(prev => prev + bPts);
       if (mode === 'audio' && audioEnabled) {
         unlockAudio();
-        loadSettings().then(s => speakText(`Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s));
+        loadSettings().then(s => speakPhraseAndWord('hidden_word_was', gameData.bonusWord, `Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s));
       }
       toast.success(`🌟 ${gameData.bonusWord}! +${bPts} bonus points!`, { duration: 3000 });
       setTimeout(() => { setShowVictory(true); saveProgress(foundWords.length); }, 900);

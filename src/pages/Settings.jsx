@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Volume2, Target, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { speakText } from '@/components/game/voiceUtils';
+import { speakPhraseAndWord, unlockAudio } from '@/components/game/voiceUtils';
 import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineStorage';
 import ReminderSettings from '@/components/game/ReminderSettings';
 import { toast } from 'sonner';
@@ -74,7 +74,8 @@ export default function Settings() {
 
   const testVoice = () => {
     if (settings) {
-      speakText("Hello! This is how I will sound in the game. Great job finding those words!", settings);
+      unlockAudio();
+      speakPhraseAndWord('great_you_found', 'RAIN', 'Great! You found rain!', settings);
     }
   };
 

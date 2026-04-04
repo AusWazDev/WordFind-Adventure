@@ -197,19 +197,29 @@ export default function Game() {
 
       // Speak feedback — unlockAudio() first so iOS allows it.
       // This fires from the result of a drag gesture which counts as a user interaction.
+      // When the last word is found, play the completion phrase instead of "great_you_found"
+      // to avoid both phrases firing simultaneously on the AudioContext.
+      const isLastWord   = newFoundWords.length === currentGame.words.length;
+      const hasBonusHunt = !!(currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current);
       if (mode === 'audio' && audioEnabled) {
         unlockAudio();
         loadSettings().then(settings => {
-          speakPhraseAndWord('great_you_found', foundWord, `Great! You found ${foundWord}!`, settings);
+          if (isLastWord && hasBonusHunt) {
+            // Only "all_words_found" — it will play below; don't overlap with "great_you_found"
+          } else if (isLastWord) {
+            speakFixedPhrase('game_complete', 'Incredible! You found all the words!', settings);
+          } else {
+            speakPhraseAndWord('great_you_found', foundWord, `Great! You found ${foundWord}!`, settings);
+          }
         });
       }
 
       const penaltyNote = wasRevealed ? ' (−50% penalty)' : wasHinted ? ' (−25% penalty)' : '';
       toast.success(`+${wordScore} points!${penaltyNote}`, { description: `Found: ${foundWord.toUpperCase()}` });
 
-      if (newFoundWords.length === currentGame.words.length) {
+      if (isLastWord) {
         // Master level with a valid bonus word → start bonus hunt instead of victory
-        if (currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current) {
+        if (hasBonusHunt) {
           setBonusHuntActive(true);
           setWordListCollapsed(false);  // CR-16: reveal list so player sees all words ticked
           if (mode === 'audio' && audioEnabled) {

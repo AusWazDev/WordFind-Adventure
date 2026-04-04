@@ -53,6 +53,7 @@ const PHRASES = {
   great_you_found:  'Great! You found',
   all_words_found:  'Incredible! All words found! Now find the hidden bonus word!',
   hidden_word_was:  'Amazing! The hidden word was...',
+  game_complete:    'Incredible! You found all the words!',
 };
 
 // API rate limiting — Starter plan allows ~2 concurrent requests

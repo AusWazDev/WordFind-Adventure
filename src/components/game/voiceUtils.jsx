@@ -12,12 +12,17 @@
 let iosUnlocked = false;
 
 export function unlockAudio() {
-  if (iosUnlocked) return;
-  if (!('speechSynthesis' in window)) return;
-  const utterance = new SpeechSynthesisUtterance('');
-  utterance.volume = 0;
-  utterance.onend = () => { iosUnlocked = true; };
-  window.speechSynthesis.speak(utterance);
+  // Unlock Web Speech API (iOS requires a gesture before speechSynthesis plays)
+  if (!iosUnlocked && 'speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance('');
+    utterance.volume = 0;
+    utterance.onend = () => { iosUnlocked = true; };
+    window.speechSynthesis.speak(utterance);
+  }
+  // Unlock Web Audio API (iOS suspends AudioContext until first user gesture)
+  if (typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)) {
+    getAudioContext();
+  }
 }
 
 // ─── Voice loader — patient version for iOS ───────────────────────────────────
@@ -224,21 +229,53 @@ export async function speakText(text, settings = {}) {
   window.speechSynthesis.speak(utterance);
 }
 
-// ─── Pre-generated MP3 playback ───────────────────────────────────────────────
-// Falls back to Web Speech API when a file is missing (e.g. dev, new words).
+// ─── Web Audio API — gapless, seamless playback ───────────────────────────────
+// Uses a shared AudioContext for sample-accurate scheduling.
+// Unlocked on the first user gesture via unlockAudio().
 
-function playAudioFile(url) {
-  return new Promise((resolve, reject) => {
-    const audio = new Audio(url);
-    audio.onended = resolve;
-    audio.onerror = reject;
-    audio.play().catch(reject);
-  });
+let _audioCtx = null;
+
+function getAudioContext() {
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+async function fetchBuffer(url) {
+  const ctx = getAudioContext();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return ctx.decodeAudioData(await res.arrayBuffer());
+}
+
+// Schedule one or more pre-decoded AudioBuffers to play back-to-back with
+// zero gap. Buffers are passed in playback order.
+function scheduleBuffers(buffers, startTime) {
+  const ctx = getAudioContext();
+  let t = startTime;
+  for (const buf of buffers) {
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(t);
+    t += buf.duration;
+  }
+  return t; // returns the time when the last buffer ends
+}
+
+// Fetch all urls in parallel, then play them gaplessly in sequence.
+async function playSeamless(...urls) {
+  const buffers = await Promise.all(urls.map(fetchBuffer));
+  const ctx     = getAudioContext();
+  const endTime = scheduleBuffers(buffers, ctx.currentTime + 0.05);
+  return new Promise(r => setTimeout(r, (endTime - ctx.currentTime) * 1000 + 50));
 }
 
 /**
- * Speak a word using its pre-generated MP3 (played twice for clarity),
- * falling back to Web Speech API if the file is not found.
+ * Speak a word using its pre-generated MP3, played twice with a natural
+ * 400ms pause between repetitions. Falls back to Web Speech API.
  */
 export async function speakWordAudio(word, settings = {}) {
   const gender = settings.audio_voice || 'female';
@@ -246,32 +283,50 @@ export async function speakWordAudio(word, settings = {}) {
   const url    = `/audio/${gender}/${upper}.mp3`;
 
   try {
-    await playAudioFile(url);
-    // Brief pause between repetitions
-    await new Promise(r => setTimeout(r, 400));
-    await playAudioFile(url);
+    const buf = await fetchBuffer(url);
+    const ctx = getAudioContext();
+    const t1  = ctx.currentTime + 0.05;
+    const t2  = t1 + buf.duration + 0.4;   // 400ms gap — intentional for word repetition
+    scheduleBuffers([buf], t1);
+    scheduleBuffers([buf], t2);
+    await new Promise(r => setTimeout(r, (t2 + buf.duration - ctx.currentTime) * 1000 + 50));
   } catch {
-    // File not found or playback error — fall back to Web Speech API
     const spoken = word.toLowerCase();
     await speakText(`${spoken}... ${spoken}.`, settings);
   }
 }
 
 /**
- * Play a fixed phrase MP3 followed by a word MP3.
+ * Play a sentence MP3 for a tricky word in Audio Challenge.
+ * Each file contains the full spoken audio: "word... sentence... word."
+ * Falls back to Web Speech API using the sentence text.
+ */
+export async function speakSentenceAudio(word, sentence, settings = {}) {
+  const gender = settings.audio_voice || 'female';
+  const upper  = word.toUpperCase();
+
+  try {
+    await playSeamless(`/audio/sentences/${gender}_${upper}.mp3`);
+  } catch {
+    const spoken = word.toLowerCase();
+    await speakText(`${spoken}... ${sentence}... ${spoken}.`, settings);
+  }
+}
+
+/**
+ * Play a fixed phrase MP3 followed immediately by a word MP3 — gapless.
  * Used for "Great! You found [word]" and "Amazing! The hidden word was [word]".
  * Falls back to speakText(fallbackText) on any error.
  */
 export async function speakPhraseAndWord(phraseKey, word, fallbackText, settings = {}) {
-  const gender   = settings.audio_voice || 'female';
-  const upper    = word.toUpperCase();
-  const phraseUrl = `/audio/phrases/${gender}_${phraseKey}.mp3`;
-  const wordUrl   = `/audio/${gender}/${upper}.mp3`;
+  const gender = settings.audio_voice || 'female';
+  const upper  = word.toUpperCase();
 
   try {
-    await playAudioFile(phraseUrl);
-    await new Promise(r => setTimeout(r, 120));
-    await playAudioFile(wordUrl);
+    await playSeamless(
+      `/audio/phrases/${gender}_${phraseKey}.mp3`,
+      `/audio/${gender}/${upper}.mp3`
+    );
   } catch {
     await speakText(fallbackText, settings);
   }
@@ -283,11 +338,10 @@ export async function speakPhraseAndWord(phraseKey, word, fallbackText, settings
  * Falls back to speakText(fallbackText) on any error.
  */
 export async function speakFixedPhrase(phraseKey, fallbackText, settings = {}) {
-  const gender    = settings.audio_voice || 'female';
-  const phraseUrl = `/audio/phrases/${gender}_${phraseKey}.mp3`;
+  const gender = settings.audio_voice || 'female';
 
   try {
-    await playAudioFile(phraseUrl);
+    await playSeamless(`/audio/phrases/${gender}_${phraseKey}.mp3`);
   } catch {
     await speakText(fallbackText, settings);
   }

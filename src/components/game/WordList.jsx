@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Eye, Volume2, WifiOff, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { speakText, speakWordAudio, unlockAudio } from '@/components/game/voiceUtils';
+import { speakText, speakWordAudio, speakSentenceAudio, unlockAudio } from '@/components/game/voiceUtils';
 import { getTrickyWordHint } from '@/components/game/gameUtils';
 import { getSentence, hasSentence } from '@/components/game/trickySentences';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
@@ -37,10 +37,11 @@ export default function WordList({
     // Always speak in lowercase — TTS engines can read ALL-CAPS as acronyms
     const spoken = word.toLowerCase();
 
-    // 1. Pre-generated sentence — speak with context (tricky spelling words)
+    // 1. Tricky word with sentence context — play sentence MP3 (seamless single file),
+    //    falling back to Web Speech with the full sentence text.
     if (hasSentence(upper)) {
       const sentence = getSentence(upper);
-      await speakText(`${spoken}... ${sentence}... ${spoken}.`, settings);
+      await speakSentenceAudio(word, sentence, settings);
       onPlayAudio?.(word);
       return;
     }

@@ -187,13 +187,50 @@ async function generatePhraseAudio(key, text, gender, voiceId) {
   await new Promise(r => setTimeout(r, 400));
 }
 
+// ─── Sentence collection ─────────────────────────────────────────────────────
+// Reads trickySentences.jsx and extracts every WORD → sentence pair.
+// The full spoken text for each file is: "word... sentence... word."
+
+function collectSentences() {
+  const src = readFileSync(
+    join(ROOT, 'src/components/game/trickySentences.jsx'),
+    'utf8'
+  );
+  const map = {};
+  const regex = /([A-Z]{2,}):\s+"([^"]+)"/g;
+  let m;
+  while ((m = regex.exec(src)) !== null) {
+    const word = m[1];
+    const sentence = m[2];
+    map[word] = `${word.toLowerCase()}... ${sentence}... ${word.toLowerCase()}.`;
+  }
+  return map;
+}
+
+// ─── Sentence generator ───────────────────────────────────────────────────────
+
+async function generateSentenceAudio(word, text, gender, voiceId) {
+  const outPath = join(ROOT, `public/audio/sentences/${gender}_${word}.mp3`);
+  if (existsSync(outPath)) { skipped++; return; }
+  if (DRY_RUN)             { generated++; return; }
+
+  try {
+    const audio = await generateAudio(text, voiceId);
+    writeFileSync(outPath, audio);
+    generated++;
+  } catch (err) {
+    console.error(`\n  [error] sentences/${gender}_${word}: ${err.message}`);
+    errors++;
+  }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
   if (DRY_RUN) console.log('[DRY RUN — no API calls will be made]\n');
 
   // Ensure output directories exist
-  for (const dir of ['female', 'male', 'phrases']) {
+  for (const dir of ['female', 'male', 'phrases', 'sentences']) {
     mkdirSync(join(ROOT, 'public/audio', dir), { recursive: true });
   }
 
@@ -219,6 +256,24 @@ async function main() {
     for (const [key, text] of Object.entries(PHRASES)) {
       await generatePhraseAudio(key, text, gender, voiceId);
     }
+
+    console.log(`  Done — gen:${generated} skip:${skipped} err:${errors}\n`);
+  }
+
+  // ── Phase 3: Sentence audio ──────────────────────────────────────────────
+  const sentences = collectSentences();
+  const sentenceWords = Object.keys(sentences).sort();
+  console.log(`Collected ${sentenceWords.length} sentences from trickySentences.jsx\n`);
+
+  for (const [gender, voiceId] of Object.entries(VOICES)) {
+    console.log(`Generating ${gender} sentence audio...`);
+    total     = sentenceWords.length;
+    generated = 0; skipped = 0; errors = 0;
+
+    await runPool(
+      sentenceWords,
+      word => generateSentenceAudio(word, sentences[word], gender, voiceId)
+    );
 
     console.log(`  Done — gen:${generated} skip:${skipped} err:${errors}\n`);
   }

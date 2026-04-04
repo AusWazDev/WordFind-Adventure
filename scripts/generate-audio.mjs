@@ -42,8 +42,8 @@ if (!API_KEY) {
 
 // Voice IDs (ElevenLabs v1 pre-made voices)
 const VOICES = {
-  female: '21m00Tcm4TlvDq8ikWAM',  // Rachel — warm, clear US English
-  male:   'pNInz6obpgDQGcFmaJgB',  // Adam   — natural US English
+  female: 'M7ya1YbaeFaPXljg9BpK',  // Hannah — natural Australian English
+  male:   'iIg0uI51lssRFauz7W21',  // Neil   — soft Australian accent
 };
 
 const MODEL = 'eleven_turbo_v2_5';  // Fast + cheap; great quality for single words

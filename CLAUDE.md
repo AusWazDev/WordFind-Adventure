@@ -54,24 +54,36 @@ Every code change needs a CR or DEF entry in `docs/Change Register.md` with the 
 
 ---
 
-## Current State (as of last Cowork session — 3 Apr 2026)
+## Current State (as of 5 Apr 2026)
 
 ### Recently completed
 | CR/DEF | What | Commit |
 |--------|------|--------|
-| CR-18 | App icon — 1024px master PNG designed and exported | `83db442` |
-| CR-19 | Splash screen mockup approved | `48501a2` |
-| CR-20 | Splash screen implemented in app (`SplashScreen.jsx`) | `4b4c408` |
-| DEF-22 | Splash screen flashed Home before covering it — fixed | `82778c0` |
-| DEF-23 | Settings reset was restoring 12 free hints — fixed | `dc87dcd` |
+| CR-22 | Pre-generated ElevenLabs audio — Hannah (AU female) / Neil (AU male), 4,062 MP3 files | `922ac7e` + `7de9b53` |
+| DEF-25 | Settings Test Voice was robotic (Web Speech); completion audio overlapped — fixed | `38cbbbf` |
 | CR-21 | Brand alignment: dark theme + new icon on Welcome, HowToPlay, Home header | `dc87dcd` + `1e09959` |
+| DEF-23 | Settings reset was restoring 12 free hints — fixed | `dc87dcd` |
+| CR-20 | Splash screen implemented in app (`SplashScreen.jsx`) | `4b4c408` |
+
+### Audio system (CR-22) — key facts for next session
+- **All in-game audio uses pre-generated ElevenLabs MP3s** — Web Speech API is only the fallback
+- `voiceUtils.jsx` uses Web Audio API (`AudioContext`) for gapless playback — NOT HTML5 `<audio>`
+- `unlockAudio()` must be called on every user gesture to keep iOS AudioContext alive
+- Audio library layout:
+  - `public/audio/{female|male}/{WORD}.mp3` — 1,714 words × 2 genders
+  - `public/audio/phrases/{gender}_{key}.mp3` — 4 phrase keys × 2 genders
+  - `public/audio/sentences/{gender}_{WORD}.mp3` — 313 tricky-word sentences × 2 genders
+- Phrase keys: `great_you_found`, `all_words_found`, `hidden_word_was`, `game_complete`
+- To add new words/phrases: edit `scripts/generate-audio.mjs` PHRASES map, then run:
+  `$env:ELEVENLABS_API_KEY="sk_..."; node scripts/generate-audio.mjs`
+- ElevenLabs voice IDs: Hannah female `M7ya1YbaeFaPXljg9BpK`, Neil male `iIg0uI51lssRFauz7W21`
+- Script is fully resumable — skips existing files
 
 ### What to verify on device
-- Splash screen: dark background appears instantly, icon + name fade in, transitions to Home after ~2.7s
-- Home header: shows `icon.png` (40px) left of "SoundFind", not Volume2 speaker
-- Welcome screen: dark near-black background, `icon.png` centred above "SoundFind", "Find" in violet
-- HowToPlay: Audio Challenge header is teal/indigo, not amber/orange
-- Settings reset: after reset, hint count stays the same, `ads_removed` preserved
+- Audio Challenge: words play in Hannah/Neil voice (not robotic), sentence context plays for tricky words
+- Settings → Test Voice: plays "Great! You found rain!" in the selected voice via ElevenLabs
+- Game completion (non-bonus): plays "Incredible! You found all the words!" before victory modal
+- Game completion (bonus hunt): plays "Incredible! All words found! Now find the hidden bonus word!" — no overlap with last-word phrase
 
 ---
 
@@ -99,7 +111,9 @@ Every code change needs a CR or DEF entry in `docs/Change Register.md` with the 
 - `src/components/game/HintModal.jsx` — Hint purchase/ad modal
 - `src/components/game/offlineStorage.jsx` — All localStorage read/write
 - `src/components/game/gameUtils.jsx` — Word placement, game logic
-- `src/components/game/voiceUtils.jsx` — TTS voice selection for Audio Challenge
+- `src/components/game/voiceUtils.jsx` — ElevenLabs MP3 playback via Web Audio API; Web Speech fallback
+- `src/components/game/trickySentences.jsx` — Homophone/tricky word → sentence context map
+- `scripts/generate-audio.mjs` — Batch ElevenLabs audio generator (resumable, skip-existing)
 
 ### Assets
 - `public/icon.png` — 1024px master icon (used in splash, home header, welcome screen, favicon)
@@ -134,8 +148,8 @@ Every code change needs a CR or DEF entry in `docs/Change Register.md` with the 
 
 Priority order from STATUS.md:
 
-1. **Beta testing** — responses in Google Sheet, review and triage defects
-2. **HintModal stub** — testers hitting zero hints see an `alert()`. Needs a proper "coming soon" state rather than a raw alert before public launch
+1. **Beta testing** — monitor Google Form responses, log defects via Change Register
+2. **HintModal stub** — testers hitting zero hints see an `alert()`. Needs a proper "coming soon" state before public launch
 3. **PWA manifest + service worker** — `vite-plugin-pwa` setup for installability
 4. **Capacitor** — iOS/Android native build setup
 5. **RevenueCat SDK** — real IAP wiring (remove-ads + hint packs)
@@ -149,7 +163,7 @@ Priority order from STATUS.md:
 
 - `HintModal.jsx` — `alert()` stub on IAP purchase. Fine for beta but must be replaced before launch
 - Vercel deployment — SPA rewrites in `vercel.json` handle React Router; don't remove
-- Audio Challenge voice — iOS gets Karen (Enhanced) automatically; Mac quality depends on installed voices (DEF-12, no code fix needed)
+- Audio: if an MP3 is missing, all audio functions fall back to Web Speech API silently — no error shown to user
 - Touch scroll on game board — non-passive listeners in `GameBoard.jsx` prevent pull-to-refresh (DEF-19)
 
 ---

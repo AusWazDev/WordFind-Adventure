@@ -202,6 +202,11 @@ Current baseline: commit `129f64f`
 - CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
 - CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
 
+### 2026-04-04 (Windows — DEF-24: Mystery Word mode sporadically missing mystery word)
+- Root cause confirmed: category-restricted filler pool (40–65 words) too small for Expert/Master grids (15×15, 20–25 main words removed). Pool exhausts before K drops to a valid mystery length → `findMysteryWord` returns null → mystery phase never activates. Random category unaffected (~700-word pool).
+- Fix part 1: expanded all 14 `wordLists` categories from 40–65 to 86–112 words (~487 new themed words). Filler pool now large enough for Expert/Master on all categories.
+- Fix part 2: added padding fallback in `generateGame()` after filler loop — if K is still not a valid mystery length after filler exhausts, random letters fill cells (reading order) until K reaches the nearest valid length. Insurance for any remaining edge cases.
+
 ### 2026-04-03 (Windows — CR-21 follow-up: Home header icon + WelcomeScreen centering)
 - CR-21 follow-up: Replaced `Volume2` placeholder icon with `icon.png` in `Home.jsx` header (40px, iOS border-radius). Removed unused `Volume2` import from `Home.jsx`. Fixed `WelcomeScreen.jsx` icon centering — Tailwind Preflight sets `img { display: block }` so `text-center` had no effect; added `mx-auto` to explicitly centre the icon above the app name.
 

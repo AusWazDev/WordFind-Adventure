@@ -202,6 +202,10 @@ Current baseline: commit `129f64f`
 - CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
 - CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
 
+### 2026-04-05 (Windows — CR-23: PWA service worker + offline audio)
+- CR-23: Installed `vite-plugin-pwa`. Workbox service worker precaches app shell and applies `CacheFirst` runtime caching to all `/audio/*.mp3` requests. Any MP3 fetched on WiFi is permanently cached on-device (1-year TTL). Combined with `preloadGameAudio()`, opening one Audio Challenge game on WiFi makes all that game's voices available offline. App itself also loads fully offline (precached shell). PWA manifest added. Commit `78858ab`.
+- App is now fully offline-capable including natural ElevenLabs voices — core requirement met.
+
 ### 2026-04-05 (Windows — DEF-26: audio delay fix)
 - DEF-26: Significant delay before audio played on each tap. Root cause: `fetchBuffer()` was fetching and decoding the MP3 from Vercel on every tap — no caching. Fix: added `_bufferCache` Map in `voiceUtils.jsx`; decoded `AudioBuffer` objects are reused across plays. Added `preloadGameAudio()` which background-fetches all word, sentence, and phrase MP3s for the current game immediately after `generateGame()` in audio mode. First plays are now instant. Commit `ef2543f`.
 
@@ -250,7 +254,8 @@ Current baseline: commit `129f64f`
 ## Next Steps (Priority Order)
 - [x] CR-16: Collapsible word list ✅
 - [x] CR-17: Responsive grid sizing ✅
-- [x] CR-22: Pre-generated ElevenLabs audio ✅ — Hannah (AU female) + Neil (AU male), 4,060 MP3 files generated + deployed
+- [x] CR-22: Pre-generated ElevenLabs audio ✅ — Hannah (AU female) + Neil (AU male), 4,062 MP3 files generated + deployed
+- [x] CR-23: PWA service worker ✅ — offline audio via CacheFirst runtime caching; app shell precached
 - [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor

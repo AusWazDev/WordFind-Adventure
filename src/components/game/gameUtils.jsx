@@ -1244,11 +1244,15 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
       const word = wordRaw.toUpperCase();
       if (currentUsed.has(word)) continue;
 
-      // Snapshot the grid before placement so we can undo an overshoot
+      // Snapshot the grid before placement so we can undo if this word overshoots.
+      // Use tryPlaceWord (random placement) — NOT tryPlaceWordDense. Dense placement
+      // maximises overlap, which minimises new cells per word and causes the pool to
+      // exhaust before K drops into the valid mystery-word range on larger grids.
+      // Random placement fills cells evenly and reaches the target far more quickly.
       const emptyBefore = countEmptyCells(grid, gridSize);
       const gridSnap = grid.map(row => [...row]);
 
-      if (tryPlaceWordDense(grid, word, gridSize, wordPositions)) {
+      if (tryPlaceWord(grid, word, gridSize, wordPositions)) {
         const emptyAfter = countEmptyCells(grid, gridSize);
         if (emptyAfter < emptyBefore) {
           // Word filled new cells — check it didn't overshoot below minValidLength
@@ -1272,9 +1276,24 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
       }
     }
 
-    // No random-letter padding fallback: whatever K remains after filler is the exact
-    // mystery word length. findMysteryWord's cross-category fallback handles any K ≥ 2,
-    // so no orphaned non-amber cells are ever left in the grid.
+    // Last-resort padding: if the pool exhausted with K still above the valid range,
+    // fill single cells (reading order) with random letters until K hits the largest
+    // valid mystery length ≤ K. With random filler placement above, this path fires
+    // very rarely — it exists only as insurance for edge-case grids.
+    {
+      let padEmpty = countEmptyCells(grid, gridSize);
+      if (padEmpty > 0 && !validMysteryLengths.has(padEmpty)) {
+        const targetK = [...validMysteryLengths]
+          .filter(l => l <= padEmpty)
+          .sort((a, b) => b - a)[0] ?? 0;
+        const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        outer: for (let r = 0; r < gridSize; r++)
+          for (let c = 0; c < gridSize; c++) {
+            if (padEmpty <= targetK) break outer;
+            if (grid[r][c] === '') { grid[r][c] = alpha[Math.floor(Math.random() * 26)]; padEmpty--; }
+          }
+      }
+    }
 
     // ── Step 2: Collect ALL remaining empty cells (reading order) ──────────
     const mysteryPositions = [];

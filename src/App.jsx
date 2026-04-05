@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from 'sonner'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
@@ -40,7 +40,7 @@ function App() {
         ))}
         <Route path="*" element={<PageNotFound />} />
       </Routes>
-      <Toaster />
+      <Toaster position="top-center" richColors />
     </Router>
   );
 }

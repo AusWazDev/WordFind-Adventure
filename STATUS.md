@@ -255,6 +255,19 @@ Current baseline: commit `129f64f`
 - CR-19: Splash screen designed — interactive HTML5 Canvas mockup built (`docs/icon/splash-mockup.html`). Deep dark near-black background, icon centred at 40%, "SoundFind" name, tagline "Find the words. Feel the sound.", animated Preview button. Locked settings approved by Waz: icon 40%, vertical 40%, name gap 10%, deep dark bg, grid overlay 10%, hold 2000ms (total 2.7s).
 - CR-20: Splash screen implemented — `src/components/game/SplashScreen.jsx` created from CR-19 approved design. Framer Motion sequence: fade in 400ms → hold 2000ms → fade out 300ms → Home. Wired into `App.jsx` via `showSplash` state. `public/icon.png` added (1024px master). `index.html` favicon updated from emoji to `icon.png`.
 
+### 2026-04-06 (Windows — CR-25: Full codebase audit + cleanup)
+- Full codebase audit performed. 9 issues identified and fixed.
+- Dead imports removed: `speakText` (WordList, Game), `useMemo` named import (Stats), `diagnoseVoices` export (voiceUtils), `Toaster` (Game, DailyChallenge)
+- Duplicate `<Toaster />` consolidated: App.jsx now mounts the single global sonner Toaster with `position="top-center" richColors`. Game.jsx and DailyChallenge.jsx no longer mount their own.
+- `WordList.jsx` localStorage read replaced with `getLocalSettings()` — ensures DEFAULT_SETTINGS merge so `audio_voice` is always defined
+- Shared constants extracted to `src/lib/constants.js`: `LEVEL_NAMES`, `CATEGORIES`, `CATEGORY_LABELS`. Removed duplicate declarations from GameHeader, VictoryModal, Settings.
+- `best_streak` bug fixed: DailyChallenge `triggerVictory` now computes `newStreak` before `updateProgress` and passes `best_streak: Math.max(current, newStreak)` — Stats page "Longest Streak" now increments correctly.
+- Hint timer leak fixed: `hintTimerRef` added to Game.jsx; each hint call now cancels the previous 4s timeout before starting a new one.
+- DailyChallenge score penalty aligned: lightbulb hints now apply 0.75× penalty (added `hintedWords` state + ref; `handleUseHint` marks the hinted word; `handleWordFound` applies the multiplier).
+- Stale "AUTO-GENERATED" comment in `pages.config.js` replaced with accurate description.
+- 45 unused shadcn UI files deleted from `src/components/ui/`. CSS bundle: 97 kB → 58 kB (−40%).
+- Build confirmed clean.
+
 ### 2026-04-06 (Windows — CR-24: Word Association clue update)
 - CR-24: Added ~450 new `wordClues` entries to `gameUtils.jsx` covering every word added in DEF-20 and DEF-24 category expansions across all 13 categories. Word Association mode was showing `A ${n}-letter word` for all newly expanded words. All entries now have descriptive clues matching the style of existing ones. Build clean, deployed.
 

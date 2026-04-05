@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 import { Lightbulb, Trophy, Target, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-
-const levelNames = ['Easy', 'Medium', 'Hard', 'Expert', 'Master'];
+import { LEVEL_NAMES, CATEGORY_LABELS } from '@/lib/constants';
 
 const modeLabels = {
   standard: 'Standard',
@@ -12,17 +11,6 @@ const modeLabels = {
   anagram: 'Anagram Hunt',
   association: 'Word Association',
   mystery_word: 'Mystery Word',
-};
-
-const categoryLabels = {
-  random: 'Random Mix', animals: 'Animals', food: 'Food', nature: 'Nature',
-  colors: 'Colors', sports: 'Sports', space: 'Space', music: 'Music',
-  countries: 'Countries', science: 'Science', mythology: 'Mythology',
-  technology: 'Technology', ocean: 'Ocean', history: 'History', emotions: 'Emotions',
-  tricky_mix: 'Tricky Mix', tricky_silent: 'Silent Letters',
-  tricky_homophones: 'Homophones', tricky_ough: '-OUGH Words',
-  tricky_double: 'Double Letters', tricky_misspelled: 'Misspelled',
-  tricky_ise_ize: '-ISE / -IZE', tricky_our_or: '-OUR / -OR',
 };
 
 export default function GameHeader({
@@ -41,9 +29,9 @@ export default function GameHeader({
   compact = false,   // true in landscape — single row, no progress bar
 }) {
   const progress = (wordsFound / totalWords) * 100;
-  const levelLabel    = levelNames[level - 1] ?? `Level ${level}`;
+  const levelLabel    = LEVEL_NAMES[level - 1] ?? `Level ${level}`;
   const modeLabel     = modeLabels[gameMode]  ?? 'Standard';
-  const categoryLabel = category ? (categoryLabels[category] ?? category) : null;
+  const categoryLabel = category ? (CATEGORY_LABELS[category] ?? category) : null;
   // Subtitle: show mode (if not standard) and/or category
   const subtitleParts = [];
   if (gameMode && gameMode !== 'standard') subtitleParts.push(modeLabel);

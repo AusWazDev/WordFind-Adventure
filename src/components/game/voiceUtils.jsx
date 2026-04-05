@@ -378,22 +378,3 @@ export async function speakFixedPhrase(phraseKey, fallbackText, settings = {}) {
 
 // ─── Debug ────────────────────────────────────────────────────────────────────
 
-/**
- * Debug helper — call from browser console to see what voices are available
- * and how they score on the current device:
- *
- *   (async () => { const m = await import('/src/components/game/voiceUtils.jsx'); console.table(await m.diagnoseVoices()); })()
- */
-export async function diagnoseVoices() {
-  const voices = await getVoices();
-  return voices
-    .map(v => ({
-      name: v.name,
-      lang: v.lang,
-      local: v.localService,
-      score_f: scoreVoice(v, 'female'),
-      score_m: scoreVoice(v, 'male'),
-    }))
-    .sort((a, b) => b.score_f - a.score_f)
-    .slice(0, 15);
-}

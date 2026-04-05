@@ -10,7 +10,7 @@ import AssociationWordList from '@/components/game/AssociationWordList';
 import HintModal from '@/components/game/HintModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
 import { getDailyChallengeConfig, formatCountdown } from '@/components/game/DailyChallengeUtils';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { Clock, Trophy, Star, Home, Gift, Flame } from 'lucide-react';
 
 // ─── Orientation hook ──────────────────────────────────────────────────────────
@@ -73,13 +73,18 @@ export default function DailyChallenge() {
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const timerRef = useRef(null);
 
+  // Track words where the header hint was used — for score penalty (−25%)
+  const [hintedWords, setHintedWords] = useState(new Set());
+
   // Stable refs for handleWordFound
-  const gameDataRef    = useRef(null);
-  const foundWordsRef  = useRef([]);
+  const gameDataRef      = useRef(null);
+  const foundWordsRef    = useRef([]);
   const revealedWordsRef = useRef([]);
-  useEffect(() => { gameDataRef.current = gameData; },       [gameData]);
-  useEffect(() => { foundWordsRef.current = foundWords; },   [foundWords]);
+  const hintedWordsRef   = useRef(new Set());
+  useEffect(() => { gameDataRef.current = gameData; },         [gameData]);
+  useEffect(() => { foundWordsRef.current = foundWords; },     [foundWords]);
   useEffect(() => { revealedWordsRef.current = revealedWords; }, [revealedWords]);
+  useEffect(() => { hintedWordsRef.current = hintedWords; },   [hintedWords]);
 
   // Board sizing — measured in JS for exact pixel values (same approach as Game.jsx)
   const boardAreaRef = useRef(null);
@@ -133,6 +138,7 @@ export default function DailyChallenge() {
     setGameData(game);
     setFoundWords([]);
     setRevealedWords([]);
+    setHintedWords(new Set());
     setHintCells([]);
     setHintWord(null);
     setScore(0);
@@ -155,8 +161,9 @@ export default function DailyChallenge() {
       setFoundWords(newFoundWords);
 
       const wasRevealed = revealedWordsRef.current.includes(foundWord);
+      const wasHinted   = hintedWordsRef.current.has(foundWord);
       const rawScore    = calculateScore(foundWord, level, mode === 'audio');
-      const wordScore   = Math.round(rawScore * (wasRevealed ? 0.5 : 1.0) * bonus_multiplier);
+      const wordScore   = Math.round(rawScore * (wasRevealed ? 0.5 : wasHinted ? 0.75 : 1.0) * bonus_multiplier);
       setScore(prev => prev + wordScore);
 
       const bonusNote = bonus_multiplier > 1 ? ` (${bonus_multiplier}× bonus)` : '';
@@ -173,25 +180,29 @@ export default function DailyChallenge() {
     clearInterval(timerRef.current);
     setVictory(true);
 
+    // Compute streak before saving so it can be included in the progress update.
+    const yesterday  = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const prevDay    = getDailyRecord(yesterday.toISOString().slice(0, 10));
+    const prevStreak = prevDay?.completed ? (prevDay.streak || 1) : 0;
+    const newStreak  = prevStreak + 1;
+
     if (progress) {
       const updated = await updateProgress(null, progress, {
-        total_score:      (progress.total_score || 0) + score,
-        games_played:     (progress.games_played || 0) + 1,
-        words_found:      (progress.words_found || 0) + wordsFoundCount,
-        hints_remaining:  (progress.hints_remaining ?? 12) + reward_hints,
+        total_score:     (progress.total_score || 0) + score,
+        games_played:    (progress.games_played || 0) + 1,
+        words_found:     (progress.words_found || 0) + wordsFoundCount,
+        hints_remaining: (progress.hints_remaining ?? 12) + reward_hints,
+        best_streak:     Math.max(progress.best_streak || 0, newStreak),
       });
       setProgress(updated);
     }
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const prevDay    = getDailyRecord(yesterday.toISOString().slice(0, 10));
-    const prevStreak = prevDay?.completed ? (prevDay.streak || 1) : 0;
     saveDailyRecord(date, {
       completed: true, score, words_found: wordsFoundCount,
       total_words:  gameDataRef.current?.words.length,
       time_taken:   time_limit ? time_limit - (timeLeft ?? 0) : 0,
-      streak:       prevStreak + 1,
+      streak:       newStreak,
     });
   };
 
@@ -205,6 +216,8 @@ export default function DailyChallenge() {
     const newHints  = hintsRemaining - 1;
     setHintsRemaining(newHints);
     if (progress) updateProgress(null, progress, { hints_remaining: newHints }).catch(console.error);
+    // Mark word as hinted — score will be reduced by 25% when found
+    setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
     if (positions?.length) {
       setHintCells([positions[0]]);
       setHintWord(word.toLowerCase());
@@ -345,8 +358,6 @@ export default function DailyChallenge() {
 
   return (
     <div style={{ width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--background)' }}>
-      <Toaster position="top-center" richColors />
-
       {isLandscape ? (
         // LANDSCAPE: header + info bar stacked at top, board + word list side by side
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', padding: PAD, gap: GAP, boxSizing: 'border-box' }}>

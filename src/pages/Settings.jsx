@@ -8,6 +8,7 @@ import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineSt
 import ReminderSettings from '@/components/game/ReminderSettings';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { CATEGORIES } from '@/lib/constants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,32 +27,6 @@ const DIFFICULTY_LEVELS = [
   { value: 3, label: 'Hard' },
   { value: 4, label: 'Expert' },
   { value: 5, label: 'Master' },
-];
-
-const CATEGORIES = [
-  { value: 'random',            label: 'Random Mix' },
-  { value: 'animals',           label: 'Animals' },
-  { value: 'food',              label: 'Food' },
-  { value: 'nature',            label: 'Nature' },
-  { value: 'colors',            label: 'Colors' },
-  { value: 'sports',            label: 'Sports' },
-  { value: 'space',             label: 'Space' },
-  { value: 'music',             label: 'Music' },
-  { value: 'countries',         label: 'Countries' },
-  { value: 'science',           label: 'Science' },
-  { value: 'mythology',         label: 'Mythology' },
-  { value: 'technology',        label: 'Technology' },
-  { value: 'ocean',             label: 'Ocean' },
-  { value: 'history',           label: 'History' },
-  { value: 'emotions',          label: 'Emotions' },
-  { value: 'tricky_mix',        label: 'Tricky Mix' },
-  { value: 'tricky_silent',     label: 'Silent Letters' },
-  { value: 'tricky_homophones', label: 'Homophones' },
-  { value: 'tricky_ough',       label: '-OUGH Words' },
-  { value: 'tricky_double',     label: 'Double Letters' },
-  { value: 'tricky_misspelled', label: 'Misspelled' },
-  { value: 'tricky_ise_ize',    label: '-ISE / -IZE' },
-  { value: 'tricky_our_or',     label: '-OUR / -OR' },
 ];
 
 export default function Settings() {

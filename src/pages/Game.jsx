@@ -11,9 +11,9 @@ import GameLoadingScreen from '@/components/game/GameLoadingScreen';
 import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
-import { speakText, speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio } from '@/components/game/voiceUtils';
+import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio } from '@/components/game/voiceUtils';
 import { loadProgress, updateProgress, loadSettings } from '@/components/game/offlineStorage';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 
 // ─── Orientation hook ─────────────────────────────────────────────────────────
 function useOrientation() {
@@ -96,6 +96,10 @@ export default function Game() {
 
   // Track words where hint tools were used — for score penalties
   const [hintedWords, setHintedWords] = useState(new Set());   // lightbulb used → -25%
+
+  // Timer ref for hint-cell auto-clear — cancelled before each new hint so rapid
+  // successive hints don't let an earlier timeout clear the latest hint's cells.
+  const hintTimerRef = useRef(null);
 
   // Stable refs for handleWordFound — avoids recreating the callback on every word found
   const gameDataRef = useRef(null);
@@ -271,7 +275,8 @@ export default function Game() {
       setHintCells([gameData.bonusLetterPositions[0]]);
       setHintWord(null);
       toast.info(`Hint: the hidden word starts with "${gameData.bonusWord[0]}"`, { duration: 4000 });
-      setTimeout(() => { setHintCells([]); }, 4000);
+      clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = setTimeout(() => { setHintCells([]); }, 4000);
       return;
     }
 
@@ -286,10 +291,12 @@ export default function Game() {
     if (positions?.length > 0) {
       setHintCells([positions[0]]);
       setHintWord(randomWord.toLowerCase());
-      setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
+      clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
     } else {
       setHintWord(randomWord.toLowerCase());
-      setTimeout(() => setHintWord(null), 4000);
+      clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = setTimeout(() => setHintWord(null), 4000);
     }
   };
 
@@ -314,7 +321,8 @@ export default function Game() {
     setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
     setHintCells([positions[0]]);
     setHintWord(word.toLowerCase());
-    setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
+    clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
   };
 
   const handleWatchAd = () => {
@@ -485,8 +493,6 @@ export default function Game() {
 
   return (
     <div style={{ width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--background)' }}>
-      <Toaster position="top-center" richColors />
-
       {isLandscape ? (
         // LANDSCAPE: compact header top, board + word list side by side below
         <div style={{

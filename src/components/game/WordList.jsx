@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Eye, Volume2, WifiOff, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { speakText, speakWordAudio, speakSentenceAudio, unlockAudio } from '@/components/game/voiceUtils';
+import { speakWordAudio, speakSentenceAudio, unlockAudio } from '@/components/game/voiceUtils';
+import { getLocalSettings } from '@/components/game/offlineStorage';
 import { getTrickyWordHint } from '@/components/game/gameUtils';
 import { getSentence, hasSentence } from '@/components/game/trickySentences';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
@@ -15,7 +16,6 @@ export default function WordList({
   revealedWords,
   onRevealWord,
   onHintCell,
-  onPlayAudio,
   hintsRemaining,
   hintWord,
   category
@@ -26,12 +26,7 @@ export default function WordList({
     // Unlock iOS audio engine on this user tap
     unlockAudio();
 
-    // Load settings from localStorage (no Base44 needed)
-    let settings = {};
-    try {
-      const raw = localStorage.getItem('wf_settings');
-      if (raw) settings = JSON.parse(raw);
-    } catch {}
+    const settings = getLocalSettings();
 
     const upper = word.toUpperCase();
     // Always speak in lowercase — TTS engines can read ALL-CAPS as acronyms
@@ -42,13 +37,11 @@ export default function WordList({
     if (hasSentence(upper)) {
       const sentence = getSentence(upper);
       await speakSentenceAudio(word, sentence, settings);
-      onPlayAudio?.(word);
       return;
     }
 
     // 2. All other words — play pre-generated MP3, fall back to Web Speech
     await speakWordAudio(word, settings);
-    onPlayAudio?.(word);
   };
 
   return (

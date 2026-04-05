@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Star, ArrowRight, RotateCcw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
+import { LEVEL_NAMES } from '@/lib/constants';
 
 export default function VictoryModal({
   isOpen,
@@ -26,7 +27,6 @@ export default function VictoryModal({
     }
   }, [isOpen]);
 
-  const levelNames = ['Easy', 'Medium', 'Hard', 'Expert', 'Master'];
   const stars = level >= 3 ? 3 : level >= 2 ? 2 : 1;
 
   return (
@@ -69,7 +69,7 @@ export default function VictoryModal({
               transition={{ delay: 0.4 }}
               className="text-slate-500 dark:text-slate-400 mb-6"
             >
-              {levelNames[level - 1]} difficulty conquered
+              {LEVEL_NAMES[level - 1]} difficulty conquered
             </motion.p>
 
             <motion.div

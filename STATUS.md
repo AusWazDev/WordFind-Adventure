@@ -202,6 +202,9 @@ Current baseline: commit `129f64f`
 - CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
 - CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
 
+### 2026-04-05 (Windows — DEF-26: audio delay fix)
+- DEF-26: Significant delay before audio played on each tap. Root cause: `fetchBuffer()` was fetching and decoding the MP3 from Vercel on every tap — no caching. Fix: added `_bufferCache` Map in `voiceUtils.jsx`; decoded `AudioBuffer` objects are reused across plays. Added `preloadGameAudio()` which background-fetches all word, sentence, and phrase MP3s for the current game immediately after `generateGame()` in audio mode. First plays are now instant. Commit `ef2543f`.
+
 ### 2026-04-05 (Windows — DEF-25: Settings test voice + completion audio overlap)
 - DEF-25: Settings "Test Voice" was still calling `speakText()` (Web Speech API) — replaced with `speakPhraseAndWord('great_you_found', 'RAIN', ...)` so test button plays Hannah/Neil via ElevenLabs.
 - DEF-25: When last word found, `speakPhraseAndWord('great_you_found')` and `speakFixedPhrase('all_words_found')` were both scheduling audio simultaneously → inaudible celebration. Fixed by consolidating last-word audio logic: bonus hunt → only `all_words_found`; non-bonus → new `game_complete` phrase.

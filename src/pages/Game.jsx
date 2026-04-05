@@ -11,7 +11,7 @@ import GameLoadingScreen from '@/components/game/GameLoadingScreen';
 import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
-import { speakText, speakPhraseAndWord, speakFixedPhrase, unlockAudio } from '@/components/game/voiceUtils';
+import { speakText, speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio } from '@/components/game/voiceUtils';
 import { loadProgress, updateProgress, loadSettings } from '@/components/game/offlineStorage';
 import { toast, Toaster } from 'sonner';
 
@@ -159,8 +159,11 @@ export default function Game() {
     setBonusFound(false);
     setBonusPoints(0);
     setBonusInput('');
-    // NOTE: No auto-play intro here — iOS Safari blocks audio without a user gesture.
-    // Players tap the speaker button to start audio.
+    // Preload this game's audio in the background so first taps are instant.
+    // Only useful in audio mode; safe to call in other modes (no-ops quickly).
+    if (mode === 'audio') {
+      loadSettings().then(settings => preloadGameAudio(game.words, settings));
+    }
   };
 
   const handleWordFound = useCallback((selectedWord, cells) => {

@@ -243,11 +243,40 @@ function getAudioContext() {
   return _audioCtx;
 }
 
+// In-memory cache of decoded AudioBuffers — keyed by URL.
+// Avoids re-fetching and re-decoding on every tap; makes repeat plays instant.
+const _bufferCache = new Map();
+
 async function fetchBuffer(url) {
+  if (_bufferCache.has(url)) return _bufferCache.get(url);
   const ctx = getAudioContext();
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  return ctx.decodeAudioData(await res.arrayBuffer());
+  const buf = await ctx.decodeAudioData(await res.arrayBuffer());
+  _bufferCache.set(url, buf);
+  return buf;
+}
+
+/**
+ * Preload audio files for the current game in the background.
+ * Call this after game data is available — fires-and-forgets so it never
+ * blocks the UI. 404s (missing sentence files) are silently ignored.
+ */
+export function preloadGameAudio(words, settings = {}) {
+  const gender = settings.audio_voice || 'female';
+  const urls = [];
+
+  for (const word of words) {
+    const upper = word.toUpperCase();
+    urls.push(`/audio/${gender}/${upper}.mp3`);
+    urls.push(`/audio/sentences/${gender}_${upper}.mp3`);
+  }
+
+  for (const key of ['great_you_found', 'game_complete', 'all_words_found', 'hidden_word_was']) {
+    urls.push(`/audio/phrases/${gender}_${key}.mp3`);
+  }
+
+  urls.forEach(url => fetchBuffer(url).catch(() => {}));
 }
 
 // Schedule one or more pre-decoded AudioBuffers to play back-to-back with

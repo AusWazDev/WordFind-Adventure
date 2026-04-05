@@ -1231,6 +1231,9 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
     // ── Step 1: Fill empty cells with category filler, stopping when empty
     //            cell count hits a length available in the category word pool ──
     const fillerPool = buildFillerWordPool(category, currentUsed);
+    // Never let K drop below the smallest valid mystery word length — we undo any
+    // filler placement that would overshoot below this floor, then try the next word.
+    const minValidLength = validMysteryLengths.size > 0 ? Math.min(...validMysteryLengths) : 2;
 
     for (const wordRaw of fillerPool) {
       const currentEmpty = countEmptyCells(grid, gridSize);
@@ -1241,42 +1244,37 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
       const word = wordRaw.toUpperCase();
       if (currentUsed.has(word)) continue;
 
-      // Count empty cells before attempting placement
+      // Snapshot the grid before placement so we can undo an overshoot
       const emptyBefore = countEmptyCells(grid, gridSize);
+      const gridSnap = grid.map(row => [...row]);
+
       if (tryPlaceWordDense(grid, word, gridSize, wordPositions)) {
         const emptyAfter = countEmptyCells(grid, gridSize);
         if (emptyAfter < emptyBefore) {
-          // At least one new cell was filled — word is genuinely useful
+          // Word filled new cells — check it didn't overshoot below minValidLength
+          if (emptyAfter > 0 && emptyAfter < minValidLength) {
+            // Undo: restore cells that were empty before and got filled by this word
+            for (let r = 0; r < gridSize; r++)
+              for (let c = 0; c < gridSize; c++)
+                if (gridSnap[r][c] === '' && grid[r][c] !== '') grid[r][c] = '';
+            delete wordPositions[word];
+            continue;
+          }
+          // Placement is safe — commit it
           placedWords.push(word);
           currentUsed.add(word);
           // Stop if the placement landed us on a valid mystery word length
           if (validMysteryLengths.has(emptyAfter)) break;
         } else {
           // Pure overlap — word already existed in grid, grid unchanged
-          // Just remove it from wordPositions (grid letters are the same)
           delete wordPositions[word];
         }
       }
     }
 
-    // ── Padding fallback (DEF-24): if the category filler pool exhausted before
-    //    empty count landed on a valid mystery length, fill random letters one
-    //    cell at a time (reading order) until K drops to the nearest valid length.
-    //    This is insurance for Expert/Master with smaller category pools.
-    {
-      let padEmpty = countEmptyCells(grid, gridSize);
-      if (padEmpty > 0 && !validMysteryLengths.has(padEmpty)) {
-        const targetK = [...validMysteryLengths]
-          .filter(l => l <= padEmpty)
-          .sort((a, b) => b - a)[0] ?? 0;
-        const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        outer: for (let r = 0; r < gridSize; r++)
-          for (let c = 0; c < gridSize; c++) {
-            if (padEmpty <= targetK) break outer;
-            if (grid[r][c] === '') { grid[r][c] = alpha[Math.floor(Math.random() * 26)]; padEmpty--; }
-          }
-      }
-    }
+    // No random-letter padding fallback: whatever K remains after filler is the exact
+    // mystery word length. findMysteryWord's cross-category fallback handles any K ≥ 2,
+    // so no orphaned non-amber cells are ever left in the grid.
 
     // ── Step 2: Collect ALL remaining empty cells (reading order) ──────────
     const mysteryPositions = [];

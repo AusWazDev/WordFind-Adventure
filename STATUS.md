@@ -206,6 +206,10 @@ Current baseline: commit `129f64f`
 - CR-23: Installed `vite-plugin-pwa`. Workbox service worker precaches app shell and applies `CacheFirst` runtime caching to all `/audio/*.mp3` requests. Any MP3 fetched on WiFi is permanently cached on-device (1-year TTL). Combined with `preloadGameAudio()`, opening one Audio Challenge game on WiFi makes all that game's voices available offline. App itself also loads fully offline (precached shell). PWA manifest added. Commit `78858ab`.
 - App is now fully offline-capable including natural ElevenLabs voices — core requirement met.
 
+### 2026-04-06 (Windows — DEF-27: Mystery Word orphaned random-letter cells)
+- DEF-27: Some Mystery Word games had grid cells that were neither part of any found word nor highlighted amber as mystery word cells. Root cause: the DEF-24 padding fallback filled cells with random letters to bridge K to a valid mystery length. These cells appeared as unexplained leftover letters. If K dropped below the minimum valid mystery length, `targetK`=0 caused ALL remaining cells to fill with random letters and the mystery word phase never activated.
+- Fix: replaced the padding fallback with an undo mechanism in the filler loop. Before each filler word placement, a grid snapshot is saved. If the placement reduces K below `minValidLength`, the snapshot is restored (the new cells are cleared back to empty) and that filler word is skipped. This prevents K from ever dropping below the smallest valid mystery word length. The random-letter padding fallback is removed entirely.
+
 ### 2026-04-05 (Windows — DEF-26: audio delay fix)
 - DEF-26: Significant delay before audio played on each tap. Root cause: `fetchBuffer()` was fetching and decoding the MP3 from Vercel on every tap — no caching. Fix: added `_bufferCache` Map in `voiceUtils.jsx`; decoded `AudioBuffer` objects are reused across plays. Added `preloadGameAudio()` which background-fetches all word, sentence, and phrase MP3s for the current game immediately after `generateGame()` in audio mode. First plays are now instant. Commit `ef2543f`.
 

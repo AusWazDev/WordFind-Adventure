@@ -255,6 +255,9 @@ Current baseline: commit `129f64f`
 - CR-19: Splash screen designed — interactive HTML5 Canvas mockup built (`docs/icon/splash-mockup.html`). Deep dark near-black background, icon centred at 40%, "SoundFind" name, tagline "Find the words. Feel the sound.", animated Preview button. Locked settings approved by Waz: icon 40%, vertical 40%, name gap 10%, deep dark bg, grid overlay 10%, hold 2000ms (total 2.7s).
 - CR-20: Splash screen implemented — `src/components/game/SplashScreen.jsx` created from CR-19 approved design. Framer Motion sequence: fade in 400ms → hold 2000ms → fade out 300ms → Home. Wired into `App.jsx` via `showSplash` state. `public/icon.png` added (1024px master). `index.html` favicon updated from emoji to `icon.png`.
 
+### 2026-04-06 (Windows — CR-24: Word Association clue update)
+- CR-24: Added ~450 new `wordClues` entries to `gameUtils.jsx` covering every word added in DEF-20 and DEF-24 category expansions across all 13 categories. Word Association mode was showing `A ${n}-letter word` for all newly expanded words. All entries now have descriptive clues matching the style of existing ones. Build clean, deployed.
+
 ## Next Steps (Priority Order)
 - [x] CR-16: Collapsible word list ✅
 - [x] CR-17: Responsive grid sizing ✅

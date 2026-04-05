@@ -1075,14 +1075,24 @@ function buildFillerWordPool(category, usedSet) {
   const catKey = (category && category !== 'random' && !category.startsWith('tricky_') && wordLists[category])
     ? category
     : null;
-  if (catKey) {
-    // Themed game — only words from this category
-    const words = wordLists[catKey].filter(w => !usedSet.has(w.toUpperCase()));
-    return fisherYates(words);
+  const raw = catKey
+    ? wordLists[catKey].filter(w => !usedSet.has(w.toUpperCase()))
+    : [...new Set(Object.values(wordLists).flat().filter(w => !usedSet.has(w.toUpperCase())))];
+
+  // Sort long words FIRST so they fill empty cells quickly while the grid is sparse.
+  // Short words are tried last, when the grid is dense — they are more likely to find
+  // a valid non-conflicting placement and can precisely tune K into the target range.
+  // Shuffle within each length group to keep word variety.
+  const byLength = {};
+  for (const w of raw) {
+    const l = w.length;
+    if (!byLength[l]) byLength[l] = [];
+    byLength[l].push(w);
   }
-  // Random game — draw from all categories
-  const all = Object.values(wordLists).flat().filter(w => !usedSet.has(w.toUpperCase()));
-  return fisherYates([...new Set(all)]);
+  return Object.keys(byLength)
+    .map(Number)
+    .sort((a, b) => b - a)          // descending length
+    .flatMap(l => fisherYates(byLength[l]));
 }
 
 // CR-06: After filling, find a mystery word whose length exactly matches the
@@ -1135,9 +1145,23 @@ function findMysteryWord(category, usedSet, targetLength, placedLetters) {
     if (p) return p;
   }
 
-  // 4. Any word from any category — final fallback
+  // 4. Any word from any category
   const anyWord = findIn(Object.values(wordLists).flat());
   if (anyWord) return { word: anyWord.toUpperCase(), hint: `A hidden ${targetLength}-letter word 🔎` };
+
+  // 5. Universal fallback — covers lengths 13–17 that no category word list reaches.
+  //    These only appear when the filler pool exhausted with K above the normal range.
+  //    Using a real word here (vs random padding) means ALL remaining cells become amber
+  //    mystery-word cells — zero orphaned letters in the grid.
+  const universalWords = [
+    'UNDERSTANDING','COMMUNICATION','ENTERTAINMENT','DETERMINATION','EXTRAORDINARY', // 13
+    'ACCOMPLISHMENT','DISAPPOINTMENT','TRANSFORMATION','CONGRATULATING',             // 14
+    'CONGRATULATIONS','ACCOMPLISHMENTS','DISORGANIZATION',                           // 15
+    'MISUNDERSTANDING','COUNTERINTUITIVE',                                           // 16
+    'MISUNDERSTANDINGS','COUNTERPRODUCTIVE',                                         // 17
+  ];
+  const universal = findIn(universalWords);
+  if (universal) return { word: universal.toUpperCase(), hint: `A hidden ${targetLength}-letter word 🔎` };
 
   return null;
 }
@@ -1276,24 +1300,9 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
       }
     }
 
-    // Last-resort padding: if the pool exhausted with K still above the valid range,
-    // fill single cells (reading order) with random letters until K hits the largest
-    // valid mystery length ≤ K. With random filler placement above, this path fires
-    // very rarely — it exists only as insurance for edge-case grids.
-    {
-      let padEmpty = countEmptyCells(grid, gridSize);
-      if (padEmpty > 0 && !validMysteryLengths.has(padEmpty)) {
-        const targetK = [...validMysteryLengths]
-          .filter(l => l <= padEmpty)
-          .sort((a, b) => b - a)[0] ?? 0;
-        const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        outer: for (let r = 0; r < gridSize; r++)
-          for (let c = 0; c < gridSize; c++) {
-            if (padEmpty <= targetK) break outer;
-            if (grid[r][c] === '') { grid[r][c] = alpha[Math.floor(Math.random() * 26)]; padEmpty--; }
-          }
-      }
-    }
+    // No padding fallback — findMysteryWord (step 5) now covers lengths up to 17
+    // via its universal word list, so whatever K remains after filler, ALL remaining
+    // empty cells become amber mystery-word cells with zero orphaned letters.
 
     // ── Step 2: Collect ALL remaining empty cells (reading order) ──────────
     const mysteryPositions = [];

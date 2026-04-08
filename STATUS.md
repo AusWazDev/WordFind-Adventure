@@ -278,6 +278,14 @@ Current baseline: commit `129f64f`
 - CR-28: WelcomeScreen redesigned. Removed feature cards/grid. Icon 88px. One-liner pill ("5 game modes · Natural voices · Works offline", no border). Primary button violet→indigo gradient. Secondary "How to Play" teal outline. Removed misleading "progress saved" footer (only saves on game completion).
 - Note: mid-game state is NOT saved — progress (stats/hints) saves on victory only. FE-03 candidate: add mid-game save/restore.
 
+### 2026-04-08 (Windows — CR-29: HowToPlay modal redesign)
+- Modal now responsive: width scales `max-w-sm` → `sm:max-w-md` → `md:max-w-lg`; height uses `flex flex-col max-h-[90dvh]` so modal shrinks to content and only scrolls when needed.
+- Scrollbar hidden via `.no-scrollbar` CSS utility in `src/index.css` — eliminates scrollbar flash on slide transitions.
+- Header and nav button fixed to consistent violet→indigo gradient on all slides.
+- All body text standardised to `text-sm`; content trimmed ~35%.
+- Game mode list order on slide 3 now matches home screen menu order.
+- FE-04 added to `docs/Future Enhancements.md`: Global Leaderboard (requires backend, deferred to Phase 5+).
+
 ### 2026-04-08 (Windows — CR-27: Word list expanded by default)
 - Reverted CR-16's collapsed-by-default to expanded-by-default (`useState(false)`). Collapsed state wasn't discoverable on mobile — players didn't see the word list. Player can still collapse manually. FE-02 logged for smarter UX in a future version.
 

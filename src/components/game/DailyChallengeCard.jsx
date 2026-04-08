@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Star, Trophy, ChevronRight, CheckCircle2, Flame } from 'lucide-react';
+import { Calendar, ChevronRight, CheckCircle2, Flame } from 'lucide-react';
 import { getDailyRecord } from '@/components/game/offlineStorage';
-import { getDailyChallengeConfig, formatTimeLimit } from '@/components/game/DailyChallengeUtils';
+import { getDailyChallengeConfig } from '@/components/game/DailyChallengeUtils';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown, CheckCircle, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 
 const REMOVE_ADS_PRICE = '$2.99';
@@ -14,7 +15,7 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
     // In-app purchase: handled by the native store billing layer.
     // onSuccess() is called only after a confirmed store transaction.
     // TODO: replace with RevenueCat purchase call on release.
-    alert(`In-app purchases will be available on release.\nRemove Ads — ${REMOVE_ADS_PRICE} (one-time)`);
+    toast.info('Coming soon', { description: 'Remove Ads will be available at launch on the App Store and Google Play.' });
   };
 
   const handleClose = () => {

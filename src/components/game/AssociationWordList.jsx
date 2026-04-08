@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';

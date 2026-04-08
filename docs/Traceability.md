@@ -3,7 +3,7 @@
 **Purpose:** When any file is changed, consult this map to identify what else must be reviewed or updated.
 The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commit time.
 
-*Last updated: 28 March 2026*
+*Last updated: 8 April 2026*
 
 ---
 

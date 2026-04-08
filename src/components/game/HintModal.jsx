@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Coins, Sparkles, Star, Shield, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { toast } from 'sonner';
 
 
 const PURCHASE_OPTIONS = [
@@ -115,7 +116,7 @@ function PurchaseView({ onPurchase, onClose }) {
     // In-app purchase: handled by the native store billing layer.
     // Calling onPurchase here only after a confirmed transaction from the store.
     // For now, show a native-style notice.
-    alert(`In-app purchases will be available on release.\nSelected: ${option.hints} hints — ${option.price}`);
+    toast.info('Coming soon', { description: `Hint packs will be available at launch on the App Store and Google Play.` });
   };
 
   return (

@@ -159,7 +159,7 @@ export default function Game() {
     setHintedWords(new Set());
     setScore(0);
     setShowVictory(false);
-    setWordListCollapsed(true);   // CR-16: collapse list on new game
+    setWordListCollapsed(false);  // CR-27: word list expanded by default on new game
     setBonusHuntActive(false);
     setBonusFound(false);
     setBonusPoints(0);

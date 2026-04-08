@@ -51,12 +51,17 @@ const levels = [
   },
 ];
 
-export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLevels = 5 }) {
+export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLevels = 5, mode, category }) {
+  // Mystery Word with a specific category (not Random) is capped at Hard (level 3).
+  // Expert and Master require a large word pool that specific categories can't reliably provide.
+  const mysteryWordCapped = mode === 'mystery_word' && category && category !== 'random';
+  const visibleLevels = mysteryWordCapped ? levels.filter(l => l.id <= 3) : levels;
+
   return (
     <div className="space-y-3">
       <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 text-center">Select Difficulty</h3>
       <div className="grid grid-cols-2 gap-2">
-        {levels.map((level, index) => {
+        {visibleLevels.map((level, index) => {
           const Icon = level.icon;
           const isUnlocked = index < unlockedLevels;
           const isSelected = currentLevel === level.id;
@@ -70,7 +75,7 @@ export default function LevelSelector({ currentLevel, onSelectLevel, unlockedLev
               className={cn(
                 "relative p-2 rounded-2xl border-2 transition-all text-left",
                 isMaster && "col-span-2",
-                isUnlocked 
+                isUnlocked
                   ? `bg-gradient-to-br ${level.bgGradient} hover:shadow-md cursor-pointer`
                   : "bg-slate-100 dark:bg-slate-800 cursor-not-allowed",
                 isSelected

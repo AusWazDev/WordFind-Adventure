@@ -286,7 +286,7 @@ const wordClues = {
   EBONY:'A very deep black like the dense tropical hardwood',PEARL:'A lustrous off-white like the gem found in oysters',
   OCHRE:'A yellow-orange earth pigment used since prehistoric times',UMBER:'A dark earthy brown pigment',
   SIENNA:'A warm reddish-brown earth tone',TAUPE:'A dark brownish-grey',
-  SALMON:'A soft pinkish-orange named after the fish',PLUM:'A dark reddish-purple named after the fruit',
+  PLUM:'A dark reddish-purple named after the fruit',
 
   // ── Food ──────────────────────────────────────────────────────────────────
   PIZZA:'Italian flatbread topped with cheese, sauce and toppings',PASTA:'Italian wheat-flour dough shaped into strands or tubes',
@@ -2038,8 +2038,9 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
       if (tryPlaceWord(grid, word, gridSize, wordPositions)) {
         const emptyAfter = countEmptyCells(grid, gridSize);
         if (emptyAfter < emptyBefore) {
-          // Word filled new cells — check it didn't overshoot below minValidLength
-          if (emptyAfter > 0 && emptyAfter < minValidLength) {
+          // Word filled new cells — check it didn't overshoot below minValidLength.
+          // Also undo if emptyAfter === 0 (grid fully filled — no cells left for mystery word).
+          if (emptyAfter < minValidLength) {
             // Undo: restore cells that were empty before and got filled by this word
             for (let r = 0; r < gridSize; r++)
               for (let c = 0; c < gridSize; c++)

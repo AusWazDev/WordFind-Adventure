@@ -183,6 +183,8 @@ export default function Home() {
               <LevelSelector
                 currentLevel={progress?.current_level || 1}
                 onSelectLevel={handleSelectLevel}
+                mode={selectedMode}
+                category={selectedCategory}
               />
             )}
           </motion.div>

@@ -91,8 +91,8 @@ export default function Game() {
   const [bonusPoints, setBonusPoints] = useState(0);
   const [bonusInput, setBonusInput] = useState('');
 
-  // CR-16: word list collapsed by default during play; expands on bonus hunt / victory
-  const [wordListCollapsed, setWordListCollapsed] = useState(true);
+  // CR-16: word list expanded by default; player can collapse manually for more grid space
+  const [wordListCollapsed, setWordListCollapsed] = useState(false);
 
   // Track words where hint tools were used — for score penalties
   const [hintedWords, setHintedWords] = useState(new Set());   // lightbulb used → -25%

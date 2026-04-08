@@ -280,7 +280,7 @@ Current baseline: commit `129f64f`
 
 ### 2026-04-08 (Windows — CR-30: Audit fixes)
 - Full codebase audit performed. Removed 5 unused imports across 4 files. Deleted dead file `src/lib/app-params.js` (Base44 leftover). Replaced `alert()` IAP stubs with `toast.info()` in HintModal + RemoveAdsModal. Added iOS PWA meta tags to index.html. Updated Traceability.md date.
-- Privacy Policy page (item 4 from audit) deferred — awaiting Waz decision on in-app vs external URL.
+- Privacy Policy deferred — will be built once at launch, hosted on `uniquegames.com.au/SoundFind/privacypolicy/` (pending ABN/domain activation).
 - App Store blockers (Capacitor, RevenueCat, AdMob) remain Phase 5.
 
 ### 2026-04-08 (Windows — CR-29: HowToPlay modal redesign)
@@ -316,4 +316,4 @@ Current baseline: commit `129f64f`
 - [ ] PWA manifest + service worker (vite-plugin-pwa)
 - [ ] Capacitor setup for iOS/Android native builds
 - [ ] Analytics: PostHog + Sentry integration (before public launch)
-- [ ] Privacy Policy page on uniquegames.com.au (required for App Store submissions)
+- [ ] Privacy Policy — host at `uniquegames.com.au/SoundFind/privacypolicy/` once domain is live (pending ABN). Build once alongside Capacitor/store submission prep — do not build early. Content: no personal data collected, game progress stored locally only, no analytics currently (update when PostHog/AdMob added in Phase 5).

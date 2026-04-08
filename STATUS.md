@@ -278,6 +278,9 @@ Current baseline: commit `129f64f`
 - CR-28: WelcomeScreen redesigned. Removed feature cards/grid. Icon 88px. One-liner pill ("5 game modes · Natural voices · Works offline", no border). Primary button violet→indigo gradient. Secondary "How to Play" teal outline. Removed misleading "progress saved" footer (only saves on game completion).
 - Note: mid-game state is NOT saved — progress (stats/hints) saves on victory only. FE-03 candidate: add mid-game save/restore.
 
+### 2026-04-09 (Windows — DEF-30: Word list collapsed on game start)
+- CR-27 set `useState(false)` so word list is expanded by default, but `generateGame` effect still called `setWordListCollapsed(true)` on every new game — overriding the intent. Fixed in `Game.jsx` line 162: `true` → `false`.
+
 ### 2026-04-08 (Windows — CR-30: Audit fixes)
 - Full codebase audit performed. Removed 5 unused imports across 4 files. Deleted dead file `src/lib/app-params.js` (Base44 leftover). Replaced `alert()` IAP stubs with `toast.info()` in HintModal + RemoveAdsModal. Added iOS PWA meta tags to index.html. Updated Traceability.md date.
 - Privacy Policy deferred — will be built once at launch, hosted on `uniquegames.com.au/SoundFind/privacypolicy/` (pending ABN/domain activation).

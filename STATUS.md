@@ -271,6 +271,13 @@ Current baseline: commit `129f64f`
 ### 2026-04-06 (Windows — CR-24: Word Association clue update)
 - CR-24: Added ~450 new `wordClues` entries to `gameUtils.jsx` covering every word added in DEF-20 and DEF-24 category expansions across all 13 categories. Word Association mode was showing `A ${n}-letter word` for all newly expanded words. All entries now have descriptive clues matching the style of existing ones. Build clean, deployed.
 
+### 2026-04-08 (Windows — DEF-28, DEF-29, CR-28: hint UX + wordClues + Welcome redesign)
+- DEF-28: Hint flash is now persistent until the hinted word is found. `hintWord` guard added to `handleUseHint` and `handleHintCell` to block re-entry. `hintWordRef` synced via `useEffect`. `handleWordFound` clears hint state when hinted word is found. Bonus-hunt hint retains 4s timer.
+- DEF-28 visual: Hint buttons (GameHeader + WordList lightbulbs) now visually dim to 40% opacity with `cursor-not-allowed` when a hint is active. `hintActive={!!hintWord}` passed from Game.jsx to GameHeader.
+- DEF-29: All 38 duplicate keys in `wordClues` fixed. Words in multiple categories now have combined clues. Silent-letter notes merged into primary clues. CACHE clue added (was missing). Root cause: flat object — last key wins silently.
+- CR-28: WelcomeScreen redesigned. Removed feature cards/grid. Icon 88px. One-liner pill ("5 game modes · Natural voices · Works offline", no border). Primary button violet→indigo gradient. Secondary "How to Play" teal outline. Removed misleading "progress saved" footer (only saves on game completion).
+- Note: mid-game state is NOT saved — progress (stats/hints) saves on victory only. FE-03 candidate: add mid-game save/restore.
+
 ### 2026-04-08 (Windows — CR-27: Word list expanded by default)
 - Reverted CR-16's collapsed-by-default to expanded-by-default (`useState(false)`). Collapsed state wasn't discoverable on mobile — players didn't see the word list. Player can still collapse manually. FE-02 logged for smarter UX in a future version.
 

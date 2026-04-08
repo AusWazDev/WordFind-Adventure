@@ -97,8 +97,7 @@ export default function Game() {
   // Track words where hint tools were used — for score penalties
   const [hintedWords, setHintedWords] = useState(new Set());   // lightbulb used → -25%
 
-  // Timer ref for hint-cell auto-clear — cancelled before each new hint so rapid
-  // successive hints don't let an earlier timeout clear the latest hint's cells.
+  // Timer ref — used for bonus-hunt hint timeout only (regular hints are persistent)
   const hintTimerRef = useRef(null);
 
   // Stable refs for handleWordFound — avoids recreating the callback on every word found
@@ -106,12 +105,14 @@ export default function Game() {
   const foundWordsRef = useRef([]);
   const revealedWordsRef = useRef([]);
   const hintedWordsRef = useRef(new Set());
+  const hintWordRef = useRef(null);
   const bonusHuntActiveRef = useRef(false);
   const bonusFoundRef = useRef(false);
   useEffect(() => { gameDataRef.current = gameData; }, [gameData]);
   useEffect(() => { foundWordsRef.current = foundWords; }, [foundWords]);
   useEffect(() => { revealedWordsRef.current = revealedWords; }, [revealedWords]);
   useEffect(() => { hintedWordsRef.current = hintedWords; }, [hintedWords]);
+  useEffect(() => { hintWordRef.current = hintWord; }, [hintWord]);
   useEffect(() => { bonusHuntActiveRef.current = bonusHuntActive; }, [bonusHuntActive]);
   useEffect(() => { bonusFoundRef.current = bonusFound; }, [bonusFound]);
 
@@ -193,6 +194,13 @@ export default function Game() {
       const newFoundWords = [...currentFound, foundWord];
       setFoundWords(newFoundWords);
 
+      // DEF-28: clear persistent hint flash when the hinted word is found
+      if (foundWord === hintWordRef.current) {
+        clearTimeout(hintTimerRef.current);
+        setHintCells([]);
+        setHintWord(null);
+      }
+
       // ── Score penalty for using hints ──────────────────────────────────────
       // Eye (reveal) = 50% penalty · Lightbulb (hint cell) = 25% penalty
       const wasRevealed = revealedWordsRef.current.includes(foundWord);
@@ -266,8 +274,10 @@ export default function Game() {
   const handleUseHint = () => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     if (!gameData) return;
+    // DEF-28: lock out while a hint is already active — wait for hinted word to be found
+    if (hintWord) return;
 
-    // ── Bonus hunt hint: flash the first letter of the bonus word ─────────────
+    // ── Bonus hunt hint: flash the first letter of the bonus word (4s timer) ──
     if (bonusHuntActive && gameData.bonusWord && gameData.bonusLetterPositions?.length > 0) {
       const newHints = hintsRemaining - 1;
       setHintsRemaining(newHints);
@@ -280,7 +290,7 @@ export default function Game() {
       return;
     }
 
-    // ── Regular hint: flash first letter of a random unfound word ─────────────
+    // ── Regular hint: flash first letter of a random unfound word (persistent) ─
     const unfoundWords = gameData.words.filter(w => !foundWords.includes(w.toLowerCase()));
     if (unfoundWords.length === 0) return;
     const randomWord = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
@@ -291,12 +301,9 @@ export default function Game() {
     if (positions?.length > 0) {
       setHintCells([positions[0]]);
       setHintWord(randomWord.toLowerCase());
-      clearTimeout(hintTimerRef.current);
-      hintTimerRef.current = setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
+      // No timer — flash persists until the player finds the hinted word
     } else {
       setHintWord(randomWord.toLowerCase());
-      clearTimeout(hintTimerRef.current);
-      hintTimerRef.current = setTimeout(() => setHintWord(null), 4000);
     }
   };
 
@@ -312,6 +319,8 @@ export default function Game() {
   const handleHintCell = (word) => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     if (!gameData) return;
+    // DEF-28: lock out while a hint is already active
+    if (hintWord) return;
     const positions = gameData.wordPositions[word.toUpperCase()];
     if (!positions?.length) return;
     const newHints = hintsRemaining - 1;
@@ -321,8 +330,7 @@ export default function Game() {
     setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
     setHintCells([positions[0]]);
     setHintWord(word.toLowerCase());
-    clearTimeout(hintTimerRef.current);
-    hintTimerRef.current = setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
+    // No timer — flash persists until the player finds the hinted word
   };
 
   const handleWatchAd = () => {

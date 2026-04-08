@@ -271,6 +271,14 @@ Current baseline: commit `129f64f`
 ### 2026-04-06 (Windows — CR-24: Word Association clue update)
 - CR-24: Added ~450 new `wordClues` entries to `gameUtils.jsx` covering every word added in DEF-20 and DEF-24 category expansions across all 13 categories. Word Association mode was showing `A ${n}-letter word` for all newly expanded words. All entries now have descriptive clues matching the style of existing ones. Build clean, deployed.
 
+### 2026-04-08 (Windows — CR-26: Mode reorder + Mystery Word difficulty cap)
+- Word Association moved above Anagram Hunt in `GameModeSelector.jsx`.
+- `LevelSelector.jsx`: Mystery Word + specific (non-Random) category now shows only Easy/Medium/Hard — Expert and Master hidden. Root cause: category-restricted filler pools can't reliably fill a 15×15 grid down to a valid mystery word length. Tracked as FE-01 in `docs/Future Enhancements.md` for a future version.
+- `Home.jsx`: passes `selectedMode` + `selectedCategory` to `LevelSelector`.
+- DEF-27 follow-up: removed `emptyAfter > 0` guard in filler undo — undo now also fires when a filler word fills all remaining empty cells (emptyAfter === 0).
+- Duplicate `SALMON` key removed from `wordClues` (colours entry deleted; food entry retained).
+- `docs/Future Enhancements.md` created.
+
 ## Next Steps (Priority Order)
 - [x] CR-16: Collapsible word list ✅
 - [x] CR-17: Responsive grid sizing ✅

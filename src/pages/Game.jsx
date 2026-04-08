@@ -403,6 +403,7 @@ export default function Game() {
     level, gameMode: mode, category,
     onBack: handleHome,
     onUseHint: handleUseHint,
+    hintActive: !!hintWord,
     isAudioMode: mode === 'audio',
     audioEnabled,
     onToggleAudio: () => setAudioEnabled(!audioEnabled),

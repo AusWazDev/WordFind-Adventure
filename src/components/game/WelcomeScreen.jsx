@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Sparkles, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronRight, BookOpen } from 'lucide-react';
 
 const WELCOME_KEY = 'wf_welcome_seen';
 
@@ -33,7 +32,7 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 overflow-y-auto"
+      className="fixed inset-0 z-50"
       style={{ background: 'linear-gradient(160deg, #0f0e1a 0%, #1a1830 100%)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -41,32 +40,27 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
     >
       {/* Decorative blobs */}
       <div
-        className="absolute top-0 left-0 w-64 h-64 rounded-full opacity-20 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.3), transparent)', transform: 'translate(-30%, -30%)' }}
+        className="absolute top-0 left-0 w-72 h-72 rounded-full opacity-20 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.4), transparent)', transform: 'translate(-35%, -35%)' }}
       />
       <div
         className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-15 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #8b5cf6, transparent)', transform: 'translate(30%, 30%)' }}
+        style={{ background: 'radial-gradient(circle, #14b8a6, transparent)', transform: 'translate(35%, 35%)' }}
       />
 
-      {/*
-        Use a flex column with min-height 100dvh and justify-center so content
-        is centred on all screen sizes. padding-top/bottom accounts for iOS
-        safe areas (notch, home indicator) via env() variables.
-      */}
       <div
-        className="relative flex flex-col items-center justify-center w-full min-h-screen px-4"
+        className="relative flex flex-col items-center justify-center w-full px-6"
         style={{
           minHeight: '100dvh',
           paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
           paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
         }}
       >
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm flex flex-col items-center gap-8">
 
-          {/* Logo / title */}
+          {/* Icon + branding */}
           <motion.div
-            className="text-center mb-8"
+            className="text-center"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -74,94 +68,66 @@ export default function WelcomeScreen({ onDone, onShowHowToPlay }) {
             <img
               src="/icon.png"
               alt="SoundFind"
-              className="mb-4 mx-auto"
+              className="mb-5 mx-auto"
               style={{
-                width: '72px', height: '72px',
-                borderRadius: 'calc(72px * 0.2237)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)',
+                width: '88px', height: '88px',
+                borderRadius: 'calc(88px * 0.2237)',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)',
               }}
             />
-            <h1 className="text-4xl font-black text-white tracking-tight">
+            <h1 className="text-5xl font-black text-white tracking-tight leading-none">
               Sound<span className="text-violet-400">Find</span>
             </h1>
-            <p className="text-white/60 text-sm mt-1">Hear it. Find it.</p>
+            <p className="text-white/50 text-sm mt-2 tracking-wide uppercase font-medium">
+              Hear it. Find it.
+            </p>
           </motion.div>
 
-          {/* Feature highlights */}
+          {/* One-liner pitch */}
           <motion.div
-            className="space-y-3 mb-8"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/8"
           >
-            {/* Audio Challenge — featured */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-500 to-indigo-600 p-4 shadow-lg shadow-indigo-900/40">
-              <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-white/10 -translate-y-6 translate-x-6 pointer-events-none" />
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-white/20 shrink-0">
-                  <Volume2 className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-white font-bold text-sm">Audio Challenge</p>
-                    <span className="flex items-center gap-1 px-1.5 py-0.5 bg-white/25 text-white text-[10px] font-bold rounded-full">
-                      <Sparkles className="w-2.5 h-2.5" /> Signature
-                    </span>
-                  </div>
-                  <p className="text-white/85 text-xs mt-0.5 leading-snug">
-                    Hear the word, find its spelling. Perfect for silent letters, homophones and tricky spellings.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Other features */}
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { icon: '🔤', title: 'Word Search',   desc: 'Classic grid gameplay' },
-                { icon: '🔀', title: 'Anagram Hunt',  desc: 'Unscramble & find' },
-                { icon: '🔍', title: 'Mystery Word',  desc: 'Hidden word challenge' },
-                { icon: '✈️', title: 'Offline Play',  desc: 'Works on a plane' },
-              ].map(item => (
-                <div key={item.title} className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                  <span className="text-lg">{item.icon}</span>
-                  <p className="text-white text-xs font-semibold mt-1">{item.title}</p>
-                  <p className="text-white/50 text-[10px] mt-0.5">{item.desc}</p>
-                </div>
-              ))}
-            </div>
+            {['5 game modes', 'Natural voices', 'Works offline'].map((item, i) => (
+              <React.Fragment key={item}>
+                {i > 0 && <span className="text-white/20 text-xs">·</span>}
+                <span className="text-white/70 text-xs font-medium">{item}</span>
+              </React.Fragment>
+            ))}
           </motion.div>
 
           {/* Buttons */}
           <motion.div
-            className="space-y-3"
+            className="w-full space-y-3"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.35 }}
           >
+            {/* Primary — violet/indigo gradient matching the app's hero cards */}
             <motion.button
               onClick={handlePlay}
-              className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-white text-indigo-700 font-black text-base shadow-xl shadow-black/20"
+              className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-base text-white shadow-xl shadow-violet-900/40"
+              style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)' }}
               whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileTap={{ scale: 0.97 }}
             >
               Start Playing
               <ChevronRight className="w-5 h-5" />
             </motion.button>
 
+            {/* Secondary — teal outline, clearly different from primary */}
             <motion.button
               onClick={handleHowToPlay}
-              className="w-full py-3 rounded-2xl bg-white/10 backdrop-blur-sm text-white font-semibold text-sm border border-white/20"
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm text-teal-300 border-2 border-teal-500/50 bg-teal-500/10"
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
             >
+              <BookOpen className="w-4 h-4" />
               How to Play
             </motion.button>
           </motion.div>
-
-          <p className="text-center text-white/30 text-xs mt-6">
-            Your progress is saved automatically
-          </p>
 
         </div>
       </div>

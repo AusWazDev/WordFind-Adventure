@@ -145,7 +145,8 @@ export default function WordList({
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
+                      disabled={!!hintWord}
+                      className={`h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 ${hintWord ? 'opacity-40 cursor-not-allowed' : ''}`}
                       onClick={() => onHintCell?.(word)}
                       title="Flash first letter on grid (uses a hint)"
                     >
@@ -159,7 +160,8 @@ export default function WordList({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-9 w-9 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
+                    disabled={!!hintWord}
+                    className={`h-9 w-9 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 ${hintWord ? 'opacity-40 cursor-not-allowed' : ''}`}
                     onClick={() => onHintCell(word)}
                     title="Flash first letter on grid (uses a hint, −25% score penalty)"
                   >

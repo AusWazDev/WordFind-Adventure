@@ -23,6 +23,7 @@ export default function GameHeader({
   category,
   onBack,
   onUseHint,
+  hintActive = false,
   isAudioMode,
   audioEnabled,
   onToggleAudio,
@@ -83,8 +84,9 @@ export default function GameHeader({
         {/* Hint button */}
         <motion.button
           onClick={onUseHint}
-          className="flex items-center gap-1 bg-gradient-to-r from-violet-50 to-indigo-50 px-2 py-1 rounded-lg hover:from-violet-100 hover:to-indigo-100 transition-all shrink-0"
-          whileTap={{ scale: 0.95 }}
+          disabled={hintActive}
+          className={`flex items-center gap-1 bg-gradient-to-r from-violet-50 to-indigo-50 px-2 py-1 rounded-lg transition-all shrink-0 ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100'}`}
+          whileTap={hintActive ? {} : { scale: 0.95 }}
         >
           <Lightbulb className="w-3.5 h-3.5 text-violet-600" />
           <span className="text-xs font-bold text-violet-700">{hintsRemaining}</span>
@@ -144,9 +146,10 @@ export default function GameHeader({
 
         <motion.button
           onClick={onUseHint}
-          className="flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 px-4 py-2 rounded-xl hover:from-violet-100 hover:to-indigo-100 transition-all"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          disabled={hintActive}
+          className={`flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 px-4 py-2 rounded-xl transition-all ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100'}`}
+          whileHover={hintActive ? {} : { scale: 1.02 }}
+          whileTap={hintActive ? {} : { scale: 0.98 }}
         >
           <Lightbulb className="w-5 h-5 text-violet-600" />
           <span className="font-bold text-violet-700">{hintsRemaining}</span>

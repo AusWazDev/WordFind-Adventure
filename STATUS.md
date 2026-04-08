@@ -271,6 +271,9 @@ Current baseline: commit `129f64f`
 ### 2026-04-06 (Windows — CR-24: Word Association clue update)
 - CR-24: Added ~450 new `wordClues` entries to `gameUtils.jsx` covering every word added in DEF-20 and DEF-24 category expansions across all 13 categories. Word Association mode was showing `A ${n}-letter word` for all newly expanded words. All entries now have descriptive clues matching the style of existing ones. Build clean, deployed.
 
+### 2026-04-08 (Windows — CR-27: Word list expanded by default)
+- Reverted CR-16's collapsed-by-default to expanded-by-default (`useState(false)`). Collapsed state wasn't discoverable on mobile — players didn't see the word list. Player can still collapse manually. FE-02 logged for smarter UX in a future version.
+
 ### 2026-04-08 (Windows — CR-26: Mode reorder + Mystery Word difficulty cap)
 - Word Association moved above Anagram Hunt in `GameModeSelector.jsx`.
 - `LevelSelector.jsx`: Mystery Word + specific (non-Random) category now shows only Easy/Medium/Hard — Expert and Master hidden. Root cause: category-restricted filler pools can't reliably fill a 15×15 grid down to a valid mystery word length. Tracked as FE-01 in `docs/Future Enhancements.md` for a future version.

@@ -17,7 +17,7 @@ import { loadProgress } from '@/components/game/offlineStorage';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
-const AD_FREQUENCY = 6; // show interstitial after every 6th completed game (not start)
+const AD_FREQUENCY = 3; // show interstitial after every 3rd completed game (not start)
 
 export default function Home() {
   const navigate = useNavigate();

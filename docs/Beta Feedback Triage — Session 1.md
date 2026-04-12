@@ -137,19 +137,16 @@ voice locale more precisely. For now, the voice experience depends on the tester
 
 | # | Type | Title | Priority | Status |
 |---|------|-------|----------|--------|
-| DEF-19 | Defect | Touch scroll conflicts with word selection on mobile web | High | ⏳ To be raised |
-| CR-15 | Change Request | Reduce interstitial ad frequency | Medium | ⏳ Awaiting Waz decision on trigger (every N starts vs after completed game) |
-| CR-16 | Change Request | Collapsible word list panel during active play | Medium | ⏳ To be raised |
-| CR-17 | Change Request | Responsive grid sizing for Expert/Master on small screens | Medium | ⏳ Raise after CR-16 |
+| DEF-19 | Defect | Touch scroll conflicts with word selection on mobile web | High | ✅ Fixed — `caa3330` Mar 2026 |
+| CR-15 | Change Request | Reduce interstitial ad frequency | Medium | ✅ Completed — `caa3330` Mar 2026 |
+| CR-16 | Change Request | Collapsible word list panel during active play | Medium | ✅ Completed — `6a45e9e` Apr 2026 |
+| CR-17 | Change Request | Responsive grid sizing for Expert/Master on small screens | Medium | ✅ Completed — `6a45e9e` Apr 2026 |
 
 ---
 
-## Decision Required Before Implementation
+## ✅ Beta Session 1 — Closed 12 April 2026
 
-**CR-15 — Ad frequency:** Should ads trigger every N game **starts** (simpler) or after N
-**completed games** (better UX)? And what should N be? Waz to confirm.
-
----
+All items raised in this session have been addressed. Voice quality concern resolved by CR-22 (ElevenLabs pre-generated Australian voices — Hannah female / Neil male).
 
 *Triaged: 29 March 2026 — Mac session*
-*Ready for implementation on Windows PC*
+*Closed: 12 April 2026 — Windows session*

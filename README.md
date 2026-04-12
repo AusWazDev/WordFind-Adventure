@@ -1,5 +1,7 @@
 # SoundFind
 
+**Version 1.0.0**
+
 A word-finding puzzle game with multiple game modes, daily challenges, and audio-assisted play.
 
 **Live:** https://word-find-adventure.vercel.app
@@ -18,7 +20,7 @@ A word-finding puzzle game with multiple game modes, daily challenges, and audio
 - **Tailwind CSS** + **shadcn/ui** component library
 - **React Router DOM v6** for navigation
 - **Framer Motion** for animations
-- **Web Speech API** for text-to-speech (Audio Challenge mode)
+- **ElevenLabs** pre-generated Australian voices (Hannah/Neil) for Audio Challenge mode — 4,062 MP3 files served via PWA cache
 - **localStorage** — fully offline, no backend
 
 ## Getting Started
@@ -65,4 +67,4 @@ All planning and change management docs are in `docs/`:
 
 - `docs/Launch Plan.md` — phase-by-phase roadmap (Phases 1–9)
 - `docs/Change Register.md` — all CRs and defects with commit references
-- `docs/Beta Tester Invite Message.md` — ready-to-send beta tester invite
+- `docs/Beta Feedback Triage — Session 1.md` — beta session 1 triage (closed 12 April 2026)

@@ -305,6 +305,13 @@ Current baseline: commit `129f64f`
 - Duplicate `SALMON` key removed from `wordClues` (colours entry deleted; food entry retained).
 - `docs/Future Enhancements.md` created.
 
+### 2026-04-12 (Windows — v1.0.0 lock + store submission prep)
+- Bumped version `0.0.0` → `1.0.0` in `package.json`. Beta testing complete, app locked.
+- CR-33: PWA manifest icons — added 192x192 and 512x512 generated from master. Separated `any`/`maskable` entries. Required for Microsoft Store PWA submission.
+- CR-34: PageNotFound `window.location.href` → `useNavigate()`. Capacitor compatibility fix.
+- Full code audit: ESLint clean (0 errors), no `alert()` calls, no broken navigation. App confirmed solid for store submission.
+- Beta testing closed — Google Form closed, all session 1 items resolved, STATUS.md updated.
+
 ### 2026-04-12 (Windows — CR-32: Interstitial ad frequency + ad architecture review)
 - CR-32: `AD_FREQUENCY` reduced from 6 → 3 completed games in `Home.jsx`. Industry standard for casual word games. Remove Ads ($2.99) already stubbed — RevenueCat wiring deferred to Phase 5.
 - Ad architecture confirmed: interstitials every 3 completed games (short-form 15s, AdMob config at Phase 5); rewarded ads 30s non-skippable (player-initiated for hints); hint packs 3/$0.99 · 10/$1.99 · 25/$3.99; Remove Ads $2.99 one-time.

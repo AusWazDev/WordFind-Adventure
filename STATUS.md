@@ -66,7 +66,7 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 - **Web PWA** — Vercel deployment (beta testing via `*.vercel.app` URL, testers add to home screen)
 - **Native** — Capacitor for iOS / Android builds (Phase 5)
 - **App Stores** — Apple App Store + Google Play (Phase 6)
-- **Domain** — `uniquegames.com.au` reserved on Hostgator (pending ABN); `play.uniquegames.com.au` → Vercel once active
+- **Domain** — `uniquegames.com.au` reserved on WebCentral (formerly Hostgator); ABN approved but confirmation email missed during mail migration — following up with ASIC to resend. Once active: create `apps@uniquegames.com.au`, register Apple/Google/Microsoft developer accounts with that email. `play.uniquegames.com.au` → Vercel once active.
 
 ## Change Management
 All changes tracked in `docs/Change Register.md` and `docs/Launch Plan.md` (now inside the repo — accessible from any machine via git pull).

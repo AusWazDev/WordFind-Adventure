@@ -129,7 +129,7 @@ export default function Home() {
                 whileTap={{ scale: 0.97 }}
               >
                 <HelpCircle className="w-3.5 h-3.5" />
-                How to Play
+                <span className="hidden sm:inline">How to Play</span>
               </motion.button>
 
               {progress && (

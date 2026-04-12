@@ -56,7 +56,7 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 
 ## Monetisation (confirmed model)
 - **Free to download** — 12 hints preloaded on first launch
-- **Interstitial ads** — every 3 game starts (AdModal) — skipped silently when offline
+- **Interstitial ads** — every 3 completed games (AdModal) — skipped silently when offline; short-form 15s (AdMob config at Phase 5)
 - **Watch ad** — earn 1 hint per ad (~15 seconds) — requires online
 - **Hint packs** — 3 hints $0.99 · 10 hints $1.99 · 25 hints $3.99 (prices TBC, RevenueCat TODO)
 - **Remove Ads** — $2.99 one-time purchase (RevenueCat TODO)
@@ -304,6 +304,10 @@ Current baseline: commit `129f64f`
 - DEF-27 follow-up: removed `emptyAfter > 0` guard in filler undo — undo now also fires when a filler word fills all remaining empty cells (emptyAfter === 0).
 - Duplicate `SALMON` key removed from `wordClues` (colours entry deleted; food entry retained).
 - `docs/Future Enhancements.md` created.
+
+### 2026-04-12 (Windows — CR-32: Interstitial ad frequency + ad architecture review)
+- CR-32: `AD_FREQUENCY` reduced from 6 → 3 completed games in `Home.jsx`. Industry standard for casual word games. Remove Ads ($2.99) already stubbed — RevenueCat wiring deferred to Phase 5.
+- Ad architecture confirmed: interstitials every 3 completed games (short-form 15s, AdMob config at Phase 5); rewarded ads 30s non-skippable (player-initiated for hints); hint packs 3/$0.99 · 10/$1.99 · 25/$3.99; Remove Ads $2.99 one-time.
 
 ### 2026-04-12 (Windows — CR-31: How to Play button responsive fix)
 - CR-31: "How to Play" button text hidden on small portrait screens — only HelpCircle icon shown. Text reappears at sm breakpoint (640px+), covering landscape mode. One-line change in `Home.jsx`. Commit `6754924` (note: labeled CR-13 in commit message — correct number is CR-31).

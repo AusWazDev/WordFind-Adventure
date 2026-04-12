@@ -305,6 +305,9 @@ Current baseline: commit `129f64f`
 - Duplicate `SALMON` key removed from `wordClues` (colours entry deleted; food entry retained).
 - `docs/Future Enhancements.md` created.
 
+### 2026-04-12 (Windows — CR-31: How to Play button responsive fix)
+- CR-31: "How to Play" button text hidden on small portrait screens — only HelpCircle icon shown. Text reappears at sm breakpoint (640px+), covering landscape mode. One-line change in `Home.jsx`. Commit `6754924` (note: labeled CR-13 in commit message — correct number is CR-31).
+
 ## Next Steps (Priority Order)
 - [x] CR-16: Collapsible word list ✅
 - [x] CR-17: Responsive grid sizing ✅

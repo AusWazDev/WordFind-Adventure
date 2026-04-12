@@ -317,8 +317,8 @@ Current baseline: commit `129f64f`
 - [x] CR-17: Responsive grid sizing ✅
 - [x] CR-22: Pre-generated ElevenLabs audio ✅ — Hannah (AU female) + Neil (AU male), 4,062 MP3 files generated + deployed
 - [x] CR-23: PWA service worker ✅ — offline audio via CacheFirst runtime caching; app shell precached
-- [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
-- [ ] Review beta defects and fix — prioritise Critical/High severity
+- [x] **Beta testing complete** ✅ — Google Form closed 12 April 2026 (https://forms.gle/5n1bdni6jrVNVz487). All session 1 items resolved (DEF-19, CR-15, CR-16, CR-17). Voice quality resolved by CR-22 (ElevenLabs AU voices).
+- [x] Beta defects reviewed and fixed ✅
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
 - [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
 - [x] App icon design — CR-18 ✅

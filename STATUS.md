@@ -330,7 +330,12 @@ Current baseline: commit `129f64f`
 - [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
 - [x] App icon design — CR-18 ✅
 - [x] Splash screen — CR-19/CR-20 ✅
-- [ ] PWA manifest + service worker (vite-plugin-pwa)
-- [ ] Capacitor setup for iOS/Android native builds
+- [x] PWA manifest + service worker ✅ — CR-23, icons CR-33
+- [ ] **Next: Follow up ASIC → activate uniquegames.com.au → create apps@uniquegames.com.au → register Apple/Google/Microsoft accounts**
+- [ ] Write App Store listing copy (Apple + Google)
+- [ ] Create Google Play Feature Graphic (1024×500)
+- [ ] Complete IARC content rating at iarc.globalratings.com
+- [ ] Draft Privacy Policy + Terms of Service content (host once domain live)
+- [ ] Capacitor setup for iOS/Android native builds — Phase 5
 - [ ] Analytics: PostHog + Sentry integration (before public launch)
 - [ ] Privacy Policy — host at `uniquegames.com.au/SoundFind/privacypolicy/` once domain is live (pending ABN). Build once alongside Capacitor/store submission prep — do not build early. Content: no personal data collected, game progress stored locally only, no analytics currently (update when PostHog/AdMob added in Phase 5).

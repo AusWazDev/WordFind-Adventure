@@ -319,6 +319,13 @@ Current baseline: commit `129f64f`
 ### 2026-04-12 (Windows — CR-31: How to Play button responsive fix)
 - CR-31: "How to Play" button text hidden on small portrait screens — only HelpCircle icon shown. Text reappears at sm breakpoint (640px+), covering landscape mode. One-line change in `Home.jsx`. Commit `6754924` (note: labeled CR-13 in commit message — correct number is CR-31).
 
+### 2026-04-13 (Windows — CR-35: Settings page — remove Game Preferences, add About & Legal)
+- CR-35: Removed Game Preferences section (default difficulty + preferred category) — redundant, players select both at game start. Reduces Settings page scrolling.
+- Added About & Legal card at the bottom of Settings: developer (Unique Interactive Games), version (1.0.0), Privacy Policy link (`uniquegames.com.au/soundfind/privacy/`), Support & Contact link (`uniquegames.com.au/contact/`), website link (`uniquegames.com.au`).
+- Required for app store submission — Google Play mandates an in-app privacy policy link when ads are present.
+- Cleaned up unused imports: `Target`, `CATEGORIES`, `DIFFICULTY_LEVELS`.
+- Commit `b32691f`.
+
 ## Next Steps (Priority Order)
 - [x] CR-16: Collapsible word list ✅
 - [x] CR-17: Responsive grid sizing ✅
@@ -331,11 +338,16 @@ Current baseline: commit `129f64f`
 - [x] App icon design — CR-18 ✅
 - [x] Splash screen — CR-19/CR-20 ✅
 - [x] PWA manifest + service worker ✅ — CR-23, icons CR-33
-- [ ] **Next: Follow up ASIC → activate uniquegames.com.au → create apps@uniquegames.com.au → register Apple/Google/Microsoft accounts**
+- [x] ASIC business registration complete (ABN confirmed) ✅
+- [x] uniquegames.com.au activated on WebCentral ✅ — admin@, apps@, contact@, privacy@ emails created
+- [x] uniquegames-site built and deployed ✅ — Home, About, Contact, SoundFind, Privacy Policy live at uniquegames.com.au
+- [x] Privacy Policy live at `uniquegames.com.au/soundfind/privacy/` ✅
+- [ ] Register Apple, Google, Microsoft developer accounts with apps@uniquegames.com.au
+- [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
+- [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
 - [ ] Write App Store listing copy (Apple + Google)
 - [ ] Create Google Play Feature Graphic (1024×500)
 - [ ] Complete IARC content rating at iarc.globalratings.com
-- [ ] Draft Privacy Policy + Terms of Service content (host once domain live)
 - [ ] Capacitor setup for iOS/Android native builds — Phase 5
 - [ ] Analytics: PostHog + Sentry integration (before public launch)
 - [ ] Privacy Policy — host at `uniquegames.com.au/SoundFind/privacypolicy/` once domain is live (pending ABN). Build once alongside Capacitor/store submission prep — do not build early. Content: no personal data collected, game progress stored locally only, no analytics currently (update when PostHog/AdMob added in Phase 5).

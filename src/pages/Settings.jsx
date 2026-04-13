@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, Target, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { speakPhraseAndWord, unlockAudio } from '@/components/game/voiceUtils';
 import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineStorage';
 import ReminderSettings from '@/components/game/ReminderSettings';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { CATEGORIES } from '@/lib/constants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,14 +19,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-
-const DIFFICULTY_LEVELS = [
-  { value: 1, label: 'Easy' },
-  { value: 2, label: 'Medium' },
-  { value: 3, label: 'Hard' },
-  { value: 4, label: 'Expert' },
-  { value: 5, label: 'Master' },
-];
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -112,71 +103,6 @@ export default function Settings() {
         </motion.div>
 
         <div className="space-y-4">
-
-          {/* Game Preferences */}
-          <motion.div
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 border border-transparent dark:border-slate-700"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-violet-100 rounded-lg">
-                <Target className="w-5 h-5 text-violet-600" />
-              </div>
-              <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Game Preferences</h2>
-            </div>
-
-            <div className="space-y-5">
-
-              {/* Default Difficulty — 5 levels */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Default Difficulty Level
-                </label>
-                <div className="grid grid-cols-5 gap-2">
-                  {DIFFICULTY_LEVELS.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => handleUpdate('default_difficulty', value)}
-                      className={cn(
-                        "py-3 px-1 rounded-lg text-xs font-semibold transition-all min-h-[44px]",
-                        settings?.default_difficulty === value
-                          ? "bg-gradient-to-r from-violet-500 to-indigo-600 text-white shadow-md"
-                          : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Preferred Category — all categories */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Preferred Category
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {CATEGORIES.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => handleUpdate('preferred_category', value)}
-                      className={cn(
-                        "py-2.5 px-2 rounded-lg text-xs font-medium transition-all min-h-[44px] text-center leading-tight",
-                        settings?.preferred_category === value
-                          ? "bg-gradient-to-r from-violet-500 to-indigo-600 text-white shadow-md"
-                          : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          </motion.div>
 
           {/* Audio Settings */}
           <motion.div
@@ -304,6 +230,52 @@ export default function Settings() {
               <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Daily Challenge Reminders</h2>
             </div>
             <ReminderSettings />
+          </motion.div>
+
+          {/* About & Legal */}
+          <motion.div
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 border border-transparent dark:border-slate-700"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4">About</h2>
+            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+              <div className="flex justify-between">
+                <span>Developer</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">Unique Interactive Games</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Version</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">1.0.0</span>
+              </div>
+            </div>
+            <div className="mt-4 space-y-2 text-sm">
+              <a
+                href="https://www.uniquegames.com.au/soundfind/privacy/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-violet-600 dark:text-violet-400 hover:underline"
+              >
+                Privacy Policy →
+              </a>
+              <a
+                href="https://www.uniquegames.com.au/contact/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-violet-600 dark:text-violet-400 hover:underline"
+              >
+                Support & Contact →
+              </a>
+              <a
+                href="https://www.uniquegames.com.au"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-violet-600 dark:text-violet-400 hover:underline"
+              >
+                uniquegames.com.au →
+              </a>
+            </div>
           </motion.div>
 
           {/* Reset Game Data */}

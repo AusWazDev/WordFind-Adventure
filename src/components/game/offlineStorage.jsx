@@ -57,8 +57,6 @@ export async function updateProgress(_ignored, progress, data) {
 
 const DEFAULT_SETTINGS = {
   id: 'local',
-  default_difficulty: 1,
-  preferred_category: 'random',
   audio_voice: 'female',
   audio_rate: 0.9,
   audio_pitch: 1,

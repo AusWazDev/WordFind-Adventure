@@ -11,3 +11,9 @@
 *.woff2 binary
 *.ttf binary
 *.eot binary
+*.mp3 binary
+*.keystore binary
+
+# Windows batch files must stay CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf

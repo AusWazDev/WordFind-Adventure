@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Toaster } from 'sonner'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import SplashScreen from './components/game/SplashScreen';
 

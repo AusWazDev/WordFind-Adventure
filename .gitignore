@@ -29,3 +29,12 @@ dist-ssr
 
 .env
 .vercel
+
+# Capacitor — build artifacts and generated web asset copies
+.capacitor
+android/.gradle
+android/app/build
+android/build
+ios/App/Pods
+ios/App/App/public
+android/app/src/main/assets/public

@@ -327,6 +327,9 @@ Current baseline: commit `129f64f`
 - Cleaned up unused imports: `Target`, `CATEGORIES`, `DIFFICULTY_LEVELS`.
 - Commit `b32691f`.
 
+### 2026-04-15 (Windows — DEF-31, DEF-32, DEF-33: Capacitor regression + stats fix)
+- DEF-33: Stats never saved — stale closure bug in handleWordFound (useCallback). progress/score/hintsRemaining were captured as null/0 at creation time; loadProgressData() is async so progress was always null when saveProgress ran, causing early return. Fixed by adding progressRef, scoreRef, hintsRemainingRef following the existing ref pattern. Confirmed working. Commit `9c9be23`.
+
 ### 2026-04-15 (Windows — DEF-31, DEF-32: HashRouter regression fixes)
 - DEF-31: `window.location.search` returns empty with HashRouter — URL params (mode, category, level) were silently lost on every game launch. Fixed by replacing with `useSearchParams()` hook in `Game.jsx`. Commit `a081fb9`.
 - DEF-32: Eye (reveal) button in Word Association mode was `disabled` when hints = 0 — blocked the HintModal (watch ad / buy hints) from opening. Removed `disabled` prop; `handleRevealWord` already handles the 0-hints case. Commit `562a3bc`.

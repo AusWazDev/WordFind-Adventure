@@ -54,8 +54,7 @@ export default function AssociationWordList({ words, foundWords, hintWord, revea
                 {!isFound && !isRevealed && (
                   <button
                     onClick={() => onRevealWord(word)}
-                    disabled={hintsRemaining <= 0}
-                    className="flex items-center justify-center h-11 w-11 shrink-0 text-muted-foreground hover:text-amber-500 disabled:opacity-30 transition-colors rounded-lg"
+                    className="flex items-center justify-center h-11 w-11 shrink-0 text-muted-foreground hover:text-amber-500 transition-colors rounded-lg"
                     title="Use a hint to reveal"
                   >
                     <Eye className="w-4 h-4" />

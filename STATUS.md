@@ -11,10 +11,11 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 - React 18 + Vite 6
 - Tailwind CSS + shadcn/ui component library
 - Framer Motion (animations)
-- React Router DOM v6
-- Web Speech API (TTS for Audio mode)
+- React Router DOM v6 (HashRouter — Capacitor compatible)
+- Web Audio API + ElevenLabs pre-generated MP3s (Audio mode)
 - localStorage only — fully offline, no backend
 - canvas-confetti (victory screen)
+- Capacitor 7 — native iOS and Android wrapper (appId: au.com.uniquegames.soundfind)
 
 ## Project Structure
 - `src/pages/` — Home, Game, DailyChallenge, Leaderboard, Stats, Settings
@@ -326,6 +327,16 @@ Current baseline: commit `129f64f`
 - Cleaned up unused imports: `Target`, `CATEGORIES`, `DIFFICULTY_LEVELS`.
 - Commit `b32691f`.
 
+### 2026-04-15 (Windows — CR-36: Capacitor integration)
+- Installed @capacitor/core, @capacitor/cli, @capacitor/ios, @capacitor/android
+- Initialised with appId `au.com.uniquegames.soundfind`, webDir `dist`
+- Switched BrowserRouter → HashRouter in App.jsx (required for Capacitor WebView)
+- Added ios/ and android/ native project scaffolding (committed to repo)
+- Updated .gitignore to exclude build artifacts and generated web asset copies
+- Updated .gitattributes — added mp3 binary, keystore binary, bat/cmd CRLF
+- Capacitor blocker resolved — native iOS/Android builds now possible once developer accounts are active
+- Commit `43bc02f`
+
 ### 2026-04-15 (iPhone — store & admin work via Claude)
 - Apple developer account for Unique Interactive Games: set up, D-U-N-S submitted 14 Apr — expect confirmation ~21–22 Apr (4–5 business days)
 - Google Play developer account: BLOCKED — `apps@uniquegames.com.au` Google account in 14–90 day cooldown (was a deleted Google Workspace account). Must retry signup → "Use your existing email" after cooldown.
@@ -340,8 +351,8 @@ Current baseline: commit `129f64f`
 - [x] PWA manifest + service worker ✅ — CR-23 + CR-33
 - [x] App icon + splash screen ✅ — CR-18/19/20
 - [x] uniquegames.com.au live ✅ — Privacy Policy, SSL, email all active
-- [ ] **Verify Capacitor integration** — check `package.json` for `@capacitor/core`, `capacitor.config.ts`, `ios/`/`android/` folders. Blocker for native builds.
-- [ ] **Create Microsoft Store developer account** — unblocked. Go to partner.microsoft.com/dashboard. Use apps@uniquegames.com.au Microsoft account.
+- [x] **Capacitor integration complete** ✅ — CR-36. appId `au.com.uniquegames.soundfind`, ios/ and android/ committed. HashRouter in place. Native builds unblocked.
+- [x] **Microsoft Store developer account** ✅ — Company account created 15 Apr. Email verified. Business + employment verification under review (~5 business days). Publisher: Unique Interactive Games.
 - [ ] **Apple developer account** — waiting on D-U-N-S confirmation (~21–22 Apr). Then register at developer.apple.com with apps@uniquegames.com.au.
 - [ ] **Google Play developer account** — waiting on Google account cooldown (14–90 days from ~15 Apr). Then register at play.google.com/console ($25 USD one-time).
 - [ ] Write App Store listing copy (Apple + Google) — name, subtitle, description, keywords

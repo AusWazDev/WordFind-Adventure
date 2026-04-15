@@ -1,8 +1,10 @@
 # SoundFind — Claude Code Context
 
 > **Auto-loaded by Claude Code on every session start.**
-> Read STATUS.md and docs/Change Register.md for full session history and next steps.
-> Keep this file updated when significant things change.
+> This file covers code context only — tech stack, key files, architecture, gotchas.
+> For current status, blockers, and next steps → fetch the ClickUp handoff document:
+> **"Project Context & Status — Claude Handoff Document"** (Team Space, workspace 90161564576)
+> Keep this file updated when architecture or key patterns change.
 
 ---
 
@@ -54,16 +56,27 @@ Every code change needs a CR or DEF entry in `docs/Change Register.md` with the 
 
 ---
 
-## Current State (as of 5 Apr 2026)
+## Current State (as of 15 Apr 2026)
+
+App is **v1.0.0 — locked for store submission.** Beta testing complete.
 
 ### Recently completed
 | CR/DEF | What | Commit |
 |--------|------|--------|
+| CR-35 | Settings — removed Game Preferences; added About & Legal card (privacy policy + support links) | `b32691f` |
+| CR-34 | PageNotFound — replaced hard reload with `useNavigate()` for Capacitor compatibility | `31985db` |
+| CR-33 | PWA icons + manifest — icon-192/512 generated; vite.config.js updated for PWABuilder | `a12686c` |
+| CR-32 | Interstitial ad frequency 6 → 3 completed games | `6cb4621` |
+| CR-30 | Audit fixes — dead imports/file deleted, `alert()` → `toast.info()`, iOS PWA meta tags | `6d674a7` |
+| CR-29 | HowToPlay modal — responsive sizing, decluttered ~35%, consistent violet/indigo gradient | `79f75d8` |
+| CR-28 | WelcomeScreen redesign (minimal + one-liner pill) | `aefc0d1` |
+| CR-27 | Word list expanded by default (collapsed default not discoverable on mobile) | `d9540f5` |
+| CR-25 | Code audit — dead imports, duplicate Toaster, constants extracted, 45 unused shadcn files deleted (97→58 kB) | `a584696` |
+| CR-23 | PWA service worker — `vite-plugin-pwa` + Workbox; offline audio caching (CacheFirst, 5,000 MP3s) | `78858ab` |
 | CR-22 | Pre-generated ElevenLabs audio — Hannah (AU female) / Neil (AU male), 4,062 MP3 files | `922ac7e` + `7de9b53` |
-| DEF-25 | Settings Test Voice was robotic (Web Speech); completion audio overlapped — fixed | `38cbbbf` |
-| CR-21 | Brand alignment: dark theme + new icon on Welcome, HowToPlay, Home header | `dc87dcd` + `1e09959` |
-| DEF-23 | Settings reset was restoring 12 free hints — fixed | `dc87dcd` |
-| CR-20 | Splash screen implemented in app (`SplashScreen.jsx`) | `4b4c408` |
+| DEF-30 | Word list collapsed on game start despite CR-27 — `generateGame` effect overriding default | `5d67343` |
+| DEF-29 | All duplicate keys in `wordClues` resolved — 38 total | `38416fe` + `aefc0d1` |
+| DEF-28 | Hint flash persistent until hinted word found | `38416fe` |
 
 ### Audio system (CR-22) — key facts for next session
 - **All in-game audio uses pre-generated ElevenLabs MP3s** — Web Speech API is only the fallback
@@ -125,7 +138,7 @@ Every code change needs a CR or DEF entry in `docs/Change Register.md` with the 
 - `docs/Change Register.md` — Every CR and DEF with commit hashes
 - `docs/Traceability.md` — File dependency map + "also check when changed" rules
 - `STATUS.md` — Session log + next steps list
-- `CLAUDE_CODE_HANDOFF.md` — This file
+- `CLAUDE.md` — This file (code context, auto-loaded by Claude Code)
 
 ---
 
@@ -144,24 +157,19 @@ Every code change needs a CR or DEF entry in `docs/Change Register.md` with the 
 
 ---
 
-## Roadmap — What's Next
+## Next Steps
 
-Priority order from STATUS.md:
+For current priorities and store submission status → fetch the ClickUp handoff document:
+**"Project Context & Status — Claude Handoff Document"** in ClickUp Team Space (workspace 90161564576).
 
-1. **Beta testing** — monitor Google Form responses, log defects via Change Register
-2. **HintModal stub** — testers hitting zero hints see an `alert()`. Needs a proper "coming soon" state before public launch
-3. **PWA manifest + service worker** — `vite-plugin-pwa` setup for installability
-4. **Capacitor** — iOS/Android native build setup
-5. **RevenueCat SDK** — real IAP wiring (remove-ads + hint packs)
-6. **Real AdMob** — replace Unsplash placeholder interstitial
-7. **Privacy Policy page** — required for App Store submission, host on uniquegames.com.au
-8. **Analytics** — PostHog + Sentry before public launch
+Next major code work: **Capacitor setup** (iOS/Android native builds) — Phase 5.
+Verify integration first: check `package.json` for `@capacitor/core`, `capacitor.config.ts`, `ios/` and `android/` folders.
 
 ---
 
 ## Known Issues / Watch Points
 
-- `HintModal.jsx` — `alert()` stub on IAP purchase. Fine for beta but must be replaced before launch
+- `HintModal.jsx` — IAP stubs replaced with `toast.info()` (CR-30); no real RevenueCat wiring yet. Must complete before public launch.
 - Vercel deployment — SPA rewrites in `vercel.json` handle React Router; don't remove
 - Audio: if an MP3 is missing, all audio functions fall back to Web Speech API silently — no error shown to user
 - Touch scroll on game board — non-passive listeners in `GameBoard.jsx` prevent pull-to-refresh (DEF-19)

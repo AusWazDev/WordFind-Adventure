@@ -326,28 +326,34 @@ Current baseline: commit `129f64f`
 - Cleaned up unused imports: `Target`, `CATEGORIES`, `DIFFICULTY_LEVELS`.
 - Commit `b32691f`.
 
+### 2026-04-15 (iPhone — store & admin work via Claude)
+- Apple developer account for Unique Interactive Games: set up, D-U-N-S submitted 14 Apr — expect confirmation ~21–22 Apr (4–5 business days)
+- Google Play developer account: BLOCKED — `apps@uniquegames.com.au` Google account in 14–90 day cooldown (was a deleted Google Workspace account). Must retry signup → "Use your existing email" after cooldown.
+- Microsoft Store developer account: NOT YET CREATED — unblocked (no dependency on Google account). Create at partner.microsoft.com/dashboard.
+- Business structure confirmed: Family Trust ABN, two registered business names (Notiva + Unique Interactive Games). Accountant still needed (startup-savvy, trust-familiar — flagged Urgent in ClickUp).
+- ClickUp handoff document created: "Project Context & Status — Claude Handoff Document" in Team Space (workspace 90161564576). Reference doc for any Claude session.
+
 ## Next Steps (Priority Order)
-- [x] CR-16: Collapsible word list ✅
-- [x] CR-17: Responsive grid sizing ✅
-- [x] CR-22: Pre-generated ElevenLabs audio ✅ — Hannah (AU female) + Neil (AU male), 4,062 MP3 files generated + deployed
-- [x] CR-23: PWA service worker ✅ — offline audio via CacheFirst runtime caching; app shell precached
-- [x] **Beta testing complete** ✅ — Google Form closed 12 April 2026 (https://forms.gle/5n1bdni6jrVNVz487). All session 1 items resolved (DEF-19, CR-15, CR-16, CR-17). Voice quality resolved by CR-22 (ElevenLabs AU voices).
-- [x] Beta defects reviewed and fixed ✅
+
+- [x] CR-16–CR-35 complete ✅ — app locked at v1.0.0
+- [x] Beta testing complete ✅ — Google Form closed 12 April 2026
+- [x] PWA manifest + service worker ✅ — CR-23 + CR-33
+- [x] App icon + splash screen ✅ — CR-18/19/20
+- [x] uniquegames.com.au live ✅ — Privacy Policy, SSL, email all active
+- [ ] **Verify Capacitor integration** — check `package.json` for `@capacitor/core`, `capacitor.config.ts`, `ios/`/`android/` folders. Blocker for native builds.
+- [ ] **Create Microsoft Store developer account** — unblocked. Go to partner.microsoft.com/dashboard. Use apps@uniquegames.com.au Microsoft account.
+- [ ] **Apple developer account** — waiting on D-U-N-S confirmation (~21–22 Apr). Then register at developer.apple.com with apps@uniquegames.com.au.
+- [ ] **Google Play developer account** — waiting on Google account cooldown (14–90 days from ~15 Apr). Then register at play.google.com/console ($25 USD one-time).
+- [ ] Write App Store listing copy (Apple + Google) — name, subtitle, description, keywords
+- [ ] Create App Store screenshots — iPhone 6.9", 6.5", iPad Pro 12.9"
+- [ ] Create Google Play Feature Graphic (1024×500 PNG)
+- [ ] Complete IARC content rating questionnaire (Google Play Console)
+- [ ] Apple Privacy Labels declaration (App Store Connect)
+- [ ] Google Play Data Safety form
+- [ ] Set up TestFlight (iOS internal testing, up to 25 testers)
+- [ ] Set up Google Play Internal Testing track (up to 100 testers)
+- [ ] Build Terms of Service page on uniquegames.com.au
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
-- [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
-- [x] App icon design — CR-18 ✅
-- [x] Splash screen — CR-19/CR-20 ✅
-- [x] PWA manifest + service worker ✅ — CR-23, icons CR-33
-- [x] ASIC business registration complete (ABN confirmed) ✅
-- [x] uniquegames.com.au activated on WebCentral ✅ — admin@, apps@, contact@, privacy@ emails created
-- [x] uniquegames-site built and deployed ✅ — Home, About, Contact, SoundFind, Privacy Policy live at uniquegames.com.au
-- [x] Privacy Policy live at `uniquegames.com.au/soundfind/privacy/` ✅
-- [ ] Register Apple, Google, Microsoft developer accounts with apps@uniquegames.com.au
-- [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
-- [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
-- [ ] Write App Store listing copy (Apple + Google)
-- [ ] Create Google Play Feature Graphic (1024×500)
-- [ ] Complete IARC content rating at iarc.globalratings.com
-- [ ] Capacitor setup for iOS/Android native builds — Phase 5
-- [ ] Analytics: PostHog + Sentry integration (before public launch)
-- [ ] Privacy Policy — host at `uniquegames.com.au/SoundFind/privacypolicy/` once domain is live (pending ABN). Build once alongside Capacitor/store submission prep — do not build early. Content: no personal data collected, game progress stored locally only, no analytics currently (update when PostHog/AdMob added in Phase 5).
+- [ ] Wire up real AdMob (replace placeholder interstitial) — Phase 5 with Capacitor
+- [ ] Analytics: PostHog + Sentry (before public launch)
+- [ ] Find startup-savvy accountant familiar with trust structures (URGENT — shared with MER)

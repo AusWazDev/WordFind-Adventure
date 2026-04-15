@@ -116,6 +116,13 @@ if [ -n "$SRC_CHANGES" ]; then
   fi
 fi
 
+# ── CLAUDE.md — update when architecture or key patterns change ─
+if echo "$STAGED" | grep -qE "voiceUtils.jsx|gameUtils.jsx|App.jsx|vite\.config|package\.json"; then
+  if ! echo "$STAGED" | grep -q "CLAUDE.md"; then
+    warn "Core architecture file changed" "CLAUDE.md (update if tech stack, key files, or patterns changed)"
+  fi
+fi
+
 # ── Summary ─────────────────────────────────────────────────
 echo ""
 if [ "$WARNINGS" -gt 0 ]; then

@@ -108,6 +108,11 @@ export default function Game() {
   const hintWordRef = useRef(null);
   const bonusHuntActiveRef = useRef(false);
   const bonusFoundRef = useRef(false);
+  // Refs for saveProgress — progress/score/hintsRemaining are not in handleWordFound deps,
+  // so saveProgress would capture stale closure values without refs.
+  const progressRef = useRef(null);
+  const scoreRef = useRef(0);
+  const hintsRemainingRef = useRef(12);
   useEffect(() => { gameDataRef.current = gameData; }, [gameData]);
   useEffect(() => { foundWordsRef.current = foundWords; }, [foundWords]);
   useEffect(() => { revealedWordsRef.current = revealedWords; }, [revealedWords]);
@@ -115,6 +120,9 @@ export default function Game() {
   useEffect(() => { hintWordRef.current = hintWord; }, [hintWord]);
   useEffect(() => { bonusHuntActiveRef.current = bonusHuntActive; }, [bonusHuntActive]);
   useEffect(() => { bonusFoundRef.current = bonusFound; }, [bonusFound]);
+  useEffect(() => { progressRef.current = progress; }, [progress]);
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { hintsRemainingRef.current = hintsRemaining; }, [hintsRemaining]);
 
   // Board sizing — measured in JS for exact pixel values
   const boardAreaRef = useRef(null);
@@ -158,6 +166,7 @@ export default function Game() {
     setRevealedWords([]);
     setHintedWords(new Set());
     setScore(0);
+    scoreRef.current = 0;
     setShowVictory(false);
     setWordListCollapsed(false);  // CR-27: word list expanded by default on new game
     setBonusHuntActive(false);
@@ -255,20 +264,25 @@ export default function Game() {
   }, [level, mode, audioEnabled]);
 
   const saveProgress = async (wordsFoundCount) => {
-    if (!progress) return;
+    // Use refs — progress/score/hintsRemaining are stale in the handleWordFound closure
+    const currentProgress = progressRef.current;
+    const currentScore = scoreRef.current;
+    const currentHints = hintsRemainingRef.current;
+    if (!currentProgress) return;
     // CR-15: track completed games in localStorage so Home.jsx can gate ads
     // on completions rather than starts (every 6 completed games).
     const completed = parseInt(localStorage.getItem('games_completed_count') || '0') + 1;
     localStorage.setItem('games_completed_count', String(completed));
 
-    const updated = await updateProgress(null, progress, {
-      total_score: (progress.total_score || 0) + score,
-      games_played: (progress.games_played || 0) + 1,
-      words_found: (progress.words_found || 0) + wordsFoundCount,
-      hints_remaining: hintsRemaining,
-      current_level: Math.max(progress.current_level || 1, level),
+    const updated = await updateProgress(null, currentProgress, {
+      total_score: (currentProgress.total_score || 0) + currentScore,
+      games_played: (currentProgress.games_played || 0) + 1,
+      words_found: (currentProgress.words_found || 0) + wordsFoundCount,
+      hints_remaining: currentHints,
+      current_level: Math.max(currentProgress.current_level || 1, level),
     });
     setProgress(updated);
+    progressRef.current = updated;
   };
 
   const handleUseHint = () => {

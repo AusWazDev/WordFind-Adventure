@@ -327,6 +327,10 @@ Current baseline: commit `129f64f`
 - Cleaned up unused imports: `Target`, `CATEGORIES`, `DIFFICULTY_LEVELS`.
 - Commit `b32691f`.
 
+### 2026-04-15 (Windows — DEF-31, DEF-32: HashRouter regression fixes)
+- DEF-31: `window.location.search` returns empty with HashRouter — URL params (mode, category, level) were silently lost on every game launch. Fixed by replacing with `useSearchParams()` hook in `Game.jsx`. Commit `a081fb9`.
+- DEF-32: Eye (reveal) button in Word Association mode was `disabled` when hints = 0 — blocked the HintModal (watch ad / buy hints) from opening. Removed `disabled` prop; `handleRevealWord` already handles the 0-hints case. Commit `562a3bc`.
+
 ### 2026-04-15 (Windows — CR-36: Capacitor integration)
 - Installed @capacitor/core, @capacitor/cli, @capacitor/ios, @capacitor/android
 - Initialised with appId `au.com.uniquegames.soundfind`, webDir `dist`

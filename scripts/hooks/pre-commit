@@ -133,4 +133,60 @@ else
 fi
 echo ""
 
+# ============================================================
+# HARD BLOCK — Code Invariant Checks
+# These patterns MUST be present in the named files.
+# A missing pattern means a critical feature was regressed.
+# This section exits 1 and BLOCKS the commit on failure.
+# ============================================================
+
+GAME_JSX="src/pages/Game.jsx"
+BLOCK=0
+
+fail() {
+  echo "  ❌ BLOCKED: $1"
+  echo "     File:  $2"
+  echo "     Why:   $3"
+  BLOCK=$((BLOCK + 1))
+}
+
+# Only run invariant checks if Game.jsx is being committed or already exists
+if [ -f "$GAME_JSX" ]; then
+  CONTENT=$(cat "$GAME_JSX")
+
+  # ElevenLabs audio — CR-22/DEF-25. Mac commit 2b5b6d9 reverted this to speakText.
+  echo "$CONTENT" | grep -q "speakPhraseAndWord" || \
+    fail "speakPhraseAndWord missing" "$GAME_JSX" "ElevenLabs word-found audio removed (CR-22). Do not replace with speakText."
+
+  echo "$CONTENT" | grep -q "speakFixedPhrase" || \
+    fail "speakFixedPhrase missing" "$GAME_JSX" "ElevenLabs phrase audio removed (CR-22/DEF-25)."
+
+  # HashRouter URL params — DEF-31/DEF-36. Must use useSearchParams, not window.location.search.
+  echo "$CONTENT" | grep -q "useSearchParams" || \
+    fail "useSearchParams missing" "$GAME_JSX" "URL params must use useSearchParams() — window.location.search is always empty with HashRouter (DEF-36)."
+
+  echo "$CONTENT" | grep -q "window\.location\.search" && \
+    fail "window.location.search found" "$GAME_JSX" "Use useSearchParams() instead — window.location.search is always empty with HashRouter (DEF-36)."
+
+  # Persistent hint refs — DEF-28/DEF-33. Mac commit removed all of these.
+  echo "$CONTENT" | grep -q "hintWordRef" || \
+    fail "hintWordRef missing" "$GAME_JSX" "Persistent hint flash broken without hintWordRef (DEF-28)."
+
+  echo "$CONTENT" | grep -q "progressRef" || \
+    fail "progressRef missing" "$GAME_JSX" "Stats will not save — saveProgress uses stale closure without progressRef (DEF-33)."
+
+  # Duplicate Toaster — CR-25. App.jsx is the single global Toaster provider.
+  echo "$CONTENT" | grep -q "import.*Toaster.*from 'sonner'" && \
+    fail "Toaster imported in Game.jsx" "$GAME_JSX" "App.jsx is the single global Toaster provider (CR-25). Remove from Game.jsx."
+fi
+
+if [ "$BLOCK" -gt 0 ]; then
+  echo ""
+  echo "  🚫 $BLOCK invariant check(s) failed — commit BLOCKED."
+  echo "     Fix the issues above before committing."
+  echo "     See docs/Change Register.md for context on each invariant."
+  echo ""
+  exit 1
+fi
+
 exit 0

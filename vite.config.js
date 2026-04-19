@@ -36,8 +36,10 @@ export default defineConfig({
         name: 'SoundFind',
         short_name: 'SoundFind',
         description: 'Hear it. Find it.',
+        id: '/',
         start_url: '/',
         display: 'standalone',
+        orientation: 'any',
         theme_color: '#0f0e1a',
         background_color: '#0f0e1a',
         icons: [

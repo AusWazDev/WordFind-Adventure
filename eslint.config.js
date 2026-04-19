@@ -55,6 +55,26 @@ export default [
         { ignore: ["cmdk-input-wrapper", "toast-close"] },
       ],
       "react-hooks/rules-of-hooks": "error",
+
+      // Ban direct window.location access in components — always broken with HashRouter.
+      // DEF-13: window.location.assign() caused hard reloads → 404 on Vercel.
+      // DEF-36: window.location.search always empty with HashRouter → params silently lost.
+      // Use React Router hooks instead: useSearchParams, useNavigate, useLocation.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "MemberExpression[object.object.name='window'][object.property.name='location'][property.name='search']",
+          message: "window.location.search is always empty with HashRouter. Use useSearchParams() from react-router-dom instead.",
+        },
+        {
+          selector: "MemberExpression[object.object.name='window'][object.property.name='location'][property.name='hash']",
+          message: "window.location.hash bypasses the router. Use useLocation() from react-router-dom instead.",
+        },
+        {
+          selector: "CallExpression[callee.object.object.name='window'][callee.object.property.name='location'][callee.property.name='assign']",
+          message: "window.location.assign() causes hard reloads and breaks HashRouter. Use navigate() from react-router-dom instead.",
+        },
+      ],
     },
   },
 ];

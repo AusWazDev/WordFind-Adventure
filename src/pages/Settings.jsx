@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { speakPhraseAndWord, unlockAudio } from '@/components/game/voiceUtils';
 import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineStorage';
@@ -20,6 +20,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'dark') {
+    root.classList.add('dark');
+  } else if (theme === 'light') {
+    root.classList.remove('dark');
+  } else {
+    root.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+}
+
 export default function Settings() {
   const navigate = useNavigate();
   const [settings, setSettings] = useState(null);
@@ -36,6 +47,10 @@ export default function Settings() {
     const updated = { ...settings, [field]: value };
     setSettings(updated);
     saveLocalSettings(updated);
+    if (field === 'theme') {
+      applyTheme(value);
+      window.dispatchEvent(new Event('soundfind-theme-changed'));
+    }
   };
 
   const testVoice = async () => {
@@ -213,6 +228,42 @@ export default function Settings() {
                 Test Voice
               </Button>
 
+            </div>
+          </motion.div>
+
+          {/* Appearance */}
+          <motion.div
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 border border-transparent dark:border-slate-700"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                <Sun className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+              </div>
+              <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Appearance</h2>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: 'default', label: 'Default', desc: 'Follows device' },
+                { value: 'light',   label: 'Light',   desc: 'Always light'  },
+                { value: 'dark',    label: 'Dark',    desc: 'Always dark'   },
+              ].map(({ value, label, desc }) => (
+                <button
+                  key={value}
+                  onClick={() => handleUpdate('theme', value)}
+                  className={cn(
+                    "py-3 px-2 rounded-lg font-medium transition-all flex flex-col items-center gap-1 min-h-[60px]",
+                    settings?.theme === value
+                      ? "bg-gradient-to-r from-violet-500 to-indigo-600 text-white shadow-md"
+                      : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                  )}
+                >
+                  <span className="text-sm font-semibold">{label}</span>
+                  <span className={cn("text-xs", settings?.theme === value ? "text-white/80" : "text-slate-500 dark:text-slate-400")}>{desc}</span>
+                </button>
+              ))}
             </div>
           </motion.div>
 

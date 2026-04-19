@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 import { Home, Trophy, BarChart2, Settings } from 'lucide-react';
+import { getLocalSettings } from '@/components/game/offlineStorage';
 
 const NAV_ITEMS = [
   { label: 'Home', icon: Home, page: 'Home' },
@@ -37,9 +38,24 @@ export default function Layout({ children, currentPageName }) {
   const currIdx = NAV_ORDER.indexOf(currentPageName);
   const direction = currIdx >= prevIdx ? 1 : -1;
 
-  // App is designed for dark mode — force dark class regardless of system preference
+  // Apply theme — reads user preference (default/light/dark), falls back to system
   useEffect(() => {
-    document.documentElement.classList.add('dark');
+    function applyTheme() {
+      const theme = getLocalSettings().theme || 'default';
+      const root = document.documentElement;
+      if (theme === 'dark') {
+        root.classList.add('dark');
+      } else if (theme === 'light') {
+        root.classList.remove('dark');
+      } else {
+        // 'default' — follow system preference
+        root.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
+      }
+    }
+    applyTheme();
+    // Re-apply when Settings page changes the theme
+    window.addEventListener('soundfind-theme-changed', applyTheme);
+    return () => window.removeEventListener('soundfind-theme-changed', applyTheme);
   }, []);
 
   // Save/restore scroll position on page change

@@ -10,9 +10,9 @@ import GameLoadingScreen from '@/components/game/GameLoadingScreen';
 import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
-import { speakText, unlockAudio } from '@/components/game/voiceUtils';
+import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio } from '@/components/game/voiceUtils';
 import { loadProgress, updateProgress, loadSettings } from '@/components/game/offlineStorage';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 
 // ─── Orientation hook ─────────────────────────────────────────────────────────
 function useOrientation() {
@@ -107,6 +107,18 @@ export default function Game() {
   useEffect(() => { bonusHuntActiveRef.current = bonusHuntActive; }, [bonusHuntActive]);
   useEffect(() => { bonusFoundRef.current = bonusFound; }, [bonusFound]);
 
+  // Timer ref — cancels bonus-hunt hint flash; regular hints are persistent (no timer)
+  const hintTimerRef = useRef(null);
+  const hintWordRef = useRef(null);
+  // Refs for saveProgress — progress/score/hintsRemaining are stale in the handleWordFound closure
+  const progressRef = useRef(null);
+  const scoreRef = useRef(0);
+  const hintsRemainingRef = useRef(12);
+  useEffect(() => { hintWordRef.current = hintWord; }, [hintWord]);
+  useEffect(() => { progressRef.current = progress; }, [progress]);
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { hintsRemainingRef.current = hintsRemaining; }, [hintsRemaining]);
+
   // Board sizing — measured in JS for exact pixel values
   const boardAreaRef = useRef(null);
   const [boardSize, setBoardSize] = useState(0);
@@ -149,13 +161,16 @@ export default function Game() {
     setRevealedWords([]);
     setHintedWords(new Set());
     setScore(0);
+    scoreRef.current = 0;
     setShowVictory(false);
     setBonusHuntActive(false);
     setBonusFound(false);
     setBonusPoints(0);
     setBonusInput('');
-    // NOTE: No auto-play intro here — iOS Safari blocks audio without a user gesture.
-    // Players tap the speaker button to start audio.
+    // Preload this game's audio in the background so first taps are instant.
+    if (mode === 'audio') {
+      loadSettings().then(settings => preloadGameAudio(game.words, settings));
+    }
   };
 
   const handleWordFound = useCallback((selectedWord, cells) => {
@@ -181,6 +196,13 @@ export default function Game() {
       const newFoundWords = [...currentFound, foundWord];
       setFoundWords(newFoundWords);
 
+      // DEF-28: clear persistent hint flash when the hinted word is found
+      if (foundWord === hintWordRef.current) {
+        clearTimeout(hintTimerRef.current);
+        setHintCells([]);
+        setHintWord(null);
+      }
+
       // ── Score penalty for using hints ──────────────────────────────────────
       // Eye (reveal) = 50% penalty · Lightbulb (hint cell) = 25% penalty
       const wasRevealed = revealedWordsRef.current.includes(foundWord);
@@ -190,24 +212,32 @@ export default function Game() {
       const wordScore   = Math.round(rawScore * multiplier);
       setScore(prev => prev + wordScore);
 
-      // Speak feedback — unlockAudio() first so iOS allows it.
-      // This fires from the result of a drag gesture which counts as a user interaction.
+      const isLastWord   = newFoundWords.length === currentGame.words.length;
+      const hasBonusHunt = !!(currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current);
+
+      // Speak feedback via ElevenLabs — unlockAudio() first so iOS/Android allows it.
       if (mode === 'audio' && audioEnabled) {
         unlockAudio().then(() => loadSettings()).then(settings => {
-          speakText(`Great! You found ${foundWord}!`, settings);
+          if (isLastWord && hasBonusHunt) {
+            // Skip great_you_found — all_words_found fires below to avoid AudioContext overlap
+          } else if (isLastWord) {
+            speakFixedPhrase('game_complete', 'Incredible! You found all the words!', settings);
+          } else {
+            speakPhraseAndWord('great_you_found', foundWord, `Great! You found ${foundWord}!`, settings);
+          }
         });
       }
 
       const penaltyNote = wasRevealed ? ' (−50% penalty)' : wasHinted ? ' (−25% penalty)' : '';
       toast.success(`+${wordScore} points!${penaltyNote}`, { description: `Found: ${foundWord.toUpperCase()}` });
 
-      if (newFoundWords.length === currentGame.words.length) {
+      if (isLastWord) {
         // Master level with a valid bonus word → start bonus hunt instead of victory
-        if (currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current) {
+        if (hasBonusHunt) {
           setBonusHuntActive(true);
           if (mode === 'audio' && audioEnabled) {
             unlockAudio().then(() => loadSettings()).then(settings =>
-              speakText('Incredible! All words found! Now find the hidden bonus word!', settings)
+              speakFixedPhrase('all_words_found', 'Incredible! All words found! Now find the hidden bonus word!', settings)
             );
           }
           toast.success('🎉 All words found!', {
@@ -222,18 +252,22 @@ export default function Game() {
   }, [level, mode, audioEnabled]);
 
   const saveProgress = async (wordsFoundCount) => {
-    if (!progress) return;
+    // Use refs — progress/score/hintsRemaining are stale in the handleWordFound closure
+    const currentProgress = progressRef.current;
+    const currentScore = scoreRef.current;
+    const currentHints = hintsRemainingRef.current;
+    if (!currentProgress) return;
     // CR-15: track completed games in localStorage so Home.jsx can gate ads
-    // on completions rather than starts (every 6 completed games).
+    // on completions rather than starts.
     const completed = parseInt(localStorage.getItem('games_completed_count') || '0') + 1;
     localStorage.setItem('games_completed_count', String(completed));
 
-    const updated = await updateProgress(null, progress, {
-      total_score: (progress.total_score || 0) + score,
-      games_played: (progress.games_played || 0) + 1,
-      words_found: (progress.words_found || 0) + wordsFoundCount,
-      hints_remaining: hintsRemaining,
-      current_level: Math.max(progress.current_level || 1, level),
+    const updated = await updateProgress(null, currentProgress, {
+      total_score: (currentProgress.total_score || 0) + currentScore,
+      games_played: (currentProgress.games_played || 0) + 1,
+      words_found: (currentProgress.words_found || 0) + wordsFoundCount,
+      hints_remaining: currentHints,
+      current_level: Math.max(currentProgress.current_level || 1, level),
     });
     setProgress(updated);
   };
@@ -250,11 +284,12 @@ export default function Game() {
       setHintCells([gameData.bonusLetterPositions[0]]);
       setHintWord(null);
       toast.info(`Hint: the hidden word starts with "${gameData.bonusWord[0]}"`, { duration: 4000 });
-      setTimeout(() => { setHintCells([]); }, 4000);
+      hintTimerRef.current = setTimeout(() => { setHintCells([]); }, 4000);
       return;
     }
 
-    // ── Regular hint: flash first letter of a random unfound word ─────────────
+    // ── Regular hint: persistent flash until the hinted word is found (DEF-28) ─
+    if (hintWordRef.current) return; // hint already active — block re-entry
     const unfoundWords = gameData.words.filter(w => !foundWords.includes(w.toLowerCase()));
     if (unfoundWords.length === 0) return;
     const randomWord = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
@@ -265,10 +300,8 @@ export default function Game() {
     if (positions?.length > 0) {
       setHintCells([positions[0]]);
       setHintWord(randomWord.toLowerCase());
-      setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
     } else {
       setHintWord(randomWord.toLowerCase());
-      setTimeout(() => setHintWord(null), 4000);
     }
   };
 
@@ -284,6 +317,7 @@ export default function Game() {
   const handleHintCell = (word) => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     if (!gameData) return;
+    if (hintWordRef.current) return; // hint already active — block re-entry
     const positions = gameData.wordPositions[word.toUpperCase()];
     if (!positions?.length) return;
     const newHints = hintsRemaining - 1;
@@ -293,7 +327,7 @@ export default function Game() {
     setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
     setHintCells([positions[0]]);
     setHintWord(word.toLowerCase());
-    setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
+    // No timer — hint persists until the word is found (DEF-28)
   };
 
   const handleWatchAd = () => {
@@ -329,7 +363,9 @@ export default function Game() {
       setBonusInput('');
       setScore(prev => prev + bPts);
       if (mode === 'audio' && audioEnabled) {
-        unlockAudio().then(() => loadSettings()).then(s => speakText(`Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s));
+        unlockAudio().then(() => loadSettings()).then(s =>
+          speakPhraseAndWord('great_you_found', gameData.bonusWord, `Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s)
+        );
       }
       toast.success(`🌟 ${gameData.bonusWord}! +${bPts} bonus points!`, { duration: 3000 });
       setTimeout(() => { setShowVictory(true); saveProgress(foundWords.length); }, 900);
@@ -368,6 +404,7 @@ export default function Game() {
     isAudioMode: mode === 'audio',
     audioEnabled,
     onToggleAudio: () => setAudioEnabled(!audioEnabled),
+    hintActive: !!hintWord,
   };
 
   const boardProps = {
@@ -462,7 +499,6 @@ export default function Game() {
 
   return (
     <div style={{ width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--background)' }}>
-      <Toaster position="top-center" richColors />
 
       {isLandscape ? (
         // LANDSCAPE: compact header top, board + word list side by side below

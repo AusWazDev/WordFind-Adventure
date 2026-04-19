@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import GameBoard from '@/components/game/GameBoard';
 import WordList from '@/components/game/WordList';
@@ -11,9 +10,9 @@ import GameLoadingScreen from '@/components/game/GameLoadingScreen';
 import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
-import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio } from '@/components/game/voiceUtils';
+import { speakText, unlockAudio } from '@/components/game/voiceUtils';
 import { loadProgress, updateProgress, loadSettings } from '@/components/game/offlineStorage';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 
 // ─── Orientation hook ─────────────────────────────────────────────────────────
 function useOrientation() {
@@ -67,11 +66,11 @@ function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, o
 // ─── Main Game component ──────────────────────────────────────────────────────
 export default function Game() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const mode = searchParams.get('mode') || 'standard';
-  const categoryParam = searchParams.get('category');
+  const urlParams = new URLSearchParams(window.location.search);
+  const mode = urlParams.get('mode') || 'standard';
+  const categoryParam = urlParams.get('category');
   const category = (categoryParam && categoryParam !== 'null') ? categoryParam : null;
-  const level = parseInt(searchParams.get('level') || '1');
+  const level = parseInt(urlParams.get('level') || '1');
 
   const [gameData, setGameData] = useState(null);
   const [foundWords, setFoundWords] = useState([]);
@@ -91,38 +90,22 @@ export default function Game() {
   const [bonusPoints, setBonusPoints] = useState(0);
   const [bonusInput, setBonusInput] = useState('');
 
-  // CR-16: word list expanded by default; player can collapse manually for more grid space
-  const [wordListCollapsed, setWordListCollapsed] = useState(false);
-
   // Track words where hint tools were used — for score penalties
   const [hintedWords, setHintedWords] = useState(new Set());   // lightbulb used → -25%
-
-  // Timer ref — used for bonus-hunt hint timeout only (regular hints are persistent)
-  const hintTimerRef = useRef(null);
 
   // Stable refs for handleWordFound — avoids recreating the callback on every word found
   const gameDataRef = useRef(null);
   const foundWordsRef = useRef([]);
   const revealedWordsRef = useRef([]);
   const hintedWordsRef = useRef(new Set());
-  const hintWordRef = useRef(null);
   const bonusHuntActiveRef = useRef(false);
   const bonusFoundRef = useRef(false);
-  // Refs for saveProgress — progress/score/hintsRemaining are not in handleWordFound deps,
-  // so saveProgress would capture stale closure values without refs.
-  const progressRef = useRef(null);
-  const scoreRef = useRef(0);
-  const hintsRemainingRef = useRef(12);
   useEffect(() => { gameDataRef.current = gameData; }, [gameData]);
   useEffect(() => { foundWordsRef.current = foundWords; }, [foundWords]);
   useEffect(() => { revealedWordsRef.current = revealedWords; }, [revealedWords]);
   useEffect(() => { hintedWordsRef.current = hintedWords; }, [hintedWords]);
-  useEffect(() => { hintWordRef.current = hintWord; }, [hintWord]);
   useEffect(() => { bonusHuntActiveRef.current = bonusHuntActive; }, [bonusHuntActive]);
   useEffect(() => { bonusFoundRef.current = bonusFound; }, [bonusFound]);
-  useEffect(() => { progressRef.current = progress; }, [progress]);
-  useEffect(() => { scoreRef.current = score; }, [score]);
-  useEffect(() => { hintsRemainingRef.current = hintsRemaining; }, [hintsRemaining]);
 
   // Board sizing — measured in JS for exact pixel values
   const boardAreaRef = useRef(null);
@@ -142,7 +125,7 @@ export default function Game() {
       window.removeEventListener('resize', measure);
       clearTimeout(t);
     };
-  }, [isLandscape, gameData, wordListCollapsed]);
+  }, [isLandscape, gameData]);
 
   // Re-initialise whenever URL params change (e.g. Next Level navigation)
   // NOTE: initGame and loadProgressData intentionally omitted from deps — they
@@ -166,18 +149,13 @@ export default function Game() {
     setRevealedWords([]);
     setHintedWords(new Set());
     setScore(0);
-    scoreRef.current = 0;
     setShowVictory(false);
-    setWordListCollapsed(false);  // CR-27: word list expanded by default on new game
     setBonusHuntActive(false);
     setBonusFound(false);
     setBonusPoints(0);
     setBonusInput('');
-    // Preload this game's audio in the background so first taps are instant.
-    // Only useful in audio mode; safe to call in other modes (no-ops quickly).
-    if (mode === 'audio') {
-      loadSettings().then(settings => preloadGameAudio(game.words, settings));
-    }
+    // NOTE: No auto-play intro here — iOS Safari blocks audio without a user gesture.
+    // Players tap the speaker button to start audio.
   };
 
   const handleWordFound = useCallback((selectedWord, cells) => {
@@ -203,13 +181,6 @@ export default function Game() {
       const newFoundWords = [...currentFound, foundWord];
       setFoundWords(newFoundWords);
 
-      // DEF-28: clear persistent hint flash when the hinted word is found
-      if (foundWord === hintWordRef.current) {
-        clearTimeout(hintTimerRef.current);
-        setHintCells([]);
-        setHintWord(null);
-      }
-
       // ── Score penalty for using hints ──────────────────────────────────────
       // Eye (reveal) = 50% penalty · Lightbulb (hint cell) = 25% penalty
       const wasRevealed = revealedWordsRef.current.includes(foundWord);
@@ -221,35 +192,24 @@ export default function Game() {
 
       // Speak feedback — unlockAudio() first so iOS allows it.
       // This fires from the result of a drag gesture which counts as a user interaction.
-      // When the last word is found, play the completion phrase instead of "great_you_found"
-      // to avoid both phrases firing simultaneously on the AudioContext.
-      const isLastWord   = newFoundWords.length === currentGame.words.length;
-      const hasBonusHunt = !!(currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current);
       if (mode === 'audio' && audioEnabled) {
         unlockAudio();
         loadSettings().then(settings => {
-          if (isLastWord && hasBonusHunt) {
-            // Only "all_words_found" — it will play below; don't overlap with "great_you_found"
-          } else if (isLastWord) {
-            speakFixedPhrase('game_complete', 'Incredible! You found all the words!', settings);
-          } else {
-            speakPhraseAndWord('great_you_found', foundWord, `Great! You found ${foundWord}!`, settings);
-          }
+          speakText(`Great! You found ${foundWord}!`, settings);
         });
       }
 
       const penaltyNote = wasRevealed ? ' (−50% penalty)' : wasHinted ? ' (−25% penalty)' : '';
       toast.success(`+${wordScore} points!${penaltyNote}`, { description: `Found: ${foundWord.toUpperCase()}` });
 
-      if (isLastWord) {
+      if (newFoundWords.length === currentGame.words.length) {
         // Master level with a valid bonus word → start bonus hunt instead of victory
-        if (hasBonusHunt) {
+        if (currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current) {
           setBonusHuntActive(true);
-          setWordListCollapsed(false);  // CR-16: reveal list so player sees all words ticked
           if (mode === 'audio' && audioEnabled) {
             unlockAudio();
             loadSettings().then(settings =>
-              speakFixedPhrase('all_words_found', 'Incredible! All words found! Now find the hidden bonus word!', settings)
+              speakText('Incredible! All words found! Now find the hidden bonus word!', settings)
             );
           }
           toast.success('🎉 All words found!', {
@@ -257,41 +217,34 @@ export default function Game() {
             duration: 5000,
           });
         } else {
-          setTimeout(() => { setWordListCollapsed(false); setShowVictory(true); saveProgress(newFoundWords.length); }, 500);
+          setTimeout(() => { setShowVictory(true); saveProgress(newFoundWords.length); }, 500);
         }
       }
     }
   }, [level, mode, audioEnabled]);
 
   const saveProgress = async (wordsFoundCount) => {
-    // Use refs — progress/score/hintsRemaining are stale in the handleWordFound closure
-    const currentProgress = progressRef.current;
-    const currentScore = scoreRef.current;
-    const currentHints = hintsRemainingRef.current;
-    if (!currentProgress) return;
+    if (!progress) return;
     // CR-15: track completed games in localStorage so Home.jsx can gate ads
     // on completions rather than starts (every 6 completed games).
     const completed = parseInt(localStorage.getItem('games_completed_count') || '0') + 1;
     localStorage.setItem('games_completed_count', String(completed));
 
-    const updated = await updateProgress(null, currentProgress, {
-      total_score: (currentProgress.total_score || 0) + currentScore,
-      games_played: (currentProgress.games_played || 0) + 1,
-      words_found: (currentProgress.words_found || 0) + wordsFoundCount,
-      hints_remaining: currentHints,
-      current_level: Math.max(currentProgress.current_level || 1, level),
+    const updated = await updateProgress(null, progress, {
+      total_score: (progress.total_score || 0) + score,
+      games_played: (progress.games_played || 0) + 1,
+      words_found: (progress.words_found || 0) + wordsFoundCount,
+      hints_remaining: hintsRemaining,
+      current_level: Math.max(progress.current_level || 1, level),
     });
     setProgress(updated);
-    progressRef.current = updated;
   };
 
   const handleUseHint = () => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     if (!gameData) return;
-    // DEF-28: lock out while a hint is already active — wait for hinted word to be found
-    if (hintWord) return;
 
-    // ── Bonus hunt hint: flash the first letter of the bonus word (4s timer) ──
+    // ── Bonus hunt hint: flash the first letter of the bonus word ─────────────
     if (bonusHuntActive && gameData.bonusWord && gameData.bonusLetterPositions?.length > 0) {
       const newHints = hintsRemaining - 1;
       setHintsRemaining(newHints);
@@ -299,12 +252,11 @@ export default function Game() {
       setHintCells([gameData.bonusLetterPositions[0]]);
       setHintWord(null);
       toast.info(`Hint: the hidden word starts with "${gameData.bonusWord[0]}"`, { duration: 4000 });
-      clearTimeout(hintTimerRef.current);
-      hintTimerRef.current = setTimeout(() => { setHintCells([]); }, 4000);
+      setTimeout(() => { setHintCells([]); }, 4000);
       return;
     }
 
-    // ── Regular hint: flash first letter of a random unfound word (persistent) ─
+    // ── Regular hint: flash first letter of a random unfound word ─────────────
     const unfoundWords = gameData.words.filter(w => !foundWords.includes(w.toLowerCase()));
     if (unfoundWords.length === 0) return;
     const randomWord = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
@@ -315,9 +267,10 @@ export default function Game() {
     if (positions?.length > 0) {
       setHintCells([positions[0]]);
       setHintWord(randomWord.toLowerCase());
-      // No timer — flash persists until the player finds the hinted word
+      setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
     } else {
       setHintWord(randomWord.toLowerCase());
+      setTimeout(() => setHintWord(null), 4000);
     }
   };
 
@@ -333,8 +286,6 @@ export default function Game() {
   const handleHintCell = (word) => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     if (!gameData) return;
-    // DEF-28: lock out while a hint is already active
-    if (hintWord) return;
     const positions = gameData.wordPositions[word.toUpperCase()];
     if (!positions?.length) return;
     const newHints = hintsRemaining - 1;
@@ -344,7 +295,7 @@ export default function Game() {
     setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
     setHintCells([positions[0]]);
     setHintWord(word.toLowerCase());
-    // No timer — flash persists until the player finds the hinted word
+    setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
   };
 
   const handleWatchAd = () => {
@@ -381,7 +332,7 @@ export default function Game() {
       setScore(prev => prev + bPts);
       if (mode === 'audio' && audioEnabled) {
         unlockAudio();
-        loadSettings().then(s => speakPhraseAndWord('hidden_word_was', gameData.bonusWord, `Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s));
+        loadSettings().then(s => speakText(`Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s));
       }
       toast.success(`🌟 ${gameData.bonusWord}! +${bPts} bonus points!`, { duration: 3000 });
       setTimeout(() => { setShowVictory(true); saveProgress(foundWords.length); }, 900);
@@ -417,7 +368,6 @@ export default function Game() {
     level, gameMode: mode, category,
     onBack: handleHome,
     onUseHint: handleUseHint,
-    hintActive: !!hintWord,
     isAudioMode: mode === 'audio',
     audioEnabled,
     onToggleAudio: () => setAudioEnabled(!audioEnabled),
@@ -464,12 +414,11 @@ export default function Game() {
             autoCapitalize="characters"
             autoCorrect="off"
             spellCheck="false"
-            autoFocus={false}
             style={{
               width: '100%', boxSizing: 'border-box',
               background: 'rgba(255,255,255,0.92)', color: '#1e1b4b',
               border: 'none', borderRadius: 8,
-              padding: '6px 10px', fontSize: 16, fontWeight: 700,
+              padding: '6px 10px', fontSize: 14, fontWeight: 700,
               letterSpacing: 3, textAlign: 'center', marginBottom: 6,
             }}
           />
@@ -516,6 +465,8 @@ export default function Game() {
 
   return (
     <div style={{ width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--background)' }}>
+      <Toaster position="top-center" richColors />
+
       {isLandscape ? (
         // LANDSCAPE: compact header top, board + word list side by side below
         <div style={{
@@ -553,7 +504,7 @@ export default function Game() {
         </div>
 
       ) : (
-        // PORTRAIT: header · board (CR-17: bigger when list collapsed) · collapsible word list (CR-16)
+        // PORTRAIT: header, board (capped height), scrollable word list
         <div style={{
           display: 'flex', flexDirection: 'column',
           width: '100%', height: '100%',
@@ -563,14 +514,12 @@ export default function Game() {
             <GameHeader {...headerProps} />
           </div>
 
-          {/* CR-17: maxHeight grows from 55→75dvh when word list is collapsed */}
           <div
             ref={boardAreaRef}
             style={{
               flexShrink: 0, width: '100%',
-              maxHeight: wordListCollapsed ? 'min(75dvh, 100vw)' : 'min(55dvh, 100vw)',
+              maxHeight: 'min(55dvh, 100vw)',
               aspectRatio: '1 / 1', overflow: 'hidden',
-              transition: 'max-height 0.25s ease',
             }}
           >
             {boardSize > 0 && (
@@ -580,63 +529,9 @@ export default function Game() {
             )}
           </div>
 
-          {/* CR-16: collapsible word list panel */}
-          <div style={wordListCollapsed
-            ? { flexShrink: 0 }
-            : { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }
-          }>
-            {/* Bonus banner always visible above the toggle bar */}
+          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: '0.5rem' }}>
             {bonusBannerEl}
-
-            {/* Toggle bar — always visible, tap to expand/collapse */}
-            <button
-              onClick={() => setWordListCollapsed(v => !v)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center',
-                justifyContent: 'space-between',
-                background: 'var(--card)',
-                borderRadius: wordListCollapsed ? 12 : '12px 12px 0 0',
-                padding: '10px 16px', boxSizing: 'border-box',
-                border: '1px solid var(--border)',
-                borderBottom: wordListCollapsed ? '1px solid var(--border)' : 'none',
-                cursor: 'pointer', userSelect: 'none',
-              }}
-            >
-              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)' }}>
-                {mode === 'audio' ? 'Listen & Find' : 'Words to Find'}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{
-                  fontSize: 12, fontWeight: 700,
-                  background: foundWords.length === gameData.words.length
-                    ? 'var(--primary)' : 'var(--muted)',
-                  color: foundWords.length === gameData.words.length
-                    ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
-                  borderRadius: 20, padding: '2px 10px',
-                  transition: 'background 0.3s',
-                }}>
-                  {foundWords.length} / {gameData.words.length}
-                </span>
-                <ChevronDown style={{
-                  width: 18, height: 18, color: 'var(--muted-foreground)',
-                  transform: wordListCollapsed ? 'rotate(0deg)' : 'rotate(180deg)',
-                  transition: 'transform 0.25s ease',
-                }} />
-              </div>
-            </button>
-
-            {/* Expandable list — slides in below the toggle bar */}
-            {!wordListCollapsed && (
-              <div style={{
-                flex: 1, overflowY: 'auto', overflowX: 'hidden',
-                paddingBottom: '0.5rem',
-                border: '1px solid var(--border)', borderTop: 'none',
-                borderRadius: '0 0 12px 12px',
-                background: 'var(--card)',
-              }}>
-                <WordListSwitch {...wordListProps} />
-              </div>
-            )}
+            <WordListSwitch {...wordListProps} />
           </div>
         </div>
       )}

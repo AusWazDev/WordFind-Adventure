@@ -11,11 +11,10 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 - React 18 + Vite 6
 - Tailwind CSS + shadcn/ui component library
 - Framer Motion (animations)
-- React Router DOM v6 (HashRouter — Capacitor compatible)
-- Web Audio API + ElevenLabs pre-generated MP3s (Audio mode)
+- React Router DOM v6
+- Web Speech API (TTS for Audio mode)
 - localStorage only — fully offline, no backend
 - canvas-confetti (victory screen)
-- Capacitor 7 — native iOS and Android wrapper (appId: au.com.uniquegames.soundfind)
 
 ## Project Structure
 - `src/pages/` — Home, Game, DailyChallenge, Leaderboard, Stats, Settings
@@ -57,7 +56,7 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 
 ## Monetisation (confirmed model)
 - **Free to download** — 12 hints preloaded on first launch
-- **Interstitial ads** — every 3 completed games (AdModal) — skipped silently when offline; short-form 15s (AdMob config at Phase 5)
+- **Interstitial ads** — every 3 game starts (AdModal) — skipped silently when offline
 - **Watch ad** — earn 1 hint per ad (~15 seconds) — requires online
 - **Hint packs** — 3 hints $0.99 · 10 hints $1.99 · 25 hints $3.99 (prices TBC, RevenueCat TODO)
 - **Remove Ads** — $2.99 one-time purchase (RevenueCat TODO)
@@ -67,7 +66,7 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 - **Web PWA** — Vercel deployment (beta testing via `*.vercel.app` URL, testers add to home screen)
 - **Native** — Capacitor for iOS / Android builds (Phase 5)
 - **App Stores** — Apple App Store + Google Play (Phase 6)
-- **Domain** — `uniquegames.com.au` reserved on WebCentral (formerly Hostgator); ABN approved but confirmation email missed during mail migration — following up with ASIC to resend. Once active: create `apps@uniquegames.com.au`, register Apple/Google/Microsoft developer accounts with that email. `play.uniquegames.com.au` → Vercel once active.
+- **Domain** — `uniquegames.com.au` reserved on Hostgator (pending ABN); `play.uniquegames.com.au` → Vercel once active
 
 ## Change Management
 All changes tracked in `docs/Change Register.md` and `docs/Launch Plan.md` (now inside the repo — accessible from any machine via git pull).
@@ -195,183 +194,15 @@ Current baseline: commit `129f64f`
 ### 2026-03-31 (Windows — DEF-19, CR-15, CR-16/CR-17 mockups)
 - DEF-19: Fixed touch scroll / pull-to-refresh conflict on mobile web — React 17+ passive touch listeners silently ignore `e.preventDefault()`; fixed by adding non-passive DOM listeners (`{ passive: false }`) for `touchstart` and `touchmove` directly on the grid element in `GameBoard.jsx`. Added `overscrollBehavior: 'none'` to board container for CSS-level pull-to-refresh suppression.
 - CR-15: Changed interstitial ad trigger from every 3 game **starts** to every 6 **completed** games. `Game.jsx` now increments `games_completed_count` in localStorage on victory; `Home.jsx` reads this counter (with `last_ad_completed_at` to prevent double-triggering) rather than the old `game_start_count`. `AD_FREQUENCY` changed from 3 → 6.
-- DEF-21: Fixed bonus word input obstructing grid on iOS — removed autoFocus and bumped font-size to 16px to prevent iOS viewport zoom on the input field.
-- DEF-20: Fixed off-theme mystery word (e.g. SINGULARITY in a Sports game). Root cause: category word lists had length gaps — sports had no 11-letter words, so when filler exhausted at K=11 the cross-category fallback fired. Fix: expanded all 14 wordLists to cover every length 4–12 (137 new themed words added). The filler loop's validMysteryLengths check now always finds a matching stop point and findMysteryWord always returns a themed word. Also improves game variety.
 - CR-16 & CR-17: HTML mockups created (`CR-16-CR-17 Mockups.html` in workspace) for Waz review — showing collapsible word list (tap-to-toggle, auto-expand on victory) and responsive full-width grid sizing vs landscape nudge banner. Awaiting Waz sign-off before implementation.
 
-### 2026-04-01 (Windows — CR-16, CR-17 implemented)
-- CR-16: Collapsible word list — word list now collapsed by default during play, showing a slim toggle bar ("Words to Find · 3/8 ▾"). Tap to expand/collapse. Progress pill turns primary colour when all words found. Auto-expands when bonus word hunt starts and on non-bonus victory. Collapse wrapper is entirely in `Game.jsx` portrait layout — landscape sidebar and all three word list components (Standard/Audio, Anagram, Association) unchanged. Easy to roll back.
-- CR-17: Responsive grid sizing — board `maxHeight` increases from `min(55dvh, 100vw)` to `min(75dvh, 100vw)` when word list is collapsed (the default). Board measurement re-fires on toggle so grid grows/shrinks smoothly. When expanded, board reverts to 55dvh cap. Landscape layout unchanged.
-
-### 2026-04-05 (Windows — CR-23: PWA service worker + offline audio)
-- CR-23: Installed `vite-plugin-pwa`. Workbox service worker precaches app shell and applies `CacheFirst` runtime caching to all `/audio/*.mp3` requests. Any MP3 fetched on WiFi is permanently cached on-device (1-year TTL). Combined with `preloadGameAudio()`, opening one Audio Challenge game on WiFi makes all that game's voices available offline. App itself also loads fully offline (precached shell). PWA manifest added. Commit `78858ab`.
-- App is now fully offline-capable including natural ElevenLabs voices — core requirement met.
-
-### 2026-04-06 (Windows — DEF-27: Mystery Word orphaned random-letter cells)
-- DEF-27: Some Mystery Word games had grid cells that were neither part of any found word nor highlighted amber as mystery word cells. Root cause: the DEF-24 padding fallback filled cells with random letters to bridge K to a valid mystery length. These cells appeared as unexplained leftover letters. If K dropped below the minimum valid mystery length, `targetK`=0 caused ALL remaining cells to fill with random letters and the mystery word phase never activated.
-- Fix: replaced the padding fallback with an undo mechanism in the filler loop. Before each filler word placement, a grid snapshot is saved. If the placement reduces K below `minValidLength`, the snapshot is restored (the new cells are cleared back to empty) and that filler word is skipped. This prevents K from ever dropping below the smallest valid mystery word length. The random-letter padding fallback is removed entirely.
-
-### 2026-04-05 (Windows — DEF-26: audio delay fix)
-- DEF-26: Significant delay before audio played on each tap. Root cause: `fetchBuffer()` was fetching and decoding the MP3 from Vercel on every tap — no caching. Fix: added `_bufferCache` Map in `voiceUtils.jsx`; decoded `AudioBuffer` objects are reused across plays. Added `preloadGameAudio()` which background-fetches all word, sentence, and phrase MP3s for the current game immediately after `generateGame()` in audio mode. First plays are now instant. Commit `ef2543f`.
-
-### 2026-04-05 (Windows — DEF-25: Settings test voice + completion audio overlap)
-- DEF-25: Settings "Test Voice" was still calling `speakText()` (Web Speech API) — replaced with `speakPhraseAndWord('great_you_found', 'RAIN', ...)` so test button plays Hannah/Neil via ElevenLabs.
-- DEF-25: When last word found, `speakPhraseAndWord('great_you_found')` and `speakFixedPhrase('all_words_found')` were both scheduling audio simultaneously → inaudible celebration. Fixed by consolidating last-word audio logic: bonus hunt → only `all_words_found`; non-bonus → new `game_complete` phrase.
-- DEF-25: Non-bonus game completions had no celebration audio — added new `game_complete` phrase "Incredible! You found all the words!" to `generate-audio.mjs`; 2 new MP3s generated and deployed. Commit `38cbbbf`.
-
-### 2026-04-05 (Windows — CR-22: Sentence MP3s, Web Audio API gapless playback, Vercel deploy)
-- Root cause of robotic voices identified: all Audio Challenge words have `hasSentence() = true` → `speakSentenceAudio` path always taken → only Web Speech API was ever reached (ElevenLabs word MP3s were unreachable). Fix: generate sentence MP3s as single seamless files and add `speakSentenceAudio()` to play them.
-- `scripts/generate-audio.mjs` extended with Phase 3 — parses `trickySentences.jsx` for all WORD → sentence pairs, generates `public/audio/sentences/{gender}_{WORD}.mp3` with full text "word... sentence... word." as one continuous recording. 313 sentences × 2 genders = 626 files generated (zero errors).
-- Voices confirmed: Hannah (`M7ya1YbaeFaPXljg9BpK`) female AU, Neil (`iIg0uI51lssRFauz7W21`) male AU.
-- `voiceUtils.jsx` rewritten to use Web Audio API (`AudioContext`) for gapless playback. `fetchBuffer()` decodes MP3s, `scheduleBuffers()` places clips at sample-accurate start times, `playSeamless()` fetches all files in parallel then schedules them back-to-back with zero gap. `speakWordAudio()` plays word twice with intentional 400ms gap. `speakSentenceAudio()` plays single-file sentence recording. `speakPhraseAndWord()` / `speakFixedPhrase()` use gapless scheduling. `unlockAudio()` now initialises/resumes `AudioContext` on first user gesture (iOS requirement).
-- `WordList.jsx` import updated to include `speakSentenceAudio`; sentence path uses `speakSentenceAudio()`; non-sentence path uses `speakWordAudio()`.
-- Vercel build cache issue resolved — `vercel --prod --force` still served old bundle; fix: push to GitHub and let git-based auto-deploy trigger a clean build.
-- All code committed `922ac7e` + `7de9b53` + `a4bd127`, Vercel auto-deploy triggered.
-- Total audio library: 1,714 word MP3s × 2 genders + 6 phrase MP3s + 626 sentence MP3s = 4,060 files.
-
-### 2026-04-04 (Windows — CR-22: Pre-generated ElevenLabs audio)
-- `scripts/generate-audio.mjs` created — Node.js batch script to call ElevenLabs API (Rachel female / Adam male, `eleven_turbo_v2_5`) and generate `public/audio/{female|male}/{WORD}.mp3` for every word in `gameUtils.jsx` plus `public/audio/phrases/{gender}_{key}.mp3` for three fixed in-game phrases. Reads words via regex on `gameUtils.jsx` (auto-picks up new words on re-run). Concurrency 2, 250ms delay. Skips existing files — fully resumable. Dry-run mode with `--dry-run`.
-- `voiceUtils.jsx` — added `playAudioFile()`, `speakWordAudio()`, `speakPhraseAndWord()`, `speakFixedPhrase()`. All fall back to Web Speech API if the MP3 is missing or playback fails.
-- `WordList.jsx` — non-sentence word playback now uses `speakWordAudio()` (MP3 twice, fallback to Web Speech). Tricky-word sentence path unchanged on `speakText`.
-- `Game.jsx` — three `speakText` calls replaced: "Great! You found [word]" → `speakPhraseAndWord('great_you_found', ...)`, "Incredible! All words found!" → `speakFixedPhrase('all_words_found', ...)`, "Amazing! The hidden word was [word]" → `speakPhraseAndWord('hidden_word_was', ...)`.
-- **Next step**: run `ELEVENLABS_API_KEY=sk_... node scripts/generate-audio.mjs` to generate the MP3 library before pushing. Commit hash TBD.
-
-### 2026-04-04 (Windows — DEF-24: Mystery Word mode sporadically missing mystery word)
-- Root cause confirmed: category-restricted filler pool (40–65 words) too small for Expert/Master grids (15×15, 20–25 main words removed). Pool exhausts before K drops to a valid mystery length → `findMysteryWord` returns null → mystery phase never activates. Random category unaffected (~700-word pool).
-- Fix part 1: expanded all 14 `wordLists` categories from 40–65 to 86–112 words (~487 new themed words). Filler pool now large enough for Expert/Master on all categories.
-- Fix part 2: added padding fallback in `generateGame()` after filler loop — if K is still not a valid mystery length after filler exhausts, random letters fill cells (reading order) until K reaches the nearest valid length. Insurance for any remaining edge cases.
-
-### 2026-04-03 (Windows — CR-21 follow-up: Home header icon + WelcomeScreen centering)
-- CR-21 follow-up: Replaced `Volume2` placeholder icon with `icon.png` in `Home.jsx` header (40px, iOS border-radius). Removed unused `Volume2` import from `Home.jsx`. Fixed `WelcomeScreen.jsx` icon centering — Tailwind Preflight sets `img { display: block }` so `text-center` had no effect; added `mx-auto` to explicitly centre the icon above the app name.
-
-### 2026-04-03 (Windows — DEF-23, CR-21: Hints exploit fix + brand alignment)
-- DEF-23: Fixed Settings reset exploiting free hints. `handleResetData` in `Settings.jsx` now preserves `hints_remaining` and `ads_removed` across reset. Uses selective key removal instead of `localStorage.clear()`.
-- CR-21: WelcomeScreen and HowToPlayModal aligned to dark brand theme. Background → deep dark near-black. Volume2 icon → `icon.png` (72px). "Find" text → violet-400. Audio Challenge card and HowToPlay featured header → teal/indigo gradient.
-
-### 2026-04-03 (Windows — DEF-22: Splash screen flash fix)
-- DEF-22: Splash screen was flashing the Home page for ~400ms before covering it. Fixed by splitting `SplashScreen.jsx` into two motion elements — outer overlay immediately opaque (`opacity: 1`), inner content fades in smoothly. Home is now fully blocked from the first frame.
-
-### 2026-04-03 (Windows — CR-18, CR-19, CR-20: Icon & Splash Screen)
-- CR-18: App icon designed — interactive HTML5 Canvas mockup built (`docs/icon/icon-mockup.html`). Concept D: diagonal split, 7×7 word grid top-right fading to diagonal with SOUND+FIND spelled in teal cells, rounded iOS-style teal speaker top-left with gold accent waves. Final 1024px PNG exported (`docs/icon/soundfind-icon-d.png`). Locked settings: grid opacity 38%, grid fade 60%, wave reach 72%, wave start gap 10%, speaker size 20%, length 150%, bottom bleed 40%, top bleed 47%, position x=15% y=15%.
-- CR-19: Splash screen designed — interactive HTML5 Canvas mockup built (`docs/icon/splash-mockup.html`). Deep dark near-black background, icon centred at 40%, "SoundFind" name, tagline "Find the words. Feel the sound.", animated Preview button. Locked settings approved by Waz: icon 40%, vertical 40%, name gap 10%, deep dark bg, grid overlay 10%, hold 2000ms (total 2.7s).
-- CR-20: Splash screen implemented — `src/components/game/SplashScreen.jsx` created from CR-19 approved design. Framer Motion sequence: fade in 400ms → hold 2000ms → fade out 300ms → Home. Wired into `App.jsx` via `showSplash` state. `public/icon.png` added (1024px master). `index.html` favicon updated from emoji to `icon.png`.
-
-### 2026-04-06 (Windows — CR-25: Full codebase audit + cleanup)
-- Full codebase audit performed. 9 issues identified and fixed.
-- Dead imports removed: `speakText` (WordList, Game), `useMemo` named import (Stats), `diagnoseVoices` export (voiceUtils), `Toaster` (Game, DailyChallenge)
-- Duplicate `<Toaster />` consolidated: App.jsx now mounts the single global sonner Toaster with `position="top-center" richColors`. Game.jsx and DailyChallenge.jsx no longer mount their own.
-- `WordList.jsx` localStorage read replaced with `getLocalSettings()` — ensures DEFAULT_SETTINGS merge so `audio_voice` is always defined
-- Shared constants extracted to `src/lib/constants.js`: `LEVEL_NAMES`, `CATEGORIES`, `CATEGORY_LABELS`. Removed duplicate declarations from GameHeader, VictoryModal, Settings.
-- `best_streak` bug fixed: DailyChallenge `triggerVictory` now computes `newStreak` before `updateProgress` and passes `best_streak: Math.max(current, newStreak)` — Stats page "Longest Streak" now increments correctly.
-- Hint timer leak fixed: `hintTimerRef` added to Game.jsx; each hint call now cancels the previous 4s timeout before starting a new one.
-- DailyChallenge score penalty aligned: lightbulb hints now apply 0.75× penalty (added `hintedWords` state + ref; `handleUseHint` marks the hinted word; `handleWordFound` applies the multiplier).
-- Stale "AUTO-GENERATED" comment in `pages.config.js` replaced with accurate description.
-- 45 unused shadcn UI files deleted from `src/components/ui/`. CSS bundle: 97 kB → 58 kB (−40%).
-- Build confirmed clean.
-
-### 2026-04-06 (Windows — CR-24: Word Association clue update)
-- CR-24: Added ~450 new `wordClues` entries to `gameUtils.jsx` covering every word added in DEF-20 and DEF-24 category expansions across all 13 categories. Word Association mode was showing `A ${n}-letter word` for all newly expanded words. All entries now have descriptive clues matching the style of existing ones. Build clean, deployed.
-
-### 2026-04-08 (Windows — DEF-28, DEF-29, CR-28: hint UX + wordClues + Welcome redesign)
-- DEF-28: Hint flash is now persistent until the hinted word is found. `hintWord` guard added to `handleUseHint` and `handleHintCell` to block re-entry. `hintWordRef` synced via `useEffect`. `handleWordFound` clears hint state when hinted word is found. Bonus-hunt hint retains 4s timer.
-- DEF-28 visual: Hint buttons (GameHeader + WordList lightbulbs) now visually dim to 40% opacity with `cursor-not-allowed` when a hint is active. `hintActive={!!hintWord}` passed from Game.jsx to GameHeader.
-- DEF-29: All 38 duplicate keys in `wordClues` fixed. Words in multiple categories now have combined clues. Silent-letter notes merged into primary clues. CACHE clue added (was missing). Root cause: flat object — last key wins silently.
-- CR-28: WelcomeScreen redesigned. Removed feature cards/grid. Icon 88px. One-liner pill ("5 game modes · Natural voices · Works offline", no border). Primary button violet→indigo gradient. Secondary "How to Play" teal outline. Removed misleading "progress saved" footer (only saves on game completion).
-- Note: mid-game state is NOT saved — progress (stats/hints) saves on victory only. FE-03 candidate: add mid-game save/restore.
-
-### 2026-04-09 (Windows — DEF-30: Word list collapsed on game start)
-- CR-27 set `useState(false)` so word list is expanded by default, but `generateGame` effect still called `setWordListCollapsed(true)` on every new game — overriding the intent. Fixed in `Game.jsx` line 162: `true` → `false`.
-
-### 2026-04-08 (Windows — CR-30: Audit fixes)
-- Full codebase audit performed. Removed 5 unused imports across 4 files. Deleted dead file `src/lib/app-params.js` (Base44 leftover). Replaced `alert()` IAP stubs with `toast.info()` in HintModal + RemoveAdsModal. Added iOS PWA meta tags to index.html. Updated Traceability.md date.
-- Privacy Policy deferred — will be built once at launch, hosted on `uniquegames.com.au/SoundFind/privacypolicy/` (pending ABN/domain activation).
-- App Store blockers (Capacitor, RevenueCat, AdMob) remain Phase 5.
-
-### 2026-04-08 (Windows — CR-29: HowToPlay modal redesign)
-- Modal now responsive: width scales `max-w-sm` → `sm:max-w-md` → `md:max-w-lg`; height uses `flex flex-col max-h-[90dvh]` so modal shrinks to content and only scrolls when needed.
-- Scrollbar hidden via `.no-scrollbar` CSS utility in `src/index.css` — eliminates scrollbar flash on slide transitions.
-- Header and nav button fixed to consistent violet→indigo gradient on all slides.
-- All body text standardised to `text-sm`; content trimmed ~35%.
-- Game mode list order on slide 3 now matches home screen menu order.
-- FE-04 added to `docs/Future Enhancements.md`: Global Leaderboard (requires backend, deferred to Phase 5+).
-
-### 2026-04-08 (Windows — CR-27: Word list expanded by default)
-- Reverted CR-16's collapsed-by-default to expanded-by-default (`useState(false)`). Collapsed state wasn't discoverable on mobile — players didn't see the word list. Player can still collapse manually. FE-02 logged for smarter UX in a future version.
-
-### 2026-04-08 (Windows — CR-26: Mode reorder + Mystery Word difficulty cap)
-- Word Association moved above Anagram Hunt in `GameModeSelector.jsx`.
-- `LevelSelector.jsx`: Mystery Word + specific (non-Random) category now shows only Easy/Medium/Hard — Expert and Master hidden. Root cause: category-restricted filler pools can't reliably fill a 15×15 grid down to a valid mystery word length. Tracked as FE-01 in `docs/Future Enhancements.md` for a future version.
-- `Home.jsx`: passes `selectedMode` + `selectedCategory` to `LevelSelector`.
-- DEF-27 follow-up: removed `emptyAfter > 0` guard in filler undo — undo now also fires when a filler word fills all remaining empty cells (emptyAfter === 0).
-- Duplicate `SALMON` key removed from `wordClues` (colours entry deleted; food entry retained).
-- `docs/Future Enhancements.md` created.
-
-### 2026-04-12 (Windows — v1.0.0 lock + store submission prep)
-- Bumped version `0.0.0` → `1.0.0` in `package.json`. Beta testing complete, app locked.
-- CR-33: PWA manifest icons — added 192x192 and 512x512 generated from master. Separated `any`/`maskable` entries. Required for Microsoft Store PWA submission.
-- CR-34: PageNotFound `window.location.href` → `useNavigate()`. Capacitor compatibility fix.
-- Full code audit: ESLint clean (0 errors), no `alert()` calls, no broken navigation. App confirmed solid for store submission.
-- Beta testing closed — Google Form closed, all session 1 items resolved, STATUS.md updated.
-
-### 2026-04-12 (Windows — CR-32: Interstitial ad frequency + ad architecture review)
-- CR-32: `AD_FREQUENCY` reduced from 6 → 3 completed games in `Home.jsx`. Industry standard for casual word games. Remove Ads ($2.99) already stubbed — RevenueCat wiring deferred to Phase 5.
-- Ad architecture confirmed: interstitials every 3 completed games (short-form 15s, AdMob config at Phase 5); rewarded ads 30s non-skippable (player-initiated for hints); hint packs 3/$0.99 · 10/$1.99 · 25/$3.99; Remove Ads $2.99 one-time.
-
-### 2026-04-12 (Windows — CR-31: How to Play button responsive fix)
-- CR-31: "How to Play" button text hidden on small portrait screens — only HelpCircle icon shown. Text reappears at sm breakpoint (640px+), covering landscape mode. One-line change in `Home.jsx`. Commit `6754924` (note: labeled CR-13 in commit message — correct number is CR-31).
-
-### 2026-04-13 (Windows — CR-35: Settings page — remove Game Preferences, add About & Legal)
-- CR-35: Removed Game Preferences section (default difficulty + preferred category) — redundant, players select both at game start. Reduces Settings page scrolling.
-- Added About & Legal card at the bottom of Settings: developer (Unique Interactive Games), version (1.0.0), Privacy Policy link (`uniquegames.com.au/soundfind/privacy/`), Support & Contact link (`uniquegames.com.au/contact/`), website link (`uniquegames.com.au`).
-- Required for app store submission — Google Play mandates an in-app privacy policy link when ads are present.
-- Cleaned up unused imports: `Target`, `CATEGORIES`, `DIFFICULTY_LEVELS`.
-- Commit `b32691f`.
-
-### 2026-04-15 (Windows — DEF-31, DEF-32, DEF-33: Capacitor regression + stats fix)
-- DEF-33: Stats never saved — stale closure bug in handleWordFound (useCallback). progress/score/hintsRemaining were captured as null/0 at creation time; loadProgressData() is async so progress was always null when saveProgress ran, causing early return. Fixed by adding progressRef, scoreRef, hintsRemainingRef following the existing ref pattern. Confirmed working. Commit `9c9be23`.
-
-### 2026-04-15 (Windows — DEF-31, DEF-32: HashRouter regression fixes)
-- DEF-31: `window.location.search` returns empty with HashRouter — URL params (mode, category, level) were silently lost on every game launch. Fixed by replacing with `useSearchParams()` hook in `Game.jsx`. Commit `a081fb9`.
-- DEF-32: Eye (reveal) button in Word Association mode was `disabled` when hints = 0 — blocked the HintModal (watch ad / buy hints) from opening. Removed `disabled` prop; `handleRevealWord` already handles the 0-hints case. Commit `562a3bc`.
-
-### 2026-04-15 (Windows — CR-36: Capacitor integration)
-- Installed @capacitor/core, @capacitor/cli, @capacitor/ios, @capacitor/android
-- Initialised with appId `au.com.uniquegames.soundfind`, webDir `dist`
-- Switched BrowserRouter → HashRouter in App.jsx (required for Capacitor WebView)
-- Added ios/ and android/ native project scaffolding (committed to repo)
-- Updated .gitignore to exclude build artifacts and generated web asset copies
-- Updated .gitattributes — added mp3 binary, keystore binary, bat/cmd CRLF
-- Capacitor blocker resolved — native iOS/Android builds now possible once developer accounts are active
-- Commit `43bc02f`
-
-### 2026-04-15 (iPhone — store & admin work via Claude)
-- Apple developer account for Unique Interactive Games: set up, D-U-N-S submitted 14 Apr — expect confirmation ~21–22 Apr (4–5 business days)
-- Google Play developer account: BLOCKED — `apps@uniquegames.com.au` Google account in 14–90 day cooldown (was a deleted Google Workspace account). Must retry signup → "Use your existing email" after cooldown.
-- Microsoft Store developer account: NOT YET CREATED — unblocked (no dependency on Google account). Create at partner.microsoft.com/dashboard.
-- Business structure confirmed: Family Trust ABN, two registered business names (Notiva + Unique Interactive Games). Accountant still needed (startup-savvy, trust-familiar — flagged Urgent in ClickUp).
-- ClickUp handoff document created: "Project Context & Status — Claude Handoff Document" in Team Space (workspace 90161564576). Reference doc for any Claude session.
-
 ## Next Steps (Priority Order)
-
-- [x] CR-16–CR-35 complete ✅ — app locked at v1.0.0
-- [x] Beta testing complete ✅ — Google Form closed 12 April 2026
-- [x] PWA manifest + service worker ✅ — CR-23 + CR-33
-- [x] App icon + splash screen ✅ — CR-18/19/20
-- [x] uniquegames.com.au live ✅ — Privacy Policy, SSL, email all active
-- [x] **Capacitor integration complete** ✅ — CR-36. appId `au.com.uniquegames.soundfind`, ios/ and android/ committed. HashRouter in place. Native builds unblocked.
-- [x] **Microsoft Store developer account** ✅ — Company account created 15 Apr. Email verified. Business + employment verification under review (~5 business days). Publisher: Unique Interactive Games.
-- [ ] **Apple developer account** — waiting on D-U-N-S confirmation (~21–22 Apr). Then register at developer.apple.com with apps@uniquegames.com.au.
-- [ ] **Google Play developer account** — waiting on Google account cooldown (14–90 days from ~15 Apr). Then register at play.google.com/console ($25 USD one-time).
-- [ ] Write App Store listing copy (Apple + Google) — name, subtitle, description, keywords
-- [ ] Create App Store screenshots — iPhone 6.9", 6.5", iPad Pro 12.9"
-- [ ] Create Google Play Feature Graphic (1024×500 PNG)
-- [ ] Complete IARC content rating questionnaire (Google Play Console)
-- [ ] Apple Privacy Labels declaration (App Store Connect)
-- [ ] Google Play Data Safety form
-- [ ] Set up TestFlight (iOS internal testing, up to 25 testers)
-- [ ] Set up Google Play Internal Testing track (up to 100 testers)
-- [ ] Build Terms of Service page on uniquegames.com.au
+- [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
+- [ ] Review beta defects and fix — prioritise Critical/High severity
 - [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
-- [ ] Wire up real AdMob (replace placeholder interstitial) — Phase 5 with Capacitor
-- [ ] Analytics: PostHog + Sentry (before public launch)
-- [ ] Find startup-savvy accountant familiar with trust structures (URGENT — shared with MER)
+- [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
+- [ ] App icon design (1024×1024 master)
+- [ ] PWA manifest + service worker (vite-plugin-pwa)
+- [ ] Capacitor setup for iOS/Android native builds
+- [ ] Analytics: PostHog + Sentry integration (before public launch)
+- [ ] Privacy Policy page on uniquegames.com.au (required for App Store submissions)

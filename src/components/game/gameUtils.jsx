@@ -2100,7 +2100,12 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
     }
   }
 
-  return { grid, words: placedWords, wordPositions, gridSize, bonusWord, bonusHint, bonusLetterPositions };
+  // Safety net: drop any word that didn't end up with a grid position.
+  // Prevents a word appearing in the word list with no grid representation,
+  // which would cause hints to "find" it without highlighting any cells (DEF-35).
+  const verifiedWords = placedWords.filter(w => wordPositions[w.toUpperCase()]);
+
+  return { grid, words: verifiedWords, wordPositions, gridSize, bonusWord, bonusHint, bonusLetterPositions };
 }
 
 // ─── Word checking ────────────────────────────────────────────────────────────

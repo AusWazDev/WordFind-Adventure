@@ -38,9 +38,9 @@ export default function Settings() {
     saveLocalSettings(updated);
   };
 
-  const testVoice = () => {
+  const testVoice = async () => {
     if (settings) {
-      unlockAudio();
+      await unlockAudio();
       speakPhraseAndWord('great_you_found', 'RAIN', 'Great! You found rain!', settings);
     }
   };

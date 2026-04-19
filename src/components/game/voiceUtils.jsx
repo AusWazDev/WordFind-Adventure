@@ -11,7 +11,7 @@
 // ─── iOS audio unlock ─────────────────────────────────────────────────────────
 let iosUnlocked = false;
 
-export function unlockAudio() {
+export async function unlockAudio() {
   // Unlock Web Speech API (iOS requires a gesture before speechSynthesis plays)
   if (!iosUnlocked && 'speechSynthesis' in window) {
     const utterance = new SpeechSynthesisUtterance('');
@@ -19,9 +19,13 @@ export function unlockAudio() {
     utterance.onend = () => { iosUnlocked = true; };
     window.speechSynthesis.speak(utterance);
   }
-  // Unlock Web Audio API (iOS suspends AudioContext until first user gesture)
+  // Unlock Web Audio API — Android/iOS suspend AudioContext until first user gesture.
+  // Await the resume so the context is guaranteed running before any audio is scheduled.
   if (typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)) {
-    getAudioContext();
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
   }
 }
 

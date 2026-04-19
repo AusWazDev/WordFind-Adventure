@@ -23,8 +23,8 @@ export default function WordList({
   const isOnline = useOnlineStatus();
 
   const speakWord = async (word) => {
-    // Unlock iOS audio engine on this user tap
-    unlockAudio();
+    // Unlock audio engine on user tap — awaited so AudioContext is running before we schedule
+    await unlockAudio();
 
     const settings = getLocalSettings();
 

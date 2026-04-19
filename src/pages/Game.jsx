@@ -193,8 +193,7 @@ export default function Game() {
       // Speak feedback — unlockAudio() first so iOS allows it.
       // This fires from the result of a drag gesture which counts as a user interaction.
       if (mode === 'audio' && audioEnabled) {
-        unlockAudio();
-        loadSettings().then(settings => {
+        unlockAudio().then(() => loadSettings()).then(settings => {
           speakText(`Great! You found ${foundWord}!`, settings);
         });
       }
@@ -207,8 +206,7 @@ export default function Game() {
         if (currentGame.bonusWord && currentGame.bonusLetterPositions?.length && !bonusFoundRef.current) {
           setBonusHuntActive(true);
           if (mode === 'audio' && audioEnabled) {
-            unlockAudio();
-            loadSettings().then(settings =>
+            unlockAudio().then(() => loadSettings()).then(settings =>
               speakText('Incredible! All words found! Now find the hidden bonus word!', settings)
             );
           }
@@ -331,8 +329,7 @@ export default function Game() {
       setBonusInput('');
       setScore(prev => prev + bPts);
       if (mode === 'audio' && audioEnabled) {
-        unlockAudio();
-        loadSettings().then(s => speakText(`Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s));
+        unlockAudio().then(() => loadSettings()).then(s => speakText(`Amazing! The hidden word was ${gameData.bonusWord.toLowerCase()}!`, s));
       }
       toast.success(`🌟 ${gameData.bonusWord}! +${bPts} bonus points!`, { duration: 3000 });
       setTimeout(() => { setShowVictory(true); saveProgress(foundWords.length); }, 900);
@@ -520,6 +517,7 @@ export default function Game() {
               flexShrink: 0, width: '100%',
               maxHeight: 'min(55dvh, 100vw)',
               aspectRatio: '1 / 1', overflow: 'hidden',
+              display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
             }}
           >
             {boardSize > 0 && (

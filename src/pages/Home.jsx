@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, Trophy, Lightbulb, HelpCircle } from 'lucide-react';
+import { Trophy, Lightbulb, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GameModeSelector from '@/components/game/GameModeSelector';
 import CategorySelector from '@/components/game/CategorySelector';
@@ -105,9 +105,16 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center gap-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl shadow-md shadow-violet-200">
-                <Volume2 className="w-5 h-5 text-white" />
-              </div>
+              <img
+                src="/icon.png"
+                alt="SoundFind"
+                style={{
+                  width: '40px', height: '40px',
+                  borderRadius: 'calc(40px * 0.2237)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  display: 'block',
+                }}
+              />
               <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
                 Sound<span className="text-violet-600">Find</span>
               </h1>

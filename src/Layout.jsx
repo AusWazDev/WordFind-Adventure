@@ -37,13 +37,9 @@ export default function Layout({ children, currentPageName }) {
   const currIdx = NAV_ORDER.indexOf(currentPageName);
   const direction = currIdx >= prevIdx ? 1 : -1;
 
-  // Apply system dark mode
+  // App is designed for dark mode — force dark class regardless of system preference
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = (e) => document.documentElement.classList.toggle('dark', e.matches);
-    apply(mq);
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
+    document.documentElement.classList.add('dark');
   }, []);
 
   // Save/restore scroll position on page change

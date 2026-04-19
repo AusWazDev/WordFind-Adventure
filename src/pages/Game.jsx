@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import GameBoard from '@/components/game/GameBoard';
 import WordList from '@/components/game/WordList';
@@ -66,11 +66,11 @@ function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, o
 // ─── Main Game component ──────────────────────────────────────────────────────
 export default function Game() {
   const navigate = useNavigate();
-  const urlParams = new URLSearchParams(window.location.search);
-  const mode = urlParams.get('mode') || 'standard';
-  const categoryParam = urlParams.get('category');
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode') || 'standard';
+  const categoryParam = searchParams.get('category');
   const category = (categoryParam && categoryParam !== 'null') ? categoryParam : null;
-  const level = parseInt(urlParams.get('level') || '1');
+  const level = parseInt(searchParams.get('level') || '1');
 
   const [gameData, setGameData] = useState(null);
   const [foundWords, setFoundWords] = useState([]);

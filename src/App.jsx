@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Toaster } from 'sonner'
 import { pagesConfig } from './pages.config'
 import { HashRouter as Router, Route, Routes } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 import PageNotFound from './lib/PageNotFound';
 import SplashScreen from './components/game/SplashScreen';
 
@@ -45,4 +46,4 @@ function App() {
   );
 }
 
-export default App;
+export default Sentry.withProfiler(App);

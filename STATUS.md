@@ -204,6 +204,7 @@ Current baseline: commit `129f64f`
 - Fix: added `onHintCell` + `hintsRemaining` props to `AnagramWordList` and `AssociationWordList` via `WordListSwitch` in `Game.jsx`; added Lightbulb button to each component following the `WordList.jsx` pattern
 - All 4 non-audio modes (Standard, Mystery Word, Anagram Hunt, Word Association) now have the Lightbulb hint — CR-03 fully complete
 - Commit `7b5bcb9` — lint clean, build passing
+- DEF-41: Removed RED and TAN from colours word list — both are 3 letters, below the 4-letter minimum required for Master difficulty grid placement. Commit `da4224e`.
 
 ## Next Steps (Priority Order)
 - [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register

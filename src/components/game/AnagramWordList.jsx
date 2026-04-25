@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Shuffle } from 'lucide-react';
+import { Check, Shuffle, Lightbulb } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { scrambleWord } from '@/components/game/gameUtils';
 
-export default function AnagramWordList({ words, foundWords, hintWord }) {
+export default function AnagramWordList({ words, foundWords, hintWord, onHintCell, hintsRemaining }) {
   // Stable scrambles per word (re-scramble button)
   const [scrambles, setScrambles] = useState(() => {
     const m = {};
@@ -61,10 +62,24 @@ export default function AnagramWordList({ words, foundWords, hintWord }) {
                   {isFound ? word : scrambles[word] || word}
                 </span>
                 {!isFound && (
-                  <button onClick={() => reshuffleWord(word)}
-                    className="flex items-center justify-center h-11 w-11 text-muted-foreground hover:text-violet-500 transition-colors rounded-lg">
-                    <Shuffle className="w-4 h-4" />
-                  </button>
+                  <div className="flex gap-1">
+                    <button onClick={() => reshuffleWord(word)}
+                      className="flex items-center justify-center h-11 w-11 text-muted-foreground hover:text-violet-500 transition-colors rounded-lg">
+                      <Shuffle className="w-4 h-4" />
+                    </button>
+                    {onHintCell && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        disabled={!!hintWord}
+                        className={`h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 ${hintWord ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        onClick={() => onHintCell(word)}
+                        title="Flash first letter on grid (uses a hint, −25% score penalty)"
+                      >
+                        <Lightbulb className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 )}
               </motion.div>
             );

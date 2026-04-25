@@ -34,7 +34,7 @@ function useOrientation() {
 // ─── Word list router ─────────────────────────────────────────────────────────
 function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, onRevealWord, onHintCell, hintsRemaining, category }) {
   if (mode === 'anagram') {
-    return <AnagramWordList words={gameData.words} foundWords={foundWords} hintWord={hintWord} />;
+    return <AnagramWordList words={gameData.words} foundWords={foundWords} hintWord={hintWord} onHintCell={onHintCell} hintsRemaining={hintsRemaining} />;
   }
   if (mode === 'association') {
     return (
@@ -44,6 +44,7 @@ function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, o
         hintWord={hintWord}
         revealedWords={revealedWords}
         onRevealWord={onRevealWord}
+        onHintCell={onHintCell}
         hintsRemaining={hintsRemaining}
       />
     );

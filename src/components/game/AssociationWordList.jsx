@@ -1,10 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Eye } from 'lucide-react';
+import { Check, Eye, Lightbulb } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { getClue } from '@/components/game/gameUtils';
 
-export default function AssociationWordList({ words, foundWords, hintWord, revealedWords, onRevealWord, hintsRemaining }) {
+export default function AssociationWordList({ words, foundWords, hintWord, revealedWords, onRevealWord, onHintCell, hintsRemaining }) {
   return (
     <div className="bg-card rounded-2xl shadow-lg p-4 md:p-6">
       <div className="flex items-center justify-between mb-4">
@@ -52,13 +53,27 @@ export default function AssociationWordList({ words, foundWords, hintWord, revea
                   {isFound || isRevealed ? word : getClue(word)}
                 </span>
                 {!isFound && !isRevealed && (
-                  <button
-                    onClick={() => onRevealWord(word)}
-                    className="flex items-center justify-center h-11 w-11 shrink-0 text-muted-foreground hover:text-amber-500 transition-colors rounded-lg"
-                    title="Use a hint to reveal"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => onRevealWord(word)}
+                      className="flex items-center justify-center h-11 w-11 text-muted-foreground hover:text-amber-500 transition-colors rounded-lg"
+                      title="Use a hint to reveal"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    {onHintCell && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        disabled={!!hintWord}
+                        className={`h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 ${hintWord ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        onClick={() => onHintCell(word)}
+                        title="Flash first letter on grid (uses a hint, −25% score penalty)"
+                      >
+                        <Lightbulb className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 )}
               </motion.div>
             );

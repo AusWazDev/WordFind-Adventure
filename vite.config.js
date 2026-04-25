@@ -1,10 +1,16 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import path from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  if (!env.VITE_SENTRY_DSN) {
+    console.warn('\n⚠️  WARNING: VITE_SENTRY_DSN is not set — Sentry crash reporting will be DISABLED in this build.')
+    console.warn('   Add VITE_SENTRY_DSN to .env.local (local builds) or the platform environment variables (Vercel/Electron/Capacitor).\n')
+  }
+  return {
   plugins: [
     react(),
     VitePWA({
@@ -81,5 +87,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
-  },
+  }
+  }
 })

@@ -199,6 +199,12 @@ Current baseline: commit `129f64f`
 ### 2026-04-19 (Mac — DEF-35 word placement bug)
 - DEF-35: Fixed Mystery Word mode bug where a word appeared in the Words to Find list without being placed in the grid. Edge case in the filler loop where a word ends up in `placedWords` but its `wordPositions` entry is deleted by the undo/overlap logic. Hint system was marking the unplaced word as found with no grid cells highlighted. Fix: filter `placedWords` against `wordPositions` before returning from `generateGame` — any word without a grid position is dropped. Commit `2b5b6d9`.
 
+### 2026-04-26 (Windows — integrity checks, missing clues, Sentry)
+- Fixed: 5 words in wordLists (ATMOSPHERE, DATA, LORD, MEMORY, SUNLIGHT) had no Association clue — all 1,306 words now have dedicated clues. Commit `68c73bc`.
+- CR-39: Added Sentry crash reporting (`@sentry/react`) — `sendDefaultPii:false`, disabled when `VITE_SENTRY_DSN` unset, app wrapped with `Sentry.withProfiler`. Commit `c810a2a`.
+- **TODO before Vercel deploy:** create Sentry project at sentry.io → copy DSN → add `VITE_SENTRY_DSN` to Vercel environment variables
+- **TODO:** add crash reporting disclosure to Privacy Policy (both Vercel app and uniquegames-site SoundFind privacy page)
+
 ### 2026-04-25 (Windows — CR-03 completion, code audit)
 - Pre-Electron build code audit identified that CR-03 (Lightbulb hint for all non-audio modes) was incompletely implemented — Anagram Hunt and Word Association were missing the Lightbulb button entirely
 - Fix: added `onHintCell` + `hintsRemaining` props to `AnagramWordList` and `AssociationWordList` via `WordListSwitch` in `Game.jsx`; added Lightbulb button to each component following the `WordList.jsx` pattern

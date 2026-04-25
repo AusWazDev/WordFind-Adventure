@@ -199,6 +199,12 @@ Current baseline: commit `129f64f`
 ### 2026-04-19 (Mac — DEF-35 word placement bug)
 - DEF-35: Fixed Mystery Word mode bug where a word appeared in the Words to Find list without being placed in the grid. Edge case in the filler loop where a word ends up in `placedWords` but its `wordPositions` entry is deleted by the undo/overlap logic. Hint system was marking the unplaced word as found with no grid cells highlighted. Fix: filter `placedWords` against `wordPositions` before returning from `generateGame` — any word without a grid position is dropped. Commit `2b5b6d9`.
 
+### 2026-04-25 (Windows — CR-03 completion, code audit)
+- Pre-Electron build code audit identified that CR-03 (Lightbulb hint for all non-audio modes) was incompletely implemented — Anagram Hunt and Word Association were missing the Lightbulb button entirely
+- Fix: added `onHintCell` + `hintsRemaining` props to `AnagramWordList` and `AssociationWordList` via `WordListSwitch` in `Game.jsx`; added Lightbulb button to each component following the `WordList.jsx` pattern
+- All 4 non-audio modes (Standard, Mystery Word, Anagram Hunt, Word Association) now have the Lightbulb hint — CR-03 fully complete
+- Commit `7b5bcb9` — lint clean, build passing
+
 ## Next Steps (Priority Order)
 - [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
 - [ ] Review beta defects and fix — prioritise Critical/High severity

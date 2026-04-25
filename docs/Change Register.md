@@ -15,7 +15,7 @@ All future changes must be raised as a Change Request, approved before implement
 |------|-------|--------|--------|------|
 | CR-01 | Remove Spelling Bee mode entirely | ✅ Completed | `a80a6ae` | Mar 2026 |
 | CR-02 | Promote Mystery Word to secondary hero card; reorder remaining tiles | ✅ Completed | `a80a6ae` | Mar 2026 |
-| CR-03 | Add Lightbulb hint button to all non-audio word list modes (−25% penalty) | ✅ Completed | `a80a6ae` | Mar 2026 |
+| CR-03 | Add Lightbulb hint button to all non-audio word list modes (−25% penalty). Initial implementation (`a80a6ae`) wired Lightbulb into Standard and Mystery Word modes but omitted Anagram Hunt and Word Association. Fix (`7b5bcb9`): added `onHintCell` + `hintsRemaining` props to both `AnagramWordList` and `AssociationWordList` in `WordListSwitch`, added Lightbulb button to each component matching the `WordList.jsx` pattern. All 4 non-audio modes now have Lightbulb. | ✅ Completed | `a80a6ae` + `7b5bcb9` | Mar 2026 / Apr 2026 |
 | CR-04 | Expand Word Association clues from ~50 to ~800 entries (all categories + tricky audio words) | ✅ Completed | `a80a6ae` | Mar 2026 |
 | CR-05 | Restrict Mystery Word filler pool to active category only | ✅ Completed | `a80a6ae` | Mar 2026 |
 | CR-06 | Full-grid Mystery Word coverage — all remaining empty cells form the mystery word | ✅ Completed | `a80a6ae` | Mar 2026 |

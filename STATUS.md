@@ -206,7 +206,7 @@ Current baseline: commit `129f64f`
 - Privacy Policy (uniquegames-site) updated with Sentry disclosure — Section 8 now covers crash reporting (US storage, 30-day retention, no PII). Site deployed and verified at uniquegames.com.au/soundfind/privacy/. Commit `a847117`.
 - MER Change Register updated — entries 33–37 added covering commits f693b57, 52b41b9, a42594f, a42594f, fc01e97.
 - ClickUp handoff document updated.
-- **SESSION ENDED HERE: Capacitor Electron MSIX build not yet started — was about to run `npm install --save-dev electron electron-builder`. Resume from Step 29.**
+- CR-40: Electron MSIX build complete — `electron/main.cjs` created, electron-builder configured with Partner Center identity (`UniqueInteractiveGames.SoundFind`). `SoundFind 1.0.0.appx` (265 MB) built and uploaded to Partner Center. **Submitted for certification 26 Apr 2026.** Store ID: `9PG86ZDTB3P0`. Commit `29d40db`.
 
 ### 2026-04-25 (Windows — CR-03 completion, code audit)
 - Pre-Electron build code audit identified that CR-03 (Lightbulb hint for all non-audio modes) was incompletely implemented — Anagram Hunt and Word Association were missing the Lightbulb button entirely
@@ -217,33 +217,10 @@ Current baseline: commit `129f64f`
 
 ## Next Steps (Priority Order)
 
-### Immediate — Electron MSIX build (Step 29)
-- [ ] `npm install --save-dev electron electron-builder` in `C:\dev\WordFind-Adventure`
-- [ ] Create `electron/main.cjs` (CommonJS — package.json has `"type":"module"`) — see plan below
-- [ ] Add `"main": "electron/main.cjs"` to package.json; add `build:electron` + `electron:dist` scripts
-- [ ] Add electron-builder `build` config to package.json — target `appx`, `asar: false`, `files: ["electron/main.cjs","dist/**/*","!dist/**/*.map"]`
-- [ ] Run `npm run electron:test` to verify app loads from dist/index.html in Electron window
-- [ ] Get Partner Center identity values (identityName, publisher CN=...) from Partner Center → App management → App identity for SoundFind (Seller 94323130)
-- [ ] Update appx config with real identityName + publisher, then run `npm run electron:msix`
-- [ ] Upload MSIX to Partner Center
-
-### Electron main.cjs plan (not yet written)
-```
-const { app, BrowserWindow } = require('electron')
-const path = require('path')
-function createWindow() {
-  const win = new BrowserWindow({ width: 430, height: 860, minWidth: 320, minHeight: 600,
-    show: false, icon: path.join(__dirname, '../dist/icon.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true } })
-  win.loadFile(path.join(__dirname, '../dist/index.html'))
-  win.once('ready-to-show', () => win.show())
-}
-app.whenReady().then(() => { createWindow(); app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() }) })
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
-```
-- Vite build needs `--base ./` for file:// loading: `"electron:build-web": "vite build --base ./"`
-- `asar: false` — needed so 106MB audio files in dist/audio/ are accessible as regular files
-- Sentry DSN must be baked in at build time via env var: set `VITE_SENTRY_DSN` before running `electron:build-web`
+### ✅ Electron MSIX — DONE (26 Apr 2026)
+- Submitted to Microsoft Store for certification. Store ID: `9PG86ZDTB3P0`
+- Await certification email at apps@uniquegames.com.au (few hours to 3 business days)
+- If certification fails on runFullTrust: it was approved with the justification provided
 
 ### After Electron MSIX
 - [ ] MER iOS + iPad screenshots — deferred until iPad available (combine iPhone 15 Pro Max 1290×2796px + iPad in one session, 5 screens: splash, home, log event, filled-in log, history)

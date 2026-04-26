@@ -199,11 +199,14 @@ Current baseline: commit `129f64f`
 ### 2026-04-19 (Mac — DEF-35 word placement bug)
 - DEF-35: Fixed Mystery Word mode bug where a word appeared in the Words to Find list without being placed in the grid. Edge case in the filler loop where a word ends up in `placedWords` but its `wordPositions` entry is deleted by the undo/overlap logic. Hint system was marking the unplaced word as found with no grid cells highlighted. Fix: filter `placedWords` against `wordPositions` before returning from `generateGame` — any word without a grid position is dropped. Commit `2b5b6d9`.
 
-### 2026-04-26 (Windows — integrity checks, missing clues, Sentry)
+### 2026-04-26 (Windows — integrity checks, missing clues, Sentry, privacy)
 - Fixed: 5 words in wordLists (ATMOSPHERE, DATA, LORD, MEMORY, SUNLIGHT) had no Association clue — all 1,306 words now have dedicated clues. Commit `68c73bc`.
-- CR-39: Added Sentry crash reporting (`@sentry/react`) — `sendDefaultPii:false`, disabled when `VITE_SENTRY_DSN` unset, app wrapped with `Sentry.withProfiler`. Commit `c810a2a`.
-- **TODO before Vercel deploy:** create Sentry project at sentry.io → copy DSN → add `VITE_SENTRY_DSN` to Vercel environment variables
-- **TODO:** add crash reporting disclosure to Privacy Policy (both Vercel app and uniquegames-site SoundFind privacy page)
+- CR-39: Added Sentry crash reporting (`@sentry/react`) — `sendDefaultPii:false`, disabled when `VITE_SENTRY_DSN` unset, app wrapped with `Sentry.withProfiler`. Commits `c810a2a` + `0365e82`.
+- Sentry project created at sentry.io (slug: soundfind, org: bedlin-development). DSN added to Vercel (Production + Preview) and `.env.local`. End-to-end verified — test error appeared in Sentry dashboard (SOUNDFIND-2), then resolved.
+- Privacy Policy (uniquegames-site) updated with Sentry disclosure — Section 8 now covers crash reporting (US storage, 30-day retention, no PII). Site deployed and verified at uniquegames.com.au/soundfind/privacy/. Commit `a847117`.
+- MER Change Register updated — entries 33–37 added covering commits f693b57, 52b41b9, a42594f, a42594f, fc01e97.
+- ClickUp handoff document updated.
+- **SESSION ENDED HERE: Capacitor Electron MSIX build not yet started — was about to run `npm install --save-dev electron electron-builder`. Resume from Step 29.**
 
 ### 2026-04-25 (Windows — CR-03 completion, code audit)
 - Pre-Electron build code audit identified that CR-03 (Lightbulb hint for all non-audio modes) was incompletely implemented — Anagram Hunt and Word Association were missing the Lightbulb button entirely
@@ -213,12 +216,37 @@ Current baseline: commit `129f64f`
 - DEF-41: Removed RED and TAN from colours word list — both are 3 letters, below the 4-letter minimum required for Master difficulty grid placement. Commit `da4224e`.
 
 ## Next Steps (Priority Order)
-- [ ] **Beta testing in progress** — monitor Google Form responses, log defects via Change Register
-- [ ] Review beta defects and fix — prioritise Critical/High severity
-- [ ] Wire up RevenueCat SDK (IAP + remove-ads) — Phase 5 with Capacitor
-- [ ] Wire up real AdMob (replace Unsplash placeholder) — Phase 5 with Capacitor
-- [ ] App icon design (1024×1024 master)
-- [ ] PWA manifest + service worker (vite-plugin-pwa)
-- [ ] Capacitor setup for iOS/Android native builds
-- [ ] Analytics: PostHog + Sentry integration (before public launch)
-- [ ] Privacy Policy page on uniquegames.com.au (required for App Store submissions)
+
+### Immediate — Electron MSIX build (Step 29)
+- [ ] `npm install --save-dev electron electron-builder` in `C:\dev\WordFind-Adventure`
+- [ ] Create `electron/main.cjs` (CommonJS — package.json has `"type":"module"`) — see plan below
+- [ ] Add `"main": "electron/main.cjs"` to package.json; add `build:electron` + `electron:dist` scripts
+- [ ] Add electron-builder `build` config to package.json — target `appx`, `asar: false`, `files: ["electron/main.cjs","dist/**/*","!dist/**/*.map"]`
+- [ ] Run `npm run electron:test` to verify app loads from dist/index.html in Electron window
+- [ ] Get Partner Center identity values (identityName, publisher CN=...) from Partner Center → App management → App identity for SoundFind (Seller 94323130)
+- [ ] Update appx config with real identityName + publisher, then run `npm run electron:msix`
+- [ ] Upload MSIX to Partner Center
+
+### Electron main.cjs plan (not yet written)
+```
+const { app, BrowserWindow } = require('electron')
+const path = require('path')
+function createWindow() {
+  const win = new BrowserWindow({ width: 430, height: 860, minWidth: 320, minHeight: 600,
+    show: false, icon: path.join(__dirname, '../dist/icon.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true } })
+  win.loadFile(path.join(__dirname, '../dist/index.html'))
+  win.once('ready-to-show', () => win.show())
+}
+app.whenReady().then(() => { createWindow(); app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() }) })
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
+```
+- Vite build needs `--base ./` for file:// loading: `"electron:build-web": "vite build --base ./"`
+- `asar: false` — needed so 106MB audio files in dist/audio/ are accessible as regular files
+- Sentry DSN must be baked in at build time via env var: set `VITE_SENTRY_DSN` before running `electron:build-web`
+
+### After Electron MSIX
+- [ ] MER iOS + iPad screenshots — deferred until iPad available (combine iPhone 15 Pro Max 1290×2796px + iPad in one session, 5 screens: splash, home, log event, filled-in log, history)
+- [ ] Remaining store submissions (Google Play, Apple App Store — pending Apple account)
+- [ ] RevenueCat SDK (IAP + remove-ads) — Phase 5
+- [ ] Real AdMob integration — Phase 5

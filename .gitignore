@@ -30,6 +30,9 @@ dist-ssr
 .env
 .vercel
 
+# Electron build output
+electron-dist
+
 # Capacitor — build artifacts and generated web asset copies
 .capacitor
 android/.gradle

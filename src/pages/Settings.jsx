@@ -311,6 +311,14 @@ export default function Settings() {
                 Privacy Policy →
               </a>
               <a
+                href="https://www.uniquegames.com.au/soundfind/terms/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-violet-600 dark:text-violet-400 hover:underline"
+              >
+                Terms of Service →
+              </a>
+              <a
                 href="https://www.uniquegames.com.au/contact/"
                 target="_blank"
                 rel="noopener noreferrer"

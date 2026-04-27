@@ -199,6 +199,17 @@ Current baseline: commit `129f64f`
 ### 2026-04-19 (Mac — DEF-35 word placement bug)
 - DEF-35: Fixed Mystery Word mode bug where a word appeared in the Words to Find list without being placed in the grid. Edge case in the filler loop where a word ends up in `placedWords` but its `wordPositions` entry is deleted by the undo/overlap logic. Hint system was marking the unplaced word as found with no grid cells highlighted. Fix: filter `placedWords` against `wordPositions` before returning from `generateGame` — any word without a grid position is dropped. Commit `2b5b6d9`.
 
+### 2026-04-28 (Windows — CR-42 APPX tile fix + resubmission)
+- CR-42: Fixed MS Store certification failure (policy 10.1.1.11 — default/generic tile assets).
+  - Root cause: electron-builder generates Square150x150 at 300×300 (double size) and Wide310x150 at 620×300 with white/grey backgrounds — not branded.
+  - `scripts/generate-appx-assets.mjs` created — sharp-based generator for 6 branded PNG tiles (dark #0f0e1a background, icon centred for square tiles; Wide tile: icon left-aligned + SVG "Sound"/"Find" text overlay on right side).
+  - `scripts/patch-appx-assets.mjs` created — uses makeappx.exe to unpack APPX, replace tile assets, repack. adm-zip corrupts APPX zip format (0x80511002 error); makeappx is the only correct tool.
+  - `electron:dist` script updated to auto-run patch after electron-builder.
+  - `electron/appx-assets/` committed with all 6 branded tiles. Commits `0f64a94` + `1b06c5d`.
+  - `docs/Store Submission Checklist.md` created — 5-section pre-submission checklist to prevent future regressions.
+  - Resubmitted to Partner Center 27 Apr 2026 — passed pre-processing, in certification as of 28 Apr 2026.
+- MER tile assets verified — Flutter msix generates proper multi-scale variants (scale-100 through scale-400), all branded on dark background. No action required.
+
 ### 2026-04-26 (evening — Terms of Service link)
 - CR-41: Added Terms of Service link to Settings About & Legal section (`Settings.jsx`) — between Privacy Policy and Support & Contact. ToS page already live at uniquegames.com.au/soundfind/terms/. Commit `c7ff500`.
 
@@ -220,10 +231,10 @@ Current baseline: commit `129f64f`
 
 ## Next Steps (Priority Order)
 
-### ✅ Electron MSIX — DONE (26 Apr 2026)
-- Submitted to Microsoft Store for certification. Store ID: `9PG86ZDTB3P0`
-- Await certification email at apps@uniquegames.com.au (few hours to 3 business days)
-- If certification fails on runFullTrust: it was approved with the justification provided
+### ✅ Electron MSIX — DONE (26 Apr 2026), resubmitted 27 Apr 2026 (tile fix CR-42)
+- **In certification** as of 28 Apr 2026. Store ID: `9PG86ZDTB3P0`
+- Await certification email at apps@uniquegames.com.au
+- runFullTrust warning is expected and already approved — not a failure condition
 
 ### After Electron MSIX
 - [ ] MER iOS + iPad screenshots — deferred until iPad available (combine iPhone 15 Pro Max 1290×2796px + iPad in one session, 5 screens: splash, home, log event, filled-in log, history)

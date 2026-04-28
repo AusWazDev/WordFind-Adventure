@@ -2,27 +2,26 @@
  * Post-processes the electron-builder APPX to replace auto-generated tile
  * assets (white-background defaults) with branded SoundFind tiles.
  *
- * Run AFTER npm run electron:dist:
- *   node scripts/patch-appx-assets.mjs
+ * Uses makeappx.exe to unpack and repack — preserves the strict APPX zip
+ * format that generic zip libraries corrupt.
  *
- * Uses adm-zip to patch only the asset entries in-place — no full extraction needed.
- * Partner Center signs the package on their end; no local signing required.
+ * Run AFTER npm run electron:build-web && electron-builder --win appx:
+ *   node scripts/patch-appx-assets.mjs
  */
 
-import AdmZip from 'adm-zip';
-import { readFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { execSync }                          from 'child_process';
+import { copyFileSync, existsSync, rmSync }  from 'fs';
+import { mkdirSync, readFileSync }           from 'fs';
+import { join, dirname }                     from 'path';
+import { fileURLToPath }                     from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT    = join(__dirname, '..');
-const APPX    = join(ROOT, 'electron-dist', 'SoundFind 1.0.0.appx');
-const ASSETS  = join(ROOT, 'electron', 'appx-assets');
-
-if (!existsSync(APPX)) {
-  console.error('ERROR: APPX not found. Run npm run electron:dist first.');
-  process.exit(1);
-}
+const __dirname  = dirname(fileURLToPath(import.meta.url));
+const ROOT       = join(__dirname, '..');
+const { version } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+const APPX_IN    = join(ROOT, 'electron-dist', `SoundFind ${version}.appx`);
+const STAGING    = join(ROOT, 'electron-dist', '_appx-staging');
+const ASSETS_SRC = join(ROOT, 'electron', 'appx-assets');
+const MAKEAPPX   = 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/makeappx.exe';
 
 const TILE_NAMES = [
   'StoreLogo.png',
@@ -31,33 +30,40 @@ const TILE_NAMES = [
   'Wide310x150Logo.png',
 ];
 
+// Preflight checks
+if (!existsSync(APPX_IN)) {
+  console.error('ERROR: APPX not found — run electron-builder first.');
+  process.exit(1);
+}
 for (const name of TILE_NAMES) {
-  if (!existsSync(join(ASSETS, name))) {
-    console.error(`ERROR: Missing branded asset: electron/appx-assets/${name}`);
+  if (!existsSync(join(ASSETS_SRC, name))) {
+    console.error(`ERROR: Missing branded asset electron/appx-assets/${name}`);
     console.error('Run scripts/generate-appx-assets.mjs first.');
     process.exit(1);
   }
 }
 
-console.log('Opening APPX...');
-const zip = new AdmZip(APPX);
+// Clean staging dir
+if (existsSync(STAGING)) rmSync(STAGING, { recursive: true });
+mkdirSync(STAGING, { recursive: true });
 
-console.log('Replacing tile assets...');
+// Unpack using makeappx
+console.log('Unpacking APPX with makeappx...');
+execSync(`"${MAKEAPPX}" unpack /p "${APPX_IN}" /d "${STAGING}" /o`, { stdio: 'inherit' });
+
+// Replace tile assets
+console.log('\nReplacing tile assets...');
 for (const name of TILE_NAMES) {
-  const entryPath  = `assets/${name}`;
-  const branded    = readFileSync(join(ASSETS, name));
-  const entry      = zip.getEntry(entryPath);
-
-  if (entry) {
-    zip.deleteFile(entryPath);
-    console.log(`  ✓ replaced ${entryPath}`);
-  } else {
-    console.log(`  + added   ${entryPath} (was missing)`);
-  }
-  zip.addFile(entryPath, branded);
+  const dest = join(STAGING, 'assets', name);
+  copyFileSync(join(ASSETS_SRC, name), dest);
+  console.log(`  ✓ assets/${name}`);
 }
 
-console.log('Writing patched APPX...');
-zip.writeZip(APPX);
+// Repack using makeappx (overwrites original)
+console.log('\nRepacking APPX with makeappx...');
+execSync(`"${MAKEAPPX}" pack /d "${STAGING}" /p "${APPX_IN}" /o`, { stdio: 'inherit' });
 
-console.log(`\nDone — electron-dist/SoundFind 1.0.0.appx patched with branded tiles.`);
+// Clean up staging
+rmSync(STAGING, { recursive: true });
+
+console.log(`\nDone — electron-dist/SoundFind ${version}.appx patched with branded tiles.`);

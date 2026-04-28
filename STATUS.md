@@ -229,6 +229,21 @@ Current baseline: commit `129f64f`
 - Commit `7b5bcb9` — lint clean, build passing
 - DEF-41: Removed RED and TAN from colours word list — both are 3 letters, below the 4-letter minimum required for Master difficulty grid placement. Commit `da4224e`.
 
+## Session: 29 April 2026 (continued) — Windows
+
+**SoundFind v1.0.1 submitted for certification**
+
+Issues found in v1.0.0 after publication and fixed in v1.0.1:
+- **Electron window was 430×860px (phone size)** — changed to 1280×820 desktop in `electron/main.cjs`
+- **ElevenLabs audio not working** — `loadFile()` + absolute `/audio/...` paths failed silently, fell back to Web Speech API. Fixed by adding `app://` protocol handler in `electron/main.cjs` so `dist/` is served correctly
+- **Service worker registration errors in Sentry** — PWA SW cannot register on `file://` or `app://` protocols. Fixed by disabling VitePWA plugin for `--mode electron` builds in `vite.config.js`
+- **patch-appx-assets.mjs hardcoded v1.0.0 filename** — would have shipped v1.0.1 with unbranded tiles. Fixed to read version dynamically from `package.json`
+- **Store logo slots empty** — generated `assets/store_logo_300x300.png` + `assets/store_logo_1080x1080.png` and uploaded to Partner Center
+- **Screenshots were portrait/mobile** — retaken at 1561×940px desktop resolution, uploaded to Partner Center
+- Commits: `aa12b13` (v1.0.1 fixes), `14f537e` (patch script fix)
+
+**Submitted for certification:** 29 April 2026
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

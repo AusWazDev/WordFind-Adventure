@@ -231,10 +231,11 @@ Current baseline: commit `129f64f`
 
 ## Next Steps (Priority Order)
 
-### ✅ Electron MSIX — DONE (26 Apr 2026), resubmitted 27 Apr 2026 (tile fix CR-42)
-- **In certification** as of 28 Apr 2026. Store ID: `9PG86ZDTB3P0`
-- Await certification email at apps@uniquegames.com.au
-- runFullTrust warning is expected and already approved — not a failure condition
+### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026
+- Store ID: `9PG86ZDTB3P0`
+- URL: https://apps.microsoft.com/detail/9PG86ZDTB3P0
+- IARC Global Rating ID: `e7709de2-3d26-85a5-89c0-3f1dff2dcfaa` — reuse on Google Play and Apple
+- uniquegames-site updated with live Windows Store badge
 
 ### After Electron MSIX
 - [ ] MER iOS + iPad screenshots — deferred until iPad available (combine iPhone 15 Pro Max 1290×2796px + iPad in one session, 5 screens: splash, home, log event, filled-in log, history)

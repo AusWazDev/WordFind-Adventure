@@ -1,7 +1,7 @@
 {
   "name": "soundfind",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
-    "electron:build-web": "vite build --base ./",
+    "electron:build-web": "vite build --mode electron",
     "electron:test": "npm run electron:build-web && electron .",
     "electron:dist": "npm run electron:build-web && electron-builder --win appx && node scripts/patch-appx-assets.mjs"
   },

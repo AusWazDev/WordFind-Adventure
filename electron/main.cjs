@@ -1,12 +1,17 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, protocol, net } = require('electron')
 const path = require('path')
+
+// Register before app is ready — required by Electron
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'app', privileges: { secure: true, standard: true, supportFetchAPI: true, stream: true } }
+])
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 430,
-    height: 860,
-    minWidth: 320,
-    minHeight: 600,
+    width: 1280,
+    height: 820,
+    minWidth: 960,
+    minHeight: 640,
     show: false,
     icon: path.join(__dirname, '../dist/icon.png'),
     title: 'SoundFind',
@@ -16,7 +21,7 @@ function createWindow() {
     },
   })
 
-  win.loadFile(path.join(__dirname, '../dist/index.html'))
+  win.loadURL('app://localhost/index.html')
 
   win.once('ready-to-show', () => {
     win.show()
@@ -24,7 +29,17 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  const distPath = path.join(__dirname, '../dist')
+
+  // Serve dist/ under app://localhost/ so absolute paths like /audio/... resolve correctly
+  protocol.handle('app', (request) => {
+    const url = new URL(request.url)
+    const filePath = path.join(distPath, url.pathname)
+    return net.fetch('file:///' + filePath.replace(/\\/g, '/'))
+  })
+
   createWindow()
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })

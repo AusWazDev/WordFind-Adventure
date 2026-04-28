@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const isElectron = mode === 'electron'
   if (!env.VITE_SENTRY_DSN) {
     console.warn('\n⚠️  WARNING: VITE_SENTRY_DSN is not set — Sentry crash reporting will be DISABLED in this build.')
     console.warn('   Add VITE_SENTRY_DSN to .env.local (local builds) or the platform environment variables (Vercel/Electron/Capacitor).\n')
@@ -13,7 +14,8 @@ export default defineConfig(({ mode }) => {
   return {
   plugins: [
     react(),
-    VitePWA({
+    // Service workers don't work in Electron (file:// or custom protocols) — skip for Electron builds
+    !isElectron && VitePWA({
       registerType: 'autoUpdate',
       workbox: {
         // Precache the app shell (JS, CSS, HTML, icon)
@@ -82,7 +84,7 @@ export default defineConfig(({ mode }) => {
         ],
       },
     }),
-  ],
+  ].filter(Boolean),
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

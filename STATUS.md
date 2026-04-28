@@ -243,6 +243,7 @@ Issues found in v1.0.0 after publication and fixed in v1.0.1:
 - Commits: `aa12b13` (v1.0.1 fixes), `14f537e` (patch script fix)
 
 **Submitted for certification:** 29 April 2026
+**v1.0.1 PUBLISHED:** 29 April 2026 — passed certification same day
 
 ## Next Steps (Priority Order)
 

@@ -96,7 +96,7 @@ export default function Home() {
   return (
     <PullToRefresh onRefresh={loadProgressData}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-        <div className="max-w-lg mx-auto px-4 pt-5 pb-4">
+        <div className="max-w-lg md:max-w-2xl mx-auto px-4 pt-5 pb-4">
 
           {/* Header */}
           <motion.div

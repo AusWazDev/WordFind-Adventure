@@ -298,7 +298,7 @@ export default function Settings() {
               </div>
               <div className="flex justify-between">
                 <span>Version</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">1.0.0</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">{__APP_VERSION__}</span>
               </div>
             </div>
             <div className="mt-4 space-y-2 text-sm">

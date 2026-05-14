@@ -245,6 +245,16 @@ Issues found in v1.0.0 after publication and fixed in v1.0.1:
 **Submitted for certification:** 29 April 2026
 **v1.0.1 PUBLISHED:** 29 April 2026 — passed certification same day
 
+### 2026-05-15 (Mac — SoundFind iOS App Store submission)
+
+- **CR-51:** iOS App Store prep — Xcode DEVELOPMENT\_TEAM (B7LWF6Z674), app icon (SoundFind brand), splash screen (dark #0f0e1a), `ITSAppUsesNonExemptEncryption = false`. Commit `0795a4b`.
+- **DEF-51:** DailyChallenge portrait board left-aligned on iPad — missing `display: flex; justifyContent: center` on board container (Game.jsx had it, DailyChallenge was missed). Commit `6c880f0`.
+- **CR-52:** v1.0.1 iOS — version injection from package.json into Vite build as `__APP_VERSION__` global; Settings.jsx reads `__APP_VERSION__` dynamically; Xcode `MARKETING_VERSION` bumped to 1.0.1, `CURRENT_PROJECT_VERSION` to 2; Home layout `max-w-lg md:max-w-2xl` for iPad. Commit `aaf730d`.
+- IPA built (v1.0.1, Build 2) and uploaded to App Store Connect via altool. Delivery UUID: `19ed3a53-d2fe-4ca4-ab77-edc5cec8f21a`.
+- iPhone 6.9" (4 screenshots) + iPad Pro 12.9" (4 screenshots) uploaded and confirmed COMPLETE via API.
+- App Privacy published: Sentry Crash Data + Performance Data, App Functionality, not linked to user.
+- **SoundFind v1.0.1 submitted for App Store review — State: WAITING\_FOR\_REVIEW.** Submission ID: `d05414cc-7e87-4650-a6e1-56c7b196a255`.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

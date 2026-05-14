@@ -171,7 +171,7 @@ App is **v1.0.1 — live on Microsoft Store. iOS App Store submission in progres
 - `PRODUCT_BUNDLE_IDENTIFIER = au.com.uniquegames.soundfind` — correct in both configs
 - `TARGETED_DEVICE_FAMILY = "1,2"` — iPhone + iPad
 - `ITSAppUsesNonExemptEncryption = false` in Info.plist — set 14 May 2026
-- `MARKETING_VERSION = 1.0` / `CURRENT_PROJECT_VERSION = 1`
+- `MARKETING_VERSION = 1.0.1` / `CURRENT_PROJECT_VERSION = 2` (bumped 15 May 2026, CR-52)
 
 ### Build → App Store
 ```bash

@@ -27,7 +27,7 @@
 - React Router v6
 - localStorage for all persistence (no backend)
 - Vercel for deployment
-- Capacitor planned for iOS/Android native builds (not yet set up)
+- Capacitor v8.3.0 — iOS and Android projects initialised (`ios/` and `android/` folders present)
 
 ---
 
@@ -56,9 +56,9 @@ Every code change needs a CR or DEF entry in `docs/Change Register.md` with the 
 
 ---
 
-## Current State (as of 15 Apr 2026)
+## Current State (as of 14 May 2026)
 
-App is **v1.0.0 — locked for store submission.** Beta testing complete.
+App is **v1.0.1 — live on Microsoft Store. iOS App Store submission in progress.**
 
 ### Recently completed
 | CR/DEF | What | Commit |
@@ -157,13 +157,39 @@ App is **v1.0.0 — locked for store submission.** Beta testing complete.
 
 ---
 
+## Apple Developer / iOS Submission
+
+| Item | Value |
+|------|-------|
+| Apple Developer account | Notiva (B7LWF6Z674) — SoundFind published under Notiva |
+| Bundle ID | `au.com.uniquegames.soundfind` |
+| Apple App ID | `6769255354` (registered in App Store Connect) |
+| Seller name on App Store | Notiva (acceptable for v1.0 — revisit with accountant) |
+
+### iOS Xcode project (ios/App/App.xcodeproj)
+- `DEVELOPMENT_TEAM = B7LWF6Z674` — set in Debug + Release (14 May 2026)
+- `PRODUCT_BUNDLE_IDENTIFIER = au.com.uniquegames.soundfind` — correct in both configs
+- `TARGETED_DEVICE_FAMILY = "1,2"` — iPhone + iPad
+- `ITSAppUsesNonExemptEncryption = false` in Info.plist — set 14 May 2026
+- `MARKETING_VERSION = 1.0` / `CURRENT_PROJECT_VERSION = 1`
+
+### Build → App Store
+```bash
+# 1. Build the Vite bundle first
+npm run build
+# 2. Sync web assets into the Xcode project
+npx cap sync ios
+# 3. Open in Xcode to archive and upload
+npx cap open ios
+# In Xcode: Product → Archive → Distribute App → App Store Connect
+```
+
+---
+
 ## Next Steps
 
 For current priorities and store submission status → fetch the ClickUp handoff document:
 **"Project Context & Status — Claude Handoff Document"** in ClickUp Team Space (workspace 90161564576).
-
-Next major code work: **Capacitor setup** (iOS/Android native builds) — Phase 5.
-Verify integration first: check `package.json` for `@capacitor/core`, `capacitor.config.ts`, `ios/` and `android/` folders.
 
 ---
 

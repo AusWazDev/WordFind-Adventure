@@ -387,7 +387,7 @@ export default function DailyChallenge() {
           {infoBarEl}
           <div
             ref={boardAreaRef}
-            style={{ flexShrink: 0, width: '100%', maxHeight: 'min(52dvh, 100vw)', aspectRatio: '1 / 1', overflow: 'hidden' }}
+            style={{ flexShrink: 0, width: '100%', maxHeight: 'min(52dvh, 100vw)', aspectRatio: '1 / 1', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
           >
             {boardSize > 0 && (
               <div style={{ width: boardSize, height: boardSize }}>

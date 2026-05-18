@@ -245,6 +245,28 @@ Issues found in v1.0.0 after publication and fixed in v1.0.1:
 **Submitted for certification:** 29 April 2026
 **v1.0.1 PUBLISHED:** 29 April 2026 — passed certification same day
 
+### 2026-05-19 (Mac — CR-53: iOS Capacitor bug fixes post v1.0.1)
+
+Five bugs discovered after v1.0.1 went live on the App Store, all fixed and committed `ad8460a`.
+
+**Audio (ElevenLabs MP3s falling back to native TTS):**
+- Workbox service worker (registered during development) was intercepting `capacitor://localhost/audio/…` fetches from the SW thread — silently failing, falling back to Web Speech API
+- Fix: `vite.config.js` skips VitePWA plugin for `--mode capacitor` builds; `main.jsx` unregisters any stale SW on launch via `window.Capacitor` guard
+- `fetchBuffer` switched from `fetch().arrayBuffer()` to XHR (`responseType='arraybuffer'`, `status===0` treated as success) — XHR is reliable for custom URL schemes in WKWebView; `fetch()` is not
+- New npm script: `build:ios` → `vite build --mode capacitor`
+
+**Status bar overlap:** `index.html` gained `viewport-fit=cover`; all page containers use `env(safe-area-inset-top/bottom)` padding; Game.jsx and DailyChallenge.jsx use `max(PAD, env(safe-area-inset-top))` for landscape/portrait
+
+**Rubber-band scroll:** `scrollEnabled: false` + `allowsLinkPreview: false` in `capacitor.config.json`; CSS `overscroll-behavior: none` on body; `html` + `body` set to `height: 100%; overflow: hidden`
+
+**Bonus word grid hidden by keyboard:** Replaced text input (triggered iOS keyboard, shrinking the grid) with tile-tap UX — gold letter cells turn bright amber during bonus hunt; tapping each adds its letter to display slots; no keyboard ever appears. `GameBoard.jsx` gained `bonusHuntActive` + `onBonusCellTap` props; single-cell tap on a bonus cell fires `onBonusCellTap(letter)`. Portrait bonus hunt layout: banner above board, board fills remaining space with `flex: 1`.
+
+**Page transition flash:** `ScrollToTop` component added to `App.jsx` using `useLayoutEffect` — resets `#root.scrollTop = 0` before paint on every route change, preventing new page from briefly inheriting prior scroll position.
+
+**Animation flash on mode/category lists:** `GameModeSelector.jsx` had staggered `initial={{ opacity:0, y:10 }}` and `initial={{ opacity:0, x:-20 }}` entry animations; `CategorySelector.jsx` had `initial={{ opacity:0, scale:0.9 }}` with delays up to 1.1 s (15 items × 0.08 s). All entry `initial`/`animate`/`transition` props removed; `whileHover`/`whileTap` retained.
+
+**CR-31 re-fix:** `<span className="hidden sm:inline">How to Play</span>` in `Home.jsx` had been overwritten by CR-52 iPad layout change — re-applied.
+
 ### 2026-05-15 (Mac — SoundFind iOS App Store submission)
 
 - **CR-51:** iOS App Store prep — Xcode DEVELOPMENT\_TEAM (B7LWF6Z674), app icon (SoundFind brand), splash screen (dark #0f0e1a), `ITSAppUsesNonExemptEncryption = false`. Commit `0795a4b`.

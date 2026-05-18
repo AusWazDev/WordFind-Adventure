@@ -267,6 +267,8 @@ Five bugs discovered after v1.0.1 went live on the App Store, all fixed and comm
 
 **CR-31 re-fix:** `<span className="hidden sm:inline">How to Play</span>` in `Home.jsx` had been overwritten by CR-52 iPad layout change — re-applied.
 
+All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to GitHub. IPA (Build 3) uploaded to App Store Connect (Delivery UUID: `503a63b5-464c-4b24-8252-47c7aa079bfc`). **Submitted for App Store review 19 May 2026.** Review expected within 48 hours.
+
 ### 2026-05-15 (Mac — SoundFind iOS App Store submission)
 
 - **CR-51:** iOS App Store prep — Xcode DEVELOPMENT\_TEAM (B7LWF6Z674), app icon (SoundFind brand), splash screen (dark #0f0e1a), `ITSAppUsesNonExemptEncryption = false`. Commit `0795a4b`.

@@ -251,12 +251,32 @@ function getAudioContext() {
 // Avoids re-fetching and re-decoding on every tap; makes repeat plays instant.
 const _bufferCache = new Map();
 
+// XHR is used instead of fetch() because Capacitor's WKWebView custom URL scheme
+// (capacitor://) does not reliably stream ArrayBuffer responses through the fetch API.
+// XHR with responseType='arraybuffer' works correctly for both https:// and capacitor://.
+function fetchArrayBuffer(url) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = () => {
+      // status 0 = local/custom scheme (capacitor://, file://) — treat as success
+      if (xhr.status === 0 || (xhr.status >= 200 && xhr.status < 300)) {
+        resolve(xhr.response);
+      } else {
+        reject(new Error(`HTTP ${xhr.status} for ${url}`));
+      }
+    };
+    xhr.onerror = () => reject(new Error(`Network error for ${url}`));
+    xhr.send();
+  });
+}
+
 async function fetchBuffer(url) {
   if (_bufferCache.has(url)) return _bufferCache.get(url);
   const ctx = getAudioContext();
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  const buf = await ctx.decodeAudioData(await res.arrayBuffer());
+  const arrayBuffer = await fetchArrayBuffer(url);
+  const buf = await ctx.decodeAudioData(arrayBuffer);
   _bufferCache.set(url, buf);
   return buf;
 }

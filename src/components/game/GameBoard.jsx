@@ -10,6 +10,8 @@ export default function GameBoard({
   gridSize,
   hintCells = [],
   bonusLetterCells = [],
+  bonusHuntActive = false,
+  onBonusCellTap,
   isLandscape
 }) {
   const [selecting, setSelecting] = useState(false);
@@ -119,9 +121,16 @@ export default function GameBoard({
   };
 
   const handleEnd = () => {
-    if (selecting && selectedCells.length >= 2) {
-      const word = selectedCells.map(c => grid[c.row][c.col]).join('');
-      onWordFound(word, selectedCells);
+    if (selecting) {
+      if (selectedCells.length >= 2) {
+        const word = selectedCells.map(c => grid[c.row][c.col]).join('');
+        onWordFound(word, selectedCells);
+      } else if (selectedCells.length === 1 && onBonusCellTap) {
+        const cell = selectedCells[0];
+        if (isBonusLetter(cell.row, cell.col)) {
+          onBonusCellTap(grid[cell.row][cell.col]);
+        }
+      }
     }
     setSelecting(false);
     setStartCell(null);
@@ -182,6 +191,8 @@ export default function GameBoard({
                   ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white'
                   : isHint(rowIndex, colIndex)
                   ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md z-10 ring-2 ring-amber-300'
+                  : isBonusLetter(rowIndex, colIndex) && bonusHuntActive
+                  ? 'bg-amber-400 dark:bg-amber-500 text-white ring-2 ring-white/50 shadow-md font-extrabold'
                   : isBonusLetter(rowIndex, colIndex)
                   ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 ring-1 ring-amber-400 dark:ring-amber-600'
                   : 'bg-muted text-foreground hover:bg-muted/70'
@@ -189,6 +200,8 @@ export default function GameBoard({
               animate={
                 isSelected(rowIndex, colIndex) || isHint(rowIndex, colIndex)
                   ? { scale: 1.08 }
+                  : isBonusLetter(rowIndex, colIndex) && bonusHuntActive
+                  ? { scale: 1.06 }
                   : isBonusLetter(rowIndex, colIndex)
                   ? { scale: 1.04 }
                   : { scale: 1 }

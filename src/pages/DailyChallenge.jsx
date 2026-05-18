@@ -28,6 +28,21 @@ function useOrientation() {
   return isLandscape;
 }
 
+// ─── Viewport height hook — see Game.jsx for explanation
+function useViewportHeight() {
+  const [h, setH] = useState(() => window.visualViewport?.height ?? window.innerHeight);
+  useEffect(() => {
+    const update = () => setH(window.visualViewport?.height ?? window.innerHeight);
+    window.visualViewport?.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+    };
+  }, []);
+  return h;
+}
+
 // ─── Word list router ──────────────────────────────────────────────────────────
 function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, onRevealWord, hintsRemaining }) {
   if (mode === 'anagram') {
@@ -90,6 +105,7 @@ export default function DailyChallenge() {
   const boardAreaRef = useRef(null);
   const [boardSize, setBoardSize] = useState(0);
   const isLandscape = useOrientation();
+  const containerH = useViewportHeight();
 
   useEffect(() => {
     function measure() {
@@ -255,7 +271,7 @@ export default function DailyChallenge() {
 
   if (!gameData) {
     return (
-      <div style={{ width: '100vw', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--background)' }}>
+      <div style={{ width: '100vw', height: containerH, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--background)' }}>
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -356,11 +372,13 @@ export default function DailyChallenge() {
     </div>
   );
 
+  const boardMaxH = Math.min(Math.floor(containerH * 0.52), window.innerWidth);
+
   return (
-    <div style={{ width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--background)' }}>
+    <div style={{ width: '100vw', height: containerH, overflow: 'hidden', background: 'var(--background)' }}>
       {isLandscape ? (
         // LANDSCAPE: header + info bar stacked at top, board + word list side by side
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', padding: PAD, gap: GAP, boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', padding: PAD, gap: GAP, boxSizing: 'border-box', paddingTop: `max(${PAD}px, env(safe-area-inset-top))`, paddingBottom: `max(${PAD}px, env(safe-area-inset-bottom))` }}>
           {headerEl}
           {infoBarEl}
           <div
@@ -382,12 +400,12 @@ export default function DailyChallenge() {
         </div>
       ) : (
         // PORTRAIT: header, info bar, board (capped), hint bar, scrollable word list
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', padding: PAD, gap: GAP, boxSizing: 'border-box', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', padding: PAD, gap: GAP, boxSizing: 'border-box', overflow: 'hidden', paddingTop: `max(${PAD}px, env(safe-area-inset-top))`, paddingBottom: `max(${PAD}px, env(safe-area-inset-bottom))` }}>
           {headerEl}
           {infoBarEl}
           <div
             ref={boardAreaRef}
-            style={{ flexShrink: 0, width: '100%', maxHeight: 'min(52dvh, 100vw)', aspectRatio: '1 / 1', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
+            style={{ flexShrink: 0, width: '100%', maxHeight: boardMaxH, aspectRatio: '1 / 1', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
           >
             {boardSize > 0 && (
               <div style={{ width: boardSize, height: boardSize }}>

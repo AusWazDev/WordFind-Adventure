@@ -31,6 +31,22 @@ function useOrientation() {
   return isLandscape;
 }
 
+// ─── Viewport height hook — tracks visualViewport so the container shrinks
+//     when the iOS soft keyboard appears (100dvh does not update in Capacitor)
+function useViewportHeight() {
+  const [h, setH] = useState(() => window.visualViewport?.height ?? window.innerHeight);
+  useEffect(() => {
+    const update = () => setH(window.visualViewport?.height ?? window.innerHeight);
+    window.visualViewport?.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+    };
+  }, []);
+  return h;
+}
+
 // ─── Word list router ─────────────────────────────────────────────────────────
 function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, onRevealWord, onHintCell, hintsRemaining, category }) {
   if (mode === 'anagram') {
@@ -124,6 +140,8 @@ export default function Game() {
   const boardAreaRef = useRef(null);
   const [boardSize, setBoardSize] = useState(0);
   const isLandscape = useOrientation();
+  const containerH = useViewportHeight();
+
 
   useEffect(() => {
     function measure() {
@@ -133,12 +151,14 @@ export default function Game() {
     }
     measure();
     window.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('resize', measure);
     const t = setTimeout(measure, 150);
     return () => {
       window.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('resize', measure);
       clearTimeout(t);
     };
-  }, [isLandscape, gameData]);
+  }, [isLandscape, gameData, bonusHuntActive]);
 
   // Re-initialise whenever URL params change (e.g. Next Level navigation)
   // NOTE: initGame and loadProgressData intentionally omitted from deps — they
@@ -347,6 +367,12 @@ export default function Game() {
     if (progress) updateProgress(null, progress, { hints_remaining: newHints });
   };
 
+  const handleBonusCellTap = useCallback((letter) => {
+    if (!gameDataRef.current?.bonusWord) return;
+    const max = gameDataRef.current.bonusWord.length;
+    setBonusInput(prev => prev.length < max ? (prev + letter).toUpperCase() : prev);
+  }, []);
+
   const handleSkipBonus = () => {
     setBonusHuntActive(false);
     setBonusInput('');
@@ -416,6 +442,8 @@ export default function Game() {
     gridSize: gameData.gridSize,
     hintCells,
     bonusLetterCells: bonusHuntActive ? (gameData.bonusLetterPositions || []) : [],
+    bonusHuntActive,
+    onBonusCellTap: handleBonusCellTap,
     isLandscape,
   };
 
@@ -426,38 +454,46 @@ export default function Game() {
   // ── Bonus banner — shown above the word list in both orientations ────────────
   const bonusBannerEl = (() => {
     if (bonusHuntActive && gameData.bonusWord) {
+      // No keyboard — player taps the bright gold cells in the grid to build the word.
       return (
         <div style={{
           background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-          borderRadius: 12, padding: '10px 12px', marginBottom: 8, color: 'white',
+          borderRadius: 10, padding: '8px 10px', color: 'white',
         }}>
-          <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 2px 0' }}>
-            🌟 BONUS WORD HUNT!
+          <p style={{ fontSize: 11, fontWeight: 600, textAlign: 'center', opacity: 0.95, margin: '0 0 4px 0' }}>
+            🌟 {gameData.bonusHint}
           </p>
-          <p style={{ fontSize: 11, textAlign: 'center', opacity: 0.9, margin: '0 0 4px 0' }}>
-            {gameData.bonusHint}
+          <p style={{ fontSize: 10, textAlign: 'center', opacity: 0.75, margin: '0 0 7px 0' }}>
+            Tap the gold letters in the grid in order
           </p>
-          <p style={{ fontSize: 10, textAlign: 'center', opacity: 0.75, margin: '0 0 6px 0' }}>
-            Read the gold letters top-left → bottom-right
-          </p>
-          <input
-            type="text"
-            value={bonusInput}
-            onChange={e => setBonusInput(e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase())}
-            placeholder="Type the hidden word…"
-            maxLength={(gameData.bonusWord.length || 10) + 2}
-            autoCapitalize="characters"
-            autoCorrect="off"
-            spellCheck="false"
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              background: 'rgba(255,255,255,0.92)', color: '#1e1b4b',
-              border: 'none', borderRadius: 8,
-              padding: '6px 10px', fontSize: 14, fontWeight: 700,
-              letterSpacing: 3, textAlign: 'center', marginBottom: 6,
-            }}
-          />
+
+          {/* Letter slots — filled by tapping gold cells */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 7, flexWrap: 'wrap' }}>
+            {Array.from({ length: gameData.bonusWord.length }).map((_, i) => (
+              <div key={i} style={{
+                width: 26, height: 30,
+                border: `2px solid ${i < bonusInput.length ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)'}`,
+                borderRadius: 5,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: i < bonusInput.length ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.12)',
+                color: '#1e1b4b', fontSize: 14, fontWeight: 800,
+              }}>
+                {bonusInput[i] || ''}
+              </div>
+            ))}
+          </div>
+
           <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={() => setBonusInput(prev => prev.slice(0, -1))}
+              style={{
+                flexShrink: 0, fontSize: 14, fontWeight: 600,
+                background: 'rgba(255,255,255,0.2)', border: 'none',
+                borderRadius: 6, padding: '5px 10px', color: 'white', cursor: 'pointer',
+              }}
+            >
+              ⌫
+            </button>
             <button
               onClick={handleBonusSubmit}
               style={{
@@ -471,12 +507,12 @@ export default function Game() {
             <button
               onClick={handleSkipBonus}
               style={{
-                flex: 1, fontSize: 11,
+                flexShrink: 0, fontSize: 11,
                 background: 'rgba(255,255,255,0.12)', border: 'none',
                 borderRadius: 6, padding: '5px 8px', color: 'white', cursor: 'pointer',
               }}
             >
-              Skip →
+              Skip
             </button>
           </div>
         </div>
@@ -498,8 +534,11 @@ export default function Game() {
     return null;
   })();
 
+  // Board height cap: shrinks when keyboard is up so the bonus input stays visible
+  const boardMaxH = Math.min(Math.floor(containerH * 0.55), window.innerWidth);
+
   return (
-    <div style={{ width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--background)' }}>
+    <div style={{ width: '100vw', height: containerH, overflow: 'hidden', background: 'var(--background)' }}>
 
       {isLandscape ? (
         // LANDSCAPE: compact header top, board + word list side by side below
@@ -507,6 +546,8 @@ export default function Game() {
           display: 'flex', flexDirection: 'column',
           width: '100%', height: '100%',
           padding: PAD, gap: GAP, boxSizing: 'border-box',
+          paddingTop: `max(${PAD}px, env(safe-area-inset-top))`,
+          paddingBottom: `max(${PAD}px, env(safe-area-inset-bottom))`,
         }}>
           <div style={{ flexShrink: 0 }}>
             <GameHeader {...headerProps} compact />
@@ -543,31 +584,57 @@ export default function Game() {
           display: 'flex', flexDirection: 'column',
           width: '100%', height: '100%',
           padding: PAD, gap: GAP, boxSizing: 'border-box', overflow: 'hidden',
+          paddingTop: `max(${PAD}px, env(safe-area-inset-top))`,
+          paddingBottom: `max(${PAD}px, env(safe-area-inset-bottom))`,
         }}>
           <div style={{ flexShrink: 0 }}>
             <GameHeader {...headerProps} />
           </div>
 
-          <div
-            ref={boardAreaRef}
-            style={{
-              flexShrink: 0, width: '100%',
-              maxHeight: 'min(55dvh, 100vw)',
-              aspectRatio: '1 / 1', overflow: 'hidden',
-              display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
-            }}
-          >
-            {boardSize > 0 && (
-              <div style={{ width: boardSize, height: boardSize }}>
-                <GameBoard {...boardProps} />
+          {bonusHuntActive ? (
+            // Bonus hunt: banner+input ABOVE board so the full grid stays
+            // visible when the iOS soft keyboard pushes the viewport up.
+            <>
+              <div style={{ flexShrink: 0 }}>{bonusBannerEl}</div>
+              <div
+                ref={boardAreaRef}
+                style={{
+                  flex: 1, minHeight: 0, overflow: 'hidden',
+                  display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+                }}
+              >
+                {boardSize > 0 && (
+                  <div style={{ width: boardSize, height: boardSize }}>
+                    <GameBoard {...boardProps} />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          ) : (
+            // Normal play: board capped at boardMaxH, word list scrolls below.
+            <>
+              <div
+                ref={boardAreaRef}
+                style={{
+                  flexShrink: 0, width: '100%',
+                  maxHeight: boardMaxH,
+                  aspectRatio: '1 / 1', overflow: 'hidden',
+                  display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+                }}
+              >
+                {boardSize > 0 && (
+                  <div style={{ width: boardSize, height: boardSize }}>
+                    <GameBoard {...boardProps} />
+                  </div>
+                )}
+              </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: '0.5rem' }}>
-            {bonusBannerEl}
-            <WordListSwitch {...wordListProps} />
-          </div>
+              <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: '0.5rem' }}>
+                {bonusBannerEl}
+                <WordListSwitch {...wordListProps} />
+              </div>
+            </>
+          )}
         </div>
       )}
 

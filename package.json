@@ -10,6 +10,7 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
+    "build:ios": "vite build --mode capacitor",
     "electron:build-web": "vite build --mode electron",
     "electron:test": "npm run electron:build-web && electron .",
     "electron:dist": "npm run electron:build-web && electron-builder --win appx && node scripts/patch-appx-assets.mjs"

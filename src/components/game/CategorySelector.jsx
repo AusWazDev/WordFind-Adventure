@@ -36,9 +36,6 @@ export default function CategorySelector({ onSelectCategory }) {
                  "p-2 rounded-2xl border-2 border-transparent transition-all text-left",
                  `bg-gradient-to-br ${category.bgGradient} hover:shadow-lg hover:border-violet-200`
                )}
-               initial={{ opacity: 0, scale: 0.9 }}
-               animate={{ opacity: 1, scale: 1 }}
-               transition={{ delay: index * 0.08 }}
                whileHover={{ scale: 1.05, y: -2 }}
                whileTap={{ scale: 0.98 }}
              >

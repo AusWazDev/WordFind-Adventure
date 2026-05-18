@@ -45,6 +45,7 @@ export default function PullToRefresh({ onRefresh, children }) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{ height: '100%' }}
     >
       <AnimatePresence>
         {(pullDist > 4 || refreshing) && (

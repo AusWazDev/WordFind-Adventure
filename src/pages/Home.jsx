@@ -95,7 +95,7 @@ export default function Home() {
 
   return (
     <PullToRefresh onRefresh={loadProgressData}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="min-h-full bg-gradient-to-br from-slate-50 via-violet-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-lg md:max-w-2xl mx-auto px-4 pt-5 pb-4">
 
           {/* Header */}
@@ -129,7 +129,7 @@ export default function Home() {
                 whileTap={{ scale: 0.97 }}
               >
                 <HelpCircle className="w-3.5 h-3.5" />
-                How to Play
+                <span className="hidden sm:inline">How to Play</span>
               </motion.button>
 
               {progress && (

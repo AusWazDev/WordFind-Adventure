@@ -1,5 +1,9 @@
 {
   "appId": "au.com.uniquegames.soundfind",
   "appName": "SoundFind",
-  "webDir": "dist"
+  "webDir": "dist",
+  "ios": {
+    "scrollEnabled": false,
+    "allowsLinkPreview": false
+  }
 }

@@ -49,14 +49,10 @@ export default function GameModeSelector({ onSelectMode }) {
 
       {/* Offline banner */}
       {!isOnline && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs"
-        >
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs">
           <WifiOff className="w-4 h-4 shrink-0" />
           <span>You're offline. Audio Challenge is limited — all other modes work normally.</span>
-        </motion.div>
+        </div>
       )}
 
       {/* ── Hero 1 · Audio Challenge ──────────────────────────────────────── */}
@@ -69,9 +65,6 @@ export default function GameModeSelector({ onSelectMode }) {
           'hover:shadow-xl hover:shadow-orange-300 transition-all',
           'border-2 border-amber-300'
         )}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
@@ -119,9 +112,6 @@ export default function GameModeSelector({ onSelectMode }) {
           'hover:shadow-lg hover:shadow-purple-300 transition-all',
           'border border-indigo-400'
         )}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
         whileHover={{ scale: 1.015 }}
         whileTap={{ scale: 0.98 }}
       >
@@ -178,9 +168,6 @@ export default function GameModeSelector({ onSelectMode }) {
                   ? 'border-transparent bg-muted opacity-50 cursor-not-allowed'
                   : `bg-gradient-to-br ${mode.bgGradient} border-transparent hover:shadow-md hover:border-violet-200 cursor-pointer`
               )}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 + index * 0.07 }}
               whileHover={isDisabled ? {} : { scale: 1.02, x: 4 }}
               whileTap={isDisabled ? {} : { scale: 0.98 }}
             >

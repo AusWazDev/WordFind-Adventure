@@ -9,6 +9,7 @@ const { version } = JSON.parse(readFileSync('./package.json', 'utf-8'))
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const isElectron = mode === 'electron'
+  const isCapacitor = mode === 'capacitor'
   if (!env.VITE_SENTRY_DSN) {
     console.warn('\n⚠️  WARNING: VITE_SENTRY_DSN is not set — Sentry crash reporting will be DISABLED in this build.')
     console.warn('   Add VITE_SENTRY_DSN to .env.local (local builds) or the platform environment variables (Vercel/Electron/Capacitor).\n')
@@ -16,8 +17,8 @@ export default defineConfig(({ mode }) => {
   return {
   plugins: [
     react(),
-    // Service workers don't work in Electron (file:// or custom protocols) — skip for Electron builds
-    !isElectron && VitePWA({
+    // Service workers can't fetch capacitor:// URLs from the SW thread — skip for Capacitor/Electron builds
+    !isElectron && !isCapacitor && VitePWA({
       registerType: 'autoUpdate',
       workbox: {
         // Precache the app shell (JS, CSS, HTML, icon)

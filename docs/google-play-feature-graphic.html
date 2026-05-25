@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SoundFind — Google Play Feature Graphic (1024×500)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #2a2a2a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Nunito', 'Segoe UI', sans-serif; gap: 16px; }
+  .label { color: #aaa; font-size: 13px; font-family: monospace; }
+
+  .canvas {
+    width: 1024px;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f0e1a 0%, #1a1830 50%, #12102a 100%);
+    flex-shrink: 0;
+  }
+
+  /* Animated-style grid background */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.07;
+    background-image:
+      linear-gradient(rgba(167,139,250,0.6) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(167,139,250,0.6) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Decorative word grid */
+  .word-grid {
+    position: absolute;
+    right: 55px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    grid-template-columns: repeat(6, 54px);
+    grid-template-rows: repeat(6, 54px);
+    gap: 5px;
+    opacity: 0.95;
+    background: rgba(15, 14, 26, 0.88);
+    padding: 14px;
+    border-radius: 18px;
+    z-index: 10;
+  }
+  .cell {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0;
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.25);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .cell.found {
+    background: linear-gradient(135deg, #6d28d9, #5b21b6);
+    color: white;
+    border-color: #7c3aed;
+  }
+  .cell.audio {
+    background: linear-gradient(135deg, #0f766e, #0d9488);
+    color: white;
+    border-color: #14b8a6;
+  }
+  .cell.hint {
+    background: linear-gradient(135deg, #b45309, #d97706);
+    color: white;
+    border-color: #fbbf24;
+  }
+
+  /* Left content area */
+  .content {
+    position: absolute;
+    left: 64px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Speaker icon */
+  .speaker-wrap {
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .speaker-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 24px rgba(109,40,217,0.5);
+    flex-shrink: 0;
+  }
+  .speaker-icon img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .audio-waves {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .wave-bar {
+    width: 4px;
+    border-radius: 2px;
+    background: #14b8a6;
+    opacity: 0.8;
+  }
+  .wave-bar:nth-child(1) { height: 12px; }
+  .wave-bar:nth-child(2) { height: 22px; }
+  .wave-bar:nth-child(3) { height: 32px; }
+  .wave-bar:nth-child(4) { height: 22px; }
+  .wave-bar:nth-child(5) { height: 14px; }
+  .wave-bar:nth-child(6) { height: 26px; }
+  .wave-bar:nth-child(7) { height: 18px; }
+
+  /* App name */
+  .app-name {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+  .sound-text {
+    font-size: 72px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -2px;
+    font-family: 'Nunito', 'Segoe UI', sans-serif;
+  }
+  .find-text {
+    font-size: 72px;
+    font-weight: 900;
+    color: #a78bfa;
+    letter-spacing: -2px;
+    font-family: 'Nunito', 'Segoe UI', sans-serif;
+  }
+
+  /* Tagline */
+  .tagline {
+    font-size: 22px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.5px;
+    margin-bottom: 28px;
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+  }
+
+  /* Mode pills */
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 440px;
+  }
+  .pill {
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .pill-audio {
+    background: rgba(20,184,166,0.18);
+    color: #2dd4bf;
+    border: 1px solid rgba(20,184,166,0.35);
+  }
+  .pill-violet {
+    background: rgba(109,40,217,0.2);
+    color: #c4b5fd;
+    border: 1px solid rgba(109,40,217,0.35);
+  }
+  .pill-amber {
+    background: rgba(251,191,36,0.15);
+    color: #fcd34d;
+    border: 1px solid rgba(251,191,36,0.3);
+  }
+
+  /* Glow orbs */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+  .orb-1 {
+    width: 320px; height: 320px;
+    background: rgba(109,40,217,0.25);
+    top: -80px; left: 200px;
+  }
+  .orb-2 {
+    width: 240px; height: 240px;
+    background: rgba(20,184,166,0.2);
+    bottom: -60px; left: 80px;
+  }
+  .orb-3 {
+    display: none;
+  }
+
+  /* Divider */
+  .divider {
+    position: absolute;
+    right: 380px;
+    top: 40px;
+    bottom: 40px;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08), transparent);
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="label">Google Play Feature Graphic — 1024 × 500 px — Screenshot this element exactly</div>
+<div class="canvas">
+  <!-- Background -->
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="divider"></div>
+
+  <!-- Left content -->
+  <div class="content">
+    <div class="speaker-wrap">
+      <div class="speaker-icon">
+        <img src="../public/icon.png" alt="SoundFind icon" />
+      </div>
+    </div>
+
+    <div class="app-name">
+      <span class="sound-text">Sound</span><span class="find-text">Find</span>
+    </div>
+
+    <div class="tagline">Hear it. Find it.</div>
+
+    <div class="pills">
+      <span class="pill pill-audio">🎧 Audio Challenge</span>
+      <span class="pill pill-violet">🔀 Anagram Hunt</span>
+      <span class="pill pill-amber">⭐ Mystery Word</span>
+      <span class="pill pill-violet">💡 Word Association</span>
+      <span class="pill pill-violet">📋 Standard</span>
+    </div>
+  </div>
+
+  <!-- Right: decorative word grid -->
+  <div class="word-grid">
+    <!-- Row 1: FAST crosses SOUND's S at col 4 -->
+    <div class="cell">K</div>
+    <div class="cell audio">F</div>
+    <div class="cell audio">A</div>
+    <div class="cell audio">S</div>
+    <div class="cell audio">T</div>
+    <div class="cell">R</div>
+    <!-- Row 2: WORD crosses SOUND's O at col 4 -->
+    <div class="cell">B</div>
+    <div class="cell">L</div>
+    <div class="cell found">W</div>
+    <div class="cell found">O</div>
+    <div class="cell found">R</div>
+    <div class="cell found">D</div>
+    <!-- Row 3: TUNE crosses SOUND's U at col 4 -->
+    <div class="cell">P</div>
+    <div class="cell">M</div>
+    <div class="cell audio">T</div>
+    <div class="cell audio">U</div>
+    <div class="cell audio">N</div>
+    <div class="cell audio">E</div>
+    <!-- Row 4: HINT crosses SOUND's N at col 4 -->
+    <div class="cell">A</div>
+    <div class="cell hint">H</div>
+    <div class="cell hint">I</div>
+    <div class="cell hint">N</div>
+    <div class="cell hint">T</div>
+    <div class="cell">X</div>
+    <!-- Row 5: FIND crosses SOUND's D at col 4 -->
+    <div class="cell found">F</div>
+    <div class="cell found">I</div>
+    <div class="cell found">N</div>
+    <div class="cell found">D</div>
+    <div class="cell">Q</div>
+    <div class="cell">Z</div>
+    <!-- Row 6: filler -->
+    <div class="cell">G</div>
+    <div class="cell">V</div>
+    <div class="cell">C</div>
+    <div class="cell">Y</div>
+    <div class="cell">J</div>
+    <div class="cell">E</div>
+  </div>
+</div>
+<div class="label">Open in browser → zoom to 100% → screenshot the dark rectangle above at exactly 1024×500</div>
+</body>
+</html>

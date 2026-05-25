@@ -279,6 +279,32 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - App Privacy published: Sentry Crash Data + Performance Data, App Functionality, not linked to user.
 - **SoundFind v1.0.1 submitted for App Store review — State: WAITING\_FOR\_REVIEW.** Submission ID: `d05414cc-7e87-4650-a6e1-56c7b196a255`.
 
+### 2026-05-24 (Windows — Google Play Console setup)
+
+- Created new personal Google Play developer account (apps@uniquegames.com.au, Account ID: 4868428079566899392)
+- Created app with package name `au.com.uniquegames.soundfind`
+- Completed store listing: title, short description, full description, screenshots (4 × 1080×1920 phone), feature graphic (1024×500), icon (512×512)
+- Content rating (IARC), data safety, privacy policy, ads declaration (no ads) all completed
+- Created upload keystore: `C:\dev\keystores\soundfind-upload-keystore.jks` (alias: soundfind-upload)
+- Built signed release AAB v1 (99.2MB) — audio verified working on emulator
+- Uploaded AAB to internal testing track
+- Discovered closed testing requirement: 12 testers opted-in for 14 days before production access
+- New scripts: `scripts/resize-google-play-icon.mjs`, `scripts/resize-gp-screenshots.mjs`
+- New assets: `assets/google_play_icon_512.png`, `assets/google_play_feature_graphic.png`, `assets/screenshots/google_play_phone/sf-gp-phone-1 through 4.jpg`
+- New docs: `docs/google-play-feature-graphic.html`
+
+### 2026-05-25/26 (Windows — Google Play closed testing setup)
+
+- Bumped `android/app/build.gradle` versionCode 1 → 2 (v1 already consumed by internal track upload)
+- Rebuilt signed AAB v2 — uploaded to Closed testing Alpha track
+- Created tester email list "SoundFind Testing" — 3 valid Google accounts added
+- Feedback channel set to `contact@uniquegames.com.au`
+- Opt-in link: `https://play.google.com/apps/testing/au.com.uniquegames.soundfind`
+- All store setup items (privacy policy, content rating, data safety, ads declaration, app category, target audience) completed and submitted for review
+- Release 2 (1.0) in review across 177 countries
+- Facebook follow-up comment drafted — to be posted once review passes and track goes Active
+- Need 9 more testers to opt-in (have 3 valid Google accounts, need 12 total for 14-day requirement)
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

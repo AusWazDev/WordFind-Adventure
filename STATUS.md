@@ -293,6 +293,24 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - New assets: `assets/google_play_icon_512.png`, `assets/google_play_feature_graphic.png`, `assets/screenshots/google_play_phone/sf-gp-phone-1 through 4.jpg`
 - New docs: `docs/google-play-feature-graphic.html`
 
+### 2026-05-26 (Windows — v1.1 monetisation setup: AdMob + RevenueCat)
+
+- **CR-55 raised** — next Google Play upload must use `build:android` (`vite build --mode capacitor`); existing AABs include PWA service worker (same root cause as CR-53 iOS audio bug). versionCode 3, versionName 1.0.1. Commit `4a3d523`.
+- **AdMob account created** (apps@uniquegames.com.au, pub-1060374954785370)
+  - W-8BEN tax form completed — 0% US withholding (Article 7, Australia-US treaty)
+  - Android app added (not yet linked to Play Store — closed testing only)
+  - iOS app added (linked to App Store, live listing)
+  - 4 ad units created: Android Interstitial `/7201714073`, Android Rewarded `/5473699434`, iOS Interstitial `/8928590640`, iOS Rewarded `/2712182023`
+  - `app-ads.txt` added to uniquegames.com.au — committed `e0a84a2`, deployed
+  - Payment/bank account pending — AdSense billing still provisioning (up to 24h)
+- **RevenueCat account created** (apps@uniquegames.com.au)
+  - SoundFind project created (Capacitor platform)
+  - iOS App Store app configured — P8 key uploaded (B4U6Q6F7V8), SBP start date 2026-05-16, API key `appl_uaNkxxIRCiSXwfwQkJvoCSyQuSF`
+  - Google Play blocked — API access not available on new personal account until app goes to production
+- **App Store Connect IAP key generated** — SoundFind RevenueCat, Key ID B4U6Q6F7V8, Issuer ID 3dbf7469-74db-4222-a6cd-acf9f2bf93fb, P8 saved to `C:\dev\keystores\`
+- Windows monetisation confirmed out of scope for v1.1 — Electron MSIX stays as-is (12 free hints, no ads/IAP)
+- v1.1 scope locked: AdMob + RevenueCat on Android + iOS only; CR-55 bundled in
+
 ### 2026-05-25/26 (Windows — Google Play closed testing setup)
 
 - Bumped `android/app/build.gradle` versionCode 1 → 2 (v1 already consumed by internal track upload)

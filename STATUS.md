@@ -323,6 +323,20 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - Facebook follow-up comment drafted — to be posted once review passes and track goes Active
 - Need 9 more testers to opt-in (have 3 valid Google accounts, need 12 total for 14-day requirement)
 
+### 2026-06-05/06 (Windows — CR-56 RevenueCat + AdMob dashboard setup)
+
+- **CR-56 committed** — all v1.1 monetisation code already committed in prior session (`1ab255b` + `79ed002`). No new code this session.
+- **RevenueCat dashboard fully configured:**
+  - 4 products created in product catalog: `hints_3` ($0.99), `hints_10` ($1.99), `hints_25` ($3.99), `remove_ads` ($2.99)
+  - `remove_ads` entitlement created and linked to `remove_ads` product
+  - `default` offering created (REST ID: `ofrng5f489f0cc2`) with 4 packages: `hints_3`, `hints_10`, `hints_25`, `remove_ads`
+  - iOS app: P8 key B4U6Q6F7V8 confirmed valid; S2S notification URL already set in App Store Connect
+- **App Store Connect IAP products** — 4 products created (3 consumable hint packs + 1 non-consumable remove_ads). Review screenshots not yet added — required before v1.1 submission.
+- **App Store S2S notification URL** confirmed set: `https://api.revenuecat.com/v1/incoming-webhooks/apple-server-to-server-notification/blbikLvuuyaJZoMDiTqgYtPqeOmMKIpa`
+- **AdMob:** Account approved ✅ Payment profile complete ✅ `app-ads.txt` live at `uniquegames.com.au/app-ads.txt` ✅ iOS app "Requires review" — blocked because App Store listing has no developer website URL (app is under Notiva account). Fix: add `https://www.uniquegames.com.au` as Marketing URL in v1.1 submission → AdMob will verify automatically once v1.1 is live.
+- **Android RevenueCat key** still TODO — waiting for Google Play production access (after 12 testers × 14 days closed testing).
+- Change Register CR-56 entry added, committed and pushed (`363e9a2`).
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026
@@ -331,8 +345,16 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - IARC Global Rating ID: `e7709de2-3d26-85a5-89c0-3f1dff2dcfaa` — reuse on Google Play and Apple
 - uniquegames-site updated with live Windows Store badge
 
-### After Electron MSIX
-- [ ] MER iOS + iPad screenshots — deferred until iPad available (combine iPhone 15 Pro Max 1290×2796px + iPad in one session, 5 screens: splash, home, log event, filled-in log, history)
-- [ ] Remaining store submissions (Google Play, Apple App Store — pending Apple account)
-- [ ] RevenueCat SDK (IAP + remove-ads) — Phase 5
-- [ ] Real AdMob integration — Phase 5
+### ✅ SoundFind v1.0.1/v1.0.2 LIVE on Apple App Store — May 2026
+### ✅ v1.1 monetisation code complete (CR-56) — Jun 2026
+
+### v1.1 — Still Needed Before Submission
+- [ ] IAP review screenshots — add to all 4 products in App Store Connect (needs device/Mac)
+- [ ] Set Marketing URL = `https://www.uniquegames.com.au` in App Store listing (fixes AdMob app-ads.txt #96)
+- [ ] Build v1.1 on Mac → TestFlight → test IAP + ads on device
+- [ ] Add Android RevenueCat API key to `purchases.js` (after Google Play production — waiting on 12 testers × 14 days #90–92)
+- [ ] AdMob bank account verification (#95) — check AdSense billing once fully provisioned
+
+### Google Play Closed Testing (#90–92)
+- Need 9 more testers to opt-in (have 3, need 12 total for 14-day requirement)
+- Opt-in link: `https://play.google.com/apps/testing/au.com.uniquegames.soundfind`

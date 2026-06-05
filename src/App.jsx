@@ -5,6 +5,9 @@ import { HashRouter as Router, Route, Routes, useLocation } from 'react-router-d
 import * as Sentry from '@sentry/react';
 import PageNotFound from './lib/PageNotFound';
 import SplashScreen from './components/game/SplashScreen';
+import { isNative } from './lib/platform';
+import { initAdMob } from './lib/admob';
+import { initPurchases } from './lib/purchases';
 
 // Reset #root scroll to top on every page navigation.
 // Without this, the new page briefly inherits the previous page's scroll
@@ -28,6 +31,13 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    if (isNative()) {
+      initAdMob();
+      initPurchases();
+    }
+  }, []);
 
   return (
     <Router>

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun } from 'lucide-react';
+import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { speakPhraseAndWord, unlockAudio } from '@/components/game/voiceUtils';
 import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineStorage';
 import ReminderSettings from '@/components/game/ReminderSettings';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { isNative } from '@/lib/platform';
+import { restorePurchases } from '@/lib/purchases';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +37,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [restoring, setRestoring] = useState(false);
 
   useEffect(() => {
     const s = getLocalSettings();
@@ -336,6 +339,39 @@ export default function Settings() {
               </a>
             </div>
           </motion.div>
+
+          {/* Restore Purchases — native only (App Store requirement) */}
+          {isNative() && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.32 }}
+            >
+              <Button
+                variant="outline"
+                disabled={restoring}
+                onClick={async () => {
+                  setRestoring(true);
+                  try {
+                    const { adsRemoved } = await restorePurchases();
+                    if (adsRemoved) {
+                      toast.success('Purchases restored', { description: 'Ads have been removed.' });
+                    } else {
+                      toast.info('No purchases to restore');
+                    }
+                  } catch {
+                    toast.error('Restore failed', { description: 'Please try again.' });
+                  } finally {
+                    setRestoring(false);
+                  }
+                }}
+                className="w-full h-12 rounded-xl font-semibold"
+              >
+                <RotateCcw className="w-5 h-5 mr-2" />
+                {restoring ? 'Restoring…' : 'Restore Purchases'}
+              </Button>
+            </motion.div>
+          )}
 
           {/* Reset Game Data */}
           <motion.div

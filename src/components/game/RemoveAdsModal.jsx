@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown, CheckCircle, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { isNative } from '@/lib/platform';
+import { purchaseProduct, REMOVE_ADS_PRODUCT_ID } from '@/lib/purchases';
 
 
 const REMOVE_ADS_PRICE = '$2.99';
@@ -11,11 +13,24 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
   const [success, setSuccess] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
 
-  const handlePurchase = () => {
-    // In-app purchase: handled by the native store billing layer.
-    // onSuccess() is called only after a confirmed store transaction.
-    // TODO: replace with RevenueCat purchase call on release.
-    toast.info('Coming soon', { description: 'Remove Ads will be available at launch on the App Store and Google Play.' });
+  const handlePurchase = async () => {
+    if (purchasing) return;
+    if (!isNative()) {
+      toast.info('Coming soon', { description: 'Remove Ads will be available at launch on the App Store and Google Play.' });
+      return;
+    }
+    setPurchasing(true);
+    try {
+      await purchaseProduct(REMOVE_ADS_PRODUCT_ID);
+      setSuccess(true);
+      onSuccess();
+    } catch (e) {
+      if (!e?.message?.includes('cancel')) {
+        toast.error('Purchase failed', { description: 'Please try again.' });
+      }
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   const handleClose = () => {
@@ -99,9 +114,10 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
 
                 <Button
                   onClick={handlePurchase}
+                  disabled={purchasing}
                   className="w-full h-12 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl font-semibold shadow-md shadow-amber-200"
                 >
-                  {`Remove Ads — ${REMOVE_ADS_PRICE}`}
+                  {purchasing ? 'Processing…' : `Remove Ads — ${REMOVE_ADS_PRICE}`}
                 </Button>
                 <p className="text-center text-xs text-slate-400 mt-1">Billed through the App Store / Google Play</p>
 

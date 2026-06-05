@@ -10,6 +10,8 @@ import LevelSelector from '@/components/game/LevelSelector';
 import DailyChallengeCard from '@/components/game/DailyChallengeCard';
 import AdModal from '@/components/game/AdModal';
 import RemoveAdsModal from '@/components/game/RemoveAdsModal';
+import { isNative } from '@/lib/platform';
+import { showInterstitial } from '@/lib/admob';
 import HowToPlayModal from '@/components/game/HowToPlayModal';
 import WelcomeScreen, { hasSeenWelcome } from '@/components/game/WelcomeScreen';
 import { createPageUrl } from '@/utils';
@@ -60,7 +62,7 @@ export default function Home() {
     setStep('level');
   };
 
-  const handleSelectLevel = (level) => {
+  const handleSelectLevel = async (level) => {
     const url = createPageUrl('Game') + `?mode=${selectedMode}&category=${selectedCategory}&level=${level}`;
     if (adsRemoved || !isOnline) { navigate(url); return; } // skip ad if offline or ads removed
     // CR-15: Gate ads on completed games (written by Game.jsx on victory),
@@ -71,8 +73,13 @@ export default function Home() {
     if (completedCount >= AD_FREQUENCY &&
         Math.floor(completedCount / AD_FREQUENCY) > Math.floor(lastAdAt / AD_FREQUENCY)) {
       localStorage.setItem('last_ad_completed_at', String(completedCount));
-      setPendingGameUrl(url);
-      setShowAd(true);
+      if (isNative()) {
+        await showInterstitial(); // native full-screen interstitial; resolves on dismiss
+        navigate(url);
+      } else {
+        setPendingGameUrl(url);
+        setShowAd(true); // web / Electron fallback: React AdModal
+      }
     } else {
       navigate(url);
     }

@@ -1,48 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Coins, Sparkles, Star, Shield, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { toast } from 'sonner';
+import { isNative } from '@/lib/platform';
+import { showRewarded } from '@/lib/admob';
+import { purchaseProduct, PURCHASE_OPTIONS } from '@/lib/purchases';
 
-
-const PURCHASE_OPTIONS = [
-  {
-    id: 'starter',
-    hints: 3,
-    price: '$0.99',
-    label: 'Starter',
-    gradient: 'from-amber-400 to-orange-500',
-    shadow: 'shadow-amber-200',
-    popular: false,
-  },
-  {
-    id: 'value',
-    hints: 10,
-    price: '$1.99',
-    label: 'Best Value',
-    gradient: 'from-violet-500 to-indigo-600',
-    shadow: 'shadow-violet-200',
-    popular: true,
-  },
-  {
-    id: 'pro',
-    hints: 25,
-    price: '$3.99',
-    label: 'Power Pack',
-    gradient: 'from-emerald-400 to-teal-500',
-    shadow: 'shadow-emerald-200',
-    popular: false,
-  },
-];
 
 function AdPlayer({ onComplete, onSkip }) {
   const [countdown, setCountdown] = useState(5);
   const [canSkip, setCanSkip] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
-  const AD_DURATION = 15; // seconds
+  const AD_DURATION = 15;
 
-  useEffect(() => {
+  React.useEffect(() => {
     const skipTimer = setTimeout(() => setCanSkip(true), 5000);
     const interval = setInterval(() => {
       setAdProgress(prev => {
@@ -55,11 +28,9 @@ function AdPlayer({ onComplete, onSkip }) {
         return next;
       });
     }, 1000);
-
     const cdInterval = setInterval(() => {
       setCountdown(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
-
     return () => {
       clearTimeout(skipTimer);
       clearInterval(interval);
@@ -67,16 +38,11 @@ function AdPlayer({ onComplete, onSkip }) {
     };
   }, [onComplete]);
 
-  const adImages = [
-    'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=200&fit=crop',
-    'https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=400&h=200&fit=crop',
-  ];
-
   return (
     <div className="text-center">
       <div className="relative rounded-2xl overflow-hidden mb-4 bg-slate-900">
         <img
-          src={adImages[0]}
+          src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=200&fit=crop"
           alt="Advertisement"
           className="w-full h-40 object-cover opacity-80"
         />
@@ -97,10 +63,7 @@ function AdPlayer({ onComplete, onSkip }) {
           </button>
         )}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-          <motion.div
-            className="h-full bg-violet-400"
-            style={{ width: `${adProgress}%` }}
-          />
+          <motion.div className="h-full bg-violet-400" style={{ width: `${adProgress}%` }} />
         </div>
       </div>
       <p className="text-slate-500 dark:text-slate-400 text-sm">Watch the full ad to earn your hint</p>
@@ -108,25 +71,39 @@ function AdPlayer({ onComplete, onSkip }) {
   );
 }
 
-function PurchaseView({ onPurchase, onClose }) {
-  const [selected, setSelected] = useState('value');
+function PurchaseView({ onPurchase }) {
+  const [selected, setSelected] = useState('au.com.uniquegames.soundfind.hints_10');
+  const [purchasing, setPurchasing] = useState(false);
 
-  const handlePurchase = () => {
-    const option = PURCHASE_OPTIONS.find(o => o.id === selected);
-    // In-app purchase: handled by the native store billing layer.
-    // Calling onPurchase here only after a confirmed transaction from the store.
-    // For now, show a native-style notice.
-    toast.info('Coming soon', { description: `Hint packs will be available at launch on the App Store and Google Play.` });
+  const selectedOption = PURCHASE_OPTIONS.find(o => o.productId === selected);
+
+  const handlePurchase = async () => {
+    if (purchasing) return;
+    if (!isNative()) {
+      toast.info('Coming soon', { description: 'Hint packs will be available at launch on the App Store and Google Play.' });
+      return;
+    }
+    setPurchasing(true);
+    try {
+      const result = await purchaseProduct(selected);
+      if (result.hints) onPurchase(result.hints);
+    } catch (e) {
+      if (!e?.message?.includes('cancel')) {
+        toast.error('Purchase failed', { description: 'Please try again.' });
+      }
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   return (
     <div className="space-y-3">
       {PURCHASE_OPTIONS.map(option => (
         <motion.button
-          key={option.id}
-          onClick={() => setSelected(option.id)}
+          key={option.productId}
+          onClick={() => setSelected(option.productId)}
           className={`w-full p-4 rounded-2xl border-2 text-left flex items-center gap-4 transition-all ${
-            selected === option.id
+            selected === option.productId
               ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
               : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-violet-300'
           }`}
@@ -139,9 +116,7 @@ function PurchaseView({ onPurchase, onClose }) {
             <div className="flex items-center gap-2">
               <span className="font-bold text-slate-800 dark:text-slate-100">{option.hints} Hints</span>
               {option.popular && (
-                <span className="px-2 py-0.5 bg-violet-100 text-violet-700 text-xs font-bold rounded-full">
-                  Popular
-                </span>
+                <span className="px-2 py-0.5 bg-violet-100 text-violet-700 text-xs font-bold rounded-full">Popular</span>
               )}
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">{option.label}</p>
@@ -157,17 +132,30 @@ function PurchaseView({ onPurchase, onClose }) {
 
       <Button
         onClick={handlePurchase}
+        disabled={purchasing}
         className="w-full h-12 bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white rounded-xl font-semibold"
       >
-        {`Buy ${PURCHASE_OPTIONS.find(o => o.id === selected)?.hints} Hints — ${PURCHASE_OPTIONS.find(o => o.id === selected)?.price}`}
+        {purchasing
+          ? 'Processing…'
+          : `Buy ${selectedOption?.hints} Hints — ${selectedOption?.price}`}
       </Button>
     </div>
   );
 }
 
 export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
-  const [view, setView] = useState('options'); // 'options' | 'ad' | 'purchase'
+  const [view, setView] = useState('options');
   const isOnline = useOnlineStatus();
+
+  const handleWatchAdNative = async () => {
+    handleClose();
+    const rewarded = await showRewarded();
+    if (rewarded) {
+      onWatchAd();
+    } else {
+      toast.info('No ad available right now', { description: 'Try again in a moment.' });
+    }
+  };
 
   const handleAdComplete = () => {
     setView('options');
@@ -176,7 +164,6 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
 
   const handleAdSkip = () => {
     setView('options');
-    // Partial reward - still give 1 hint if they watched at least 5 seconds
     onWatchAd();
   };
 
@@ -208,15 +195,14 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
             style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="flex justify-between items-start mb-5">
               <div>
-                {view === 'options' && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Need a Hint? 💡</h2>}
-                {view === 'ad' && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Watch & Earn</h2>}
+                {view === 'options'  && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Need a Hint? 💡</h2>}
+                {view === 'ad'       && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Watch & Earn</h2>}
                 {view === 'purchase' && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Get More Hints</h2>}
                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                  {view === 'options' && 'Choose how to unlock your next hint'}
-                  {view === 'ad' && 'Watch a short ad for a free hint'}
+                  {view === 'options'  && 'Choose how to unlock your next hint'}
+                  {view === 'ad'       && 'Watch a short ad for a free hint'}
                   {view === 'purchase' && 'One-time purchase, no subscription'}
                 </p>
               </div>
@@ -234,10 +220,9 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                   exit={{ opacity: 0 }}
                   className="space-y-3"
                 >
-                  {/* Watch Ad */}
                   {isOnline ? (
                     <motion.button
-                      onClick={() => setView('ad')}
+                      onClick={isNative() ? handleWatchAdNative : () => setView('ad')}
                       className="w-full p-4 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-2xl text-white text-left flex items-center gap-4 hover:shadow-lg hover:shadow-violet-200 transition-shadow"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -263,7 +248,6 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                     </div>
                   )}
 
-                  {/* Purchase */}
                   {isOnline ? (
                     <motion.button
                       onClick={() => setView('purchase')}
@@ -311,7 +295,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
 
               {view === 'purchase' && (
                 <motion.div key="purchase" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <PurchaseView onPurchase={handlePurchaseDone} onClose={handleClose} />
+                  <PurchaseView onPurchase={handlePurchaseDone} />
                   <Button variant="ghost" className="w-full mt-2 text-slate-400" onClick={() => setView('options')}>
                     ← Back
                   </Button>

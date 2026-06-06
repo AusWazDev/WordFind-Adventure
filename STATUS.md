@@ -245,6 +245,20 @@ Issues found in v1.0.0 after publication and fixed in v1.0.1:
 **Submitted for certification:** 29 April 2026
 **v1.0.1 PUBLISHED:** 29 April 2026 — passed certification same day
 
+### 2026-06-07 (Mac — CR-57: dynamic IAP pricing + SoundFind v1.1.0 submitted)
+
+**SoundFind v1.1.0 submitted to App Store — under review**
+
+- Pulled CR-56 (Windows — AdMob + RevenueCat wiring) to Mac; ran `npm install` to install `@capacitor-community/admob` + `@revenuecat/purchases-capacitor`
+- **CR-57:** Dynamic IAP pricing via RevenueCat — `purchases.js` fetches live prices from `getOfferings()` after init, caches by product identifier, exposes `getPrice(id, fallback)`; `HintModal` + `RemoveAdsModal` now show local store currency (AUD for AU users). Fixed SDK property name bug: `product.identifier` not `product.productIdentifier`. Fallback prices labelled `US$X.XX` for clarity. Commit `77cb13f`.
+- **Settings — Go Ad-Free button** added (native only, hidden once purchased) so users can reach RemoveAdsModal without waiting for an interstitial. Commit `77cb13f`.
+- **IAP review screenshots** taken on device (HintModal purchase view + RemoveAdsModal) and uploaded to App Store Connect via API for all 4 products — all products set to Ready to Submit.
+- Bumped version to **1.1.0 (Build 4)** in `package.json` + Xcode project. Commit `4b45ba1`.
+- Built IPA via `xcodebuild archive`, exported, uploaded via `xcrun altool` (Delivery UUID: `68d1f7e4-b768-419d-b1aa-62e0a45bf3e8`).
+- **Submitted v1.1.0 for App Store review — 7 June 2026.** All 4 IAPs included. Marketing URL set. Under review (up to 48 hours).
+
+**Note:** SoundFind Change Register needs CR-57 + v1.1.0 entries added on Windows.
+
 ### 2026-05-19 (Mac — CR-53: iOS Capacitor bug fixes post v1.0.1)
 
 Five bugs discovered after v1.0.1 went live on the App Store, all fixed and committed `ad8460a`.

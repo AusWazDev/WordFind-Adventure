@@ -4,10 +4,9 @@ import { X, Crown, CheckCircle, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
-import { purchaseProduct, REMOVE_ADS_PRODUCT_ID } from '@/lib/purchases';
+import { purchaseProduct, REMOVE_ADS_PRODUCT_ID, getPrice } from '@/lib/purchases';
 
-
-const REMOVE_ADS_PRICE = '$2.99';
+const REMOVE_ADS_FALLBACK = 'US$2.99';
 
 export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
   const [success, setSuccess] = useState(false);
@@ -93,7 +92,7 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
                 {/* Price badge */}
                 <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-center text-white mb-5 shadow-lg shadow-amber-200">
                   <p className="text-amber-100 text-sm mb-1">One-time price</p>
-                  <p className="text-5xl font-bold">{REMOVE_ADS_PRICE}</p>
+                  <p className="text-5xl font-bold">{getPrice(REMOVE_ADS_PRODUCT_ID, REMOVE_ADS_FALLBACK)}</p>
                   <p className="text-amber-100 text-sm mt-1">Forever — not a subscription</p>
                 </div>
 
@@ -117,7 +116,7 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
                   disabled={purchasing}
                   className="w-full h-12 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl font-semibold shadow-md shadow-amber-200"
                 >
-                  {purchasing ? 'Processing…' : `Remove Ads — ${REMOVE_ADS_PRICE}`}
+                  {purchasing ? 'Processing…' : `Remove Ads — ${getPrice(REMOVE_ADS_PRODUCT_ID, REMOVE_ADS_FALLBACK)}`}
                 </Button>
                 <p className="text-center text-xs text-slate-400 mt-1">Billed through the App Store / Google Play</p>
 

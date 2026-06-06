@@ -6,7 +6,7 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
 import { showRewarded } from '@/lib/admob';
-import { purchaseProduct, PURCHASE_OPTIONS } from '@/lib/purchases';
+import { purchaseProduct, PURCHASE_OPTIONS, getPrice } from '@/lib/purchases';
 
 
 function AdPlayer({ onComplete, onSkip }) {
@@ -121,7 +121,7 @@ function PurchaseView({ onPurchase }) {
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">{option.label}</p>
           </div>
-          <span className="text-lg font-bold text-slate-800 dark:text-slate-100">{option.price}</span>
+          <span className="text-lg font-bold text-slate-800 dark:text-slate-100">{getPrice(option.productId, option.price)}</span>
         </motion.button>
       ))}
 
@@ -137,7 +137,7 @@ function PurchaseView({ onPurchase }) {
       >
         {purchasing
           ? 'Processing…'
-          : `Buy ${selectedOption?.hints} Hints — ${selectedOption?.price}`}
+          : `Buy ${selectedOption?.hints} Hints — ${getPrice(selected, selectedOption?.price)}`}
       </Button>
     </div>
   );

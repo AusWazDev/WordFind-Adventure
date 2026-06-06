@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun, RotateCcw } from 'lucide-react';
+import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun, RotateCcw, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { speakPhraseAndWord, unlockAudio } from '@/components/game/voiceUtils';
 import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineStorage';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { isNative } from '@/lib/platform';
 import { restorePurchases } from '@/lib/purchases';
+import RemoveAdsModal from '@/components/game/RemoveAdsModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,8 @@ export default function Settings() {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState(false);
+  const [adsRemoved, setAdsRemoved] = useState(() => localStorage.getItem('ads_removed') === 'true');
+  const [showRemoveAds, setShowRemoveAds] = useState(false);
 
   useEffect(() => {
     const s = getLocalSettings();
@@ -340,6 +343,28 @@ export default function Settings() {
             </div>
           </motion.div>
 
+          {/* Go Ad-Free — native only, hidden once purchased */}
+          {isNative() && !adsRemoved && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.32 }}
+            >
+              <button
+                onClick={() => setShowRemoveAds(true)}
+                className="w-full p-4 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl text-white flex items-center gap-3 shadow-md shadow-amber-200"
+              >
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <Crown className="w-5 h-5" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold">Go Ad-Free</p>
+                  <p className="text-amber-100 text-sm">One-time purchase — no subscription</p>
+                </div>
+              </button>
+            </motion.div>
+          )}
+
           {/* Restore Purchases — native only (App Store requirement) */}
           {isNative() && (
             <motion.div
@@ -353,8 +378,9 @@ export default function Settings() {
                 onClick={async () => {
                   setRestoring(true);
                   try {
-                    const { adsRemoved } = await restorePurchases();
-                    if (adsRemoved) {
+                    const { adsRemoved: restored } = await restorePurchases();
+                    if (restored) {
+                      setAdsRemoved(true);
                       toast.success('Purchases restored', { description: 'Ads have been removed.' });
                     } else {
                       toast.info('No purchases to restore');
@@ -414,6 +440,12 @@ export default function Settings() {
 
         </div>
       </div>
+
+      <RemoveAdsModal
+        isOpen={showRemoveAds}
+        onClose={() => setShowRemoveAds(false)}
+        onSuccess={() => { setAdsRemoved(true); setShowRemoveAds(false); }}
+      />
     </div>
   );
 }

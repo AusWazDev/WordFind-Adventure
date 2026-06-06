@@ -6,6 +6,8 @@ const API_KEYS = {
   android: '', // TODO: add once Google Play goes to production
 };
 
+const _prices = {};
+
 export const REMOVE_ADS_PRODUCT_ID = 'au.com.uniquegames.soundfind.remove_ads';
 
 const HINT_PACK_MAP = {
@@ -15,21 +17,40 @@ const HINT_PACK_MAP = {
 };
 
 export const PURCHASE_OPTIONS = [
-  { productId: 'au.com.uniquegames.soundfind.hints_3',  hints: 3,  price: '$0.99', label: 'Starter',    gradient: 'from-amber-400 to-orange-500',   shadow: 'shadow-amber-200',  popular: false },
-  { productId: 'au.com.uniquegames.soundfind.hints_10', hints: 10, price: '$1.99', label: 'Best Value',  gradient: 'from-violet-500 to-indigo-600',  shadow: 'shadow-violet-200', popular: true  },
-  { productId: 'au.com.uniquegames.soundfind.hints_25', hints: 25, price: '$3.99', label: 'Power Pack',  gradient: 'from-emerald-400 to-teal-500',   shadow: 'shadow-emerald-200', popular: false },
+  { productId: 'au.com.uniquegames.soundfind.hints_3',  hints: 3,  price: 'US$0.99', label: 'Starter',    gradient: 'from-amber-400 to-orange-500',   shadow: 'shadow-amber-200',  popular: false },
+  { productId: 'au.com.uniquegames.soundfind.hints_10', hints: 10, price: 'US$1.99', label: 'Best Value',  gradient: 'from-violet-500 to-indigo-600',  shadow: 'shadow-violet-200', popular: true  },
+  { productId: 'au.com.uniquegames.soundfind.hints_25', hints: 25, price: 'US$3.99', label: 'Power Pack',  gradient: 'from-emerald-400 to-teal-500',   shadow: 'shadow-emerald-200', popular: false },
 ];
+
+export function getPrice(productId, fallback) {
+  return _prices[productId] || fallback;
+}
+
+async function fetchAndCachePrices() {
+  try {
+    const { current } = await Purchases.getOfferings();
+    if (!current) return;
+    current.availablePackages.forEach(pkg => {
+      const product = pkg.storeProduct ?? pkg.product;
+      const id = product?.identifier ?? product?.productIdentifier;
+      if (id && product?.priceString) _prices[id] = product.priceString;
+    });
+  } catch {
+    // Non-fatal — hardcoded fallbacks used
+  }
+}
 
 export async function initPurchases() {
   const apiKey = API_KEYS[getPlatform()];
   if (!apiKey) return;
   try {
     await Purchases.configure({ apiKey });
-    syncAdFreeStatus();
+    await Promise.all([syncAdFreeStatus(), fetchAndCachePrices()]);
   } catch (e) {
     console.warn('[Purchases] init failed:', e);
   }
 }
+
 
 async function syncAdFreeStatus() {
   try {

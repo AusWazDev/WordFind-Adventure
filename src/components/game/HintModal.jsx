@@ -6,6 +6,7 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
 import { showRewarded } from '@/lib/admob';
+import * as Sentry from '@sentry/react';
 import { purchaseProduct, PURCHASE_OPTIONS, getPrice } from '@/lib/purchases';
 
 
@@ -90,6 +91,7 @@ function PurchaseView({ onPurchase }) {
     } catch (e) {
       if (!e?.message?.includes('cancel')) {
         toast.error('Purchase failed', { description: 'Please try again.' });
+        Sentry.captureException(e, { tags: { context: 'hint_purchase' } });
       }
     } finally {
       setPurchasing(false);

@@ -1,4 +1,5 @@
 import { Purchases, PRODUCT_CATEGORY } from '@revenuecat/purchases-capacitor';
+import * as Sentry from '@sentry/react';
 import { getPlatform } from './platform';
 
 const API_KEYS = {
@@ -35,8 +36,8 @@ async function fetchAndCachePrices() {
       const id = product?.identifier ?? product?.productIdentifier;
       if (id && product?.priceString) _prices[id] = product.priceString;
     });
-  } catch {
-    // Non-fatal — hardcoded fallbacks used
+  } catch (e) {
+    Sentry.addBreadcrumb({ category: 'purchases', message: 'fetchAndCachePrices failed — using fallbacks', data: { error: String(e) }, level: 'warning' });
   }
 }
 
@@ -48,6 +49,7 @@ export async function initPurchases() {
     await Promise.all([syncAdFreeStatus(), fetchAndCachePrices()]);
   } catch (e) {
     console.warn('[Purchases] init failed:', e);
+    Sentry.captureException(e, { tags: { context: 'purchases_init' } });
   }
 }
 

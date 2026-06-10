@@ -245,6 +245,17 @@ Issues found in v1.0.0 after publication and fixed in v1.0.1:
 **Submitted for certification:** 29 April 2026
 **v1.0.1 PUBLISHED:** 29 April 2026 — passed certification same day
 
+### 2026-06-10 (Windows — CR-58: Sentry instrumentation for AdMob + RevenueCat)
+
+**v1.1.0 confirmed live on App Store — all 4 IAPs visible. AdMob serving (A$0.09 earned). RevenueCat SDK connected.**
+
+- **CR-58:** Added Sentry error capture to monetisation layer:
+  - `admob.js`: `captureException` on `initAdMob` failure; `addBreadcrumb` on `prepareInterstitial` / `showInterstitial` / `showRewarded` failures (operational noise, not issues)
+  - `purchases.js`: `captureException` on `initPurchases` failure; `addBreadcrumb` on `fetchAndCachePrices` failure
+  - `HintModal.jsx` + `RemoveAdsModal.jsx`: `captureException` on non-cancel purchase errors
+  - `main.jsx`: Sentry release updated `soundfind@1.0.0` → `soundfind@1.1.0`
+- Ops dashboard: new `/api/revenuecat` route + IAP today/MTD row added to SoundFind card. Requires `REVENUECAT_SECRET_KEY` in Vercel env vars.
+
 ### 2026-06-07 (Mac — CR-57: dynamic IAP pricing + SoundFind v1.1.0 submitted)
 
 **SoundFind v1.1.0 submitted to App Store — under review**

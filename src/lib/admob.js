@@ -1,4 +1,5 @@
 import { AdMob } from '@capacitor-community/admob';
+import * as Sentry from '@sentry/react';
 import { getPlatform } from './platform';
 
 const AD_UNITS = {
@@ -24,6 +25,7 @@ export async function initAdMob() {
     prepareInterstitial();
   } catch (e) {
     console.warn('[AdMob] init failed:', e);
+    Sentry.captureException(e, { tags: { context: 'admob_init' } });
   }
 }
 
@@ -34,6 +36,7 @@ export async function prepareInterstitial() {
     await AdMob.prepareInterstitial({ adId: units.interstitial });
   } catch (e) {
     console.warn('[AdMob] prepareInterstitial failed:', e);
+    Sentry.addBreadcrumb({ category: 'admob', message: 'prepareInterstitial failed', data: { error: String(e) }, level: 'warning' });
   }
 }
 
@@ -43,6 +46,7 @@ export async function showInterstitial() {
     await AdMob.showInterstitial();
   } catch (e) {
     console.warn('[AdMob] showInterstitial failed:', e);
+    Sentry.addBreadcrumb({ category: 'admob', message: 'showInterstitial failed', data: { error: String(e) }, level: 'warning' });
   }
   prepareInterstitial(); // fire-and-forget pre-load for next time
 }
@@ -57,6 +61,7 @@ export async function showRewarded() {
     return !!reward;
   } catch (e) {
     console.warn('[AdMob] showRewarded failed:', e);
+    Sentry.addBreadcrumb({ category: 'admob', message: 'showRewarded failed', data: { error: String(e) }, level: 'warning' });
     return false;
   }
 }

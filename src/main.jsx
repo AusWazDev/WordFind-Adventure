@@ -16,7 +16,7 @@ if ('serviceWorker' in navigator && window.Capacitor) {
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
-  release: 'soundfind@1.0.0',
+  release: 'soundfind@1.1.0',
   sendDefaultPii: false,
   integrations: [
     Sentry.browserTracingIntegration(),

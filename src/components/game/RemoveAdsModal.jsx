@@ -4,6 +4,7 @@ import { X, Crown, CheckCircle, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
+import * as Sentry from '@sentry/react';
 import { purchaseProduct, REMOVE_ADS_PRODUCT_ID, getPrice } from '@/lib/purchases';
 
 const REMOVE_ADS_FALLBACK = 'US$2.99';
@@ -26,6 +27,7 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
     } catch (e) {
       if (!e?.message?.includes('cancel')) {
         toast.error('Purchase failed', { description: 'Please try again.' });
+        Sentry.captureException(e, { tags: { context: 'remove_ads_purchase' } });
       }
     } finally {
       setPurchasing(false);

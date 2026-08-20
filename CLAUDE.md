@@ -1,5 +1,9 @@
 # SoundFind — Claude Code Context
 
+> **For the full derived architecture — five game modes, monetisation wiring,
+> localStorage keys, platform differences — see `docs/ARCHITECTURE.md`,
+> regenerated from the code at each version bump.**
+
 > **Auto-loaded by Claude Code on every session start.**
 > This file covers code context only — tech stack, key files, architecture, gotchas.
 > For current status, blockers, and next steps → fetch the ClickUp handoff document:
@@ -20,14 +24,23 @@
 
 ## Tech Stack
 
-- React 18 + Vite
+- React 18 + Vite 6
 - Tailwind CSS
 - Framer Motion (animations)
 - shadcn/ui (component library)
-- React Router v6
-- localStorage for all persistence (no backend)
-- Vercel for deployment
-- Capacitor v8.3.0 — iOS and Android projects initialised (`ios/` and `android/` folders present)
+- React Router v6 — **`HashRouter`**, required by Capacitor and Electron
+- localStorage for all persistence (no backend, no accounts)
+- Vercel for web deployment
+- Capacitor v8.3.0 — **integration is real, not scaffolding**: `capacitor.config.json`
+  (`appId: au.com.uniquegames.soundfind`), `ios/` and `android/` projects, and runtime
+  Capacitor API use via `src/lib/platform.js`
+- `@capacitor-community/admob` ^8.0.0 — ads (`src/lib/admob.js`)
+- `@revenuecat/purchases-capacitor` ^13.1.5 — IAP (`src/lib/purchases.js`)
+- `@sentry/react` ^10.50.0 — error monitoring
+- Electron 41 + electron-builder — Microsoft Store `appx` (NOT a PWA wrapper)
+- `vite-plugin-pwa`
+- **No Base44 dependency.** Base44 is origin history only; there are no
+  references anywhere in `src/` or `package.json`
 
 ---
 
@@ -56,9 +69,18 @@ Every code change needs a CR or DEF entry in `docs/Change Register.md` with the 
 
 ---
 
-## Current State (as of 14 May 2026)
+## Current State (as of 20 August 2026)
 
-App is **v1.0.1 — live on Microsoft Store. iOS App Store submission in progress.**
+`package.json` version is **1.1.0**. Store presence: Apple App Store LIVE
+(ID 6769255354), Microsoft Store LIVE, Google Play **Closed Testing only** and
+not publicly listed — that needs 12 opted-in testers for 14 consecutive days
+via `soundfind-testers@googlegroups.com` before production unlocks.
+
+Never assert the shipped version from this file — check `package.json`, and the
+consoles for what is actually live.
+
+### Superseded (was recorded here as of 14 May 2026)
+App described as v1.0.1 with iOS submission "in progress". Both are out of date.
 
 ### Recently completed
 | CR/DEF | What | Commit |
@@ -195,8 +217,23 @@ For current priorities and store submission status → fetch the ClickUp handoff
 
 ## Known Issues / Watch Points
 
-- `HintModal.jsx` — IAP stubs replaced with `toast.info()` (CR-30); no real RevenueCat wiring yet. Must complete before public launch.
+- ⚠️ **CORRECTED 20 Aug 2026 — RevenueCat IS wired.** This file previously said
+  there was "no real RevenueCat wiring yet". `src/lib/purchases.js` implements
+  configure, offerings, purchase and restore, and both `RemoveAdsModal.jsx` and
+  `HintModal.jsx` call `purchaseProduct`. The `toast.info('Coming soon')` in
+  `HintModal.jsx` fires **only when `!isNative()`** — it is the web/Electron
+  fallback where IAP does not exist, not a stub. Do not read a grep hit on that
+  toast as evidence the purchase path is missing.
+- Prices in `PURCHASE_OPTIONS` are fallback display strings; `getPrice()` prefers
+  the real store price. Do not quote them as live pricing.
 - Vercel deployment — SPA rewrites in `vercel.json` handle React Router; don't remove
+- **Three hardcoded `images.unsplash.com` URLs in `src/`** mean the app makes
+  third-party requests at runtime, so Unsplash sees player IPs. Confirm this is
+  reflected in the privacy policy and store privacy declarations — the rest of
+  the app makes no third-party calls
+- localStorage keys use three inconsistent prefixes (`wf_`, `wordfind_`, bare).
+  Legacy naming from before the rebrand; renaming any of them orphans existing
+  players' saved progress
 - Audio: if an MP3 is missing, all audio functions fall back to Web Speech API silently — no error shown to user
 - Touch scroll on game board — non-passive listeners in `GameBoard.jsx` prevent pull-to-refresh (DEF-19)
 

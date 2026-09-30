@@ -400,6 +400,7 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **Found, not changed (for the developer):** the bonus-word find plays "Great! You found X" from the MP3, while its text fallback says "Amazing! The hidden word was X". The `hidden_word_was` MP3 exists and is preloaded but is never played.
 - Tests: 7 new (62 in the suite); fault controls failed as expected.
 - **Device check still to do (developer):** run the seven SF-9 scenarios on an iPhone build and in the Windows build (see the CR-63 report).
+- **Follow-up (h), same day:** the bonus-word audio "mismatch" is unreachable. Bonus words exist only in Mystery Word mode, and audio feedback only in Audio mode (measured: 0 bonus words in 350 audio games; 217 in 350 Mystery Word games). No code change. SF-9 scenario 4 cannot happen, so skip it on the device check.
 
 ## Next Steps (Priority Order)
 

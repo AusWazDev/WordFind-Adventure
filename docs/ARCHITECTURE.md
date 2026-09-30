@@ -176,6 +176,11 @@ before the rebrand; renaming any of them orphans existing players' data.
 > | `wordfind_reminder_timer` | `ReminderSettings.jsx` | Reminder schedule | Not touched |
 > | `wordfind_reminder` | `ReminderSettings.jsx` `STORAGE_KEY` | Reminder settings (a second reminder key) | Not touched |
 > | `sf_free_hint_refill_at` | `src/lib/freeHintRefill.js` (CR-64) | Last daily free refill on Windows and web | Not touched (so Reset cannot re-grant it) |
+>
+> ⚠️ *Annotated 30 Sep 2026 (CR-67, decision S6): the refill was withdrawn and
+> `freeHintRefill.js` deleted. `sf_free_hint_refill_at` may still exist in
+> browsers that used the CR-64 build, but **nothing reads or writes it**, so the
+> app uses 9 keys. The row above is kept as written.*
 
 ---
 

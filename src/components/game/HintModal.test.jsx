@@ -1,15 +1,19 @@
 // @vitest-environment jsdom
-// Out-of-hints modal (CR-64, brief SF-3): on Windows and web (!isNative) there
-// is no ad, no purchase and no third-party image, only the daily free refill.
-// On native the ad and purchase options are unchanged.
+// Out-of-hints modal, decision S6 (CR-67, brief SF-3R): the SF-3 refill is
+// reverted. Off native (Windows, web) the placeholders are back: "Watch an Ad"
+// (the simulated AdPlayer, which grants 1 hint) and "Buy Hint Pack". On native
+// the real rewarded ad is used. No free refill exists anywhere.
 import React from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = { native: false };
+const showRewarded = vi.fn(async () => true);
 vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'ios' : 'web') }));
-vi.mock('@/lib/admob', () => ({ showRewarded: vi.fn(async () => true) }));
+vi.mock('@/lib/admob', () => ({ showRewarded: (...a) => showRewarded(...a) }));
 vi.mock('@/lib/purchases', () => ({
   purchaseProduct: vi.fn(),
   getPrice: (_id, fallback) => fallback,
@@ -21,65 +25,78 @@ const { default: HintModal } = await import('./HintModal');
 
 let container;
 let root;
-const handlers = { onClose: vi.fn(), onWatchAd: vi.fn(), onPurchase: vi.fn(), onFreeHints: vi.fn() };
-
+const handlers = { onClose: vi.fn(), onWatchAd: vi.fn(), onPurchase: vi.fn() };
+const text = () => container.textContent;
+const button = label => [...container.querySelectorAll('button')].find(b => b.textContent.includes(label));
 async function render() {
   await act(async () => { root.render(<HintModal isOpen {...handlers} />); });
 }
-const text = () => container.textContent;
-const button = label => [...container.querySelectorAll('button')].find(b => b.textContent.includes(label));
 
 beforeEach(() => {
-  localStorage.clear();
   Object.values(handlers).forEach(h => h.mockClear());
+  showRewarded.mockClear();
   window.matchMedia = window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
   container = document.createElement('div');
   document.body.appendChild(container);
   root = createRoot(container);
 });
-
 afterEach(async () => {
   await act(async () => root.unmount());
   container.remove();
+  vi.useRealTimers();
 });
 
-describe('Windows and web (!isNative)', () => {
+describe('off native (Windows, web): the S6 placeholders', () => {
   beforeEach(() => { platform.native = false; });
 
-  it('offers no ad, no purchase and loads no image', async () => {
+  it('offers both "Watch an Ad" and "Buy Hint Pack"', async () => {
     await render();
-    expect(text()).not.toContain('Watch an Ad');
-    expect(text()).not.toContain('Buy Hint Pack');
-    expect(container.querySelectorAll('img')).toHaveLength(0);
+    expect(button('Watch an Ad')).toBeDefined();
+    expect(button('Buy Hint Pack')).toBeDefined();
   });
 
-  it('offers 3 free hints, and claiming them grants exactly 3', async () => {
+  it('"Watch an Ad" plays the placeholder and then grants the hint (onWatchAd once)', async () => {
+    const realSetTimeout = globalThis.setTimeout;
+    const realSleep = ms => new Promise(r => realSetTimeout(r, ms));
+    vi.useFakeTimers();
     await render();
-    expect(text()).toContain('Get 3 free hints');
-    await act(async () => { button('Get 3 free hints').click(); });
-    expect(handlers.onFreeHints).toHaveBeenCalledWith(3);
-    expect(handlers.onWatchAd).not.toHaveBeenCalled();
-    expect(handlers.onPurchase).not.toHaveBeenCalled();
-  });
-
-  it('after claiming, the next open shows the wait and no claim button', async () => {
-    await render();
-    await act(async () => { button('Get 3 free hints').click(); });
-    await act(async () => root.unmount());
-    root = createRoot(container);
-    await render();
-    expect(button('Get 3 free hints')).toBeUndefined();
-    expect(text()).toMatch(/Next 3 free hints in \d+h/);
+    await act(async () => { button('Watch an Ad').click(); });
+    // The views sit in AnimatePresence mode="wait", so the ad view mounts only
+    // after the menu's exit animation ends. Wait for it (bounded), advancing
+    // both fake and real time, rather than assuming it is already there.
+    for (let i = 0; i < 100 && !text().includes('Watch the full ad to earn your hint'); i++) {
+      await act(async () => { vi.advanceTimersByTime(50); await realSleep(20); });
+    }
+    expect(text()).toContain('Watch the full ad to earn your hint');
+    // One second per act, so React applies each progress update (the player's
+    // 15 s ad) before the next tick; the completion timer is set by the last one.
+    for (let s = 0; s < 16; s++) await act(async () => { vi.advanceTimersByTime(1000); });
+    await act(async () => { vi.advanceTimersByTime(400); });
+    expect(handlers.onWatchAd).toHaveBeenCalledTimes(1);
+    expect(showRewarded).not.toHaveBeenCalled();
   });
 });
 
-describe('native (iOS / Android) is unchanged', () => {
+describe('on native (iOS, Android): unchanged', () => {
   beforeEach(() => { platform.native = true; });
 
-  it('still offers Watch an Ad and Buy Hint Pack, and no free refill', async () => {
+  it('"Watch an Ad" calls the real rewarded ad, not the placeholder', async () => {
     await render();
-    expect(text()).toContain('Watch an Ad');
-    expect(text()).toContain('Buy Hint Pack');
-    expect(text()).not.toContain('free hints');
+    await act(async () => { button('Watch an Ad').click(); });
+    expect(showRewarded).toHaveBeenCalledTimes(1);
+    expect(text()).not.toContain('Watch the full ad to earn your hint');
+  });
+});
+
+describe('the SF-3 free refill is gone', () => {
+  it('no refill code or copy remains anywhere in src', () => {
+    const SRC = join(process.cwd(), 'src');
+    const files = dir => readdirSync(dir).flatMap(n => {
+      const p = join(dir, n);
+      return statSync(p).isDirectory() ? files(p) : (/\.(js|jsx)$/.test(n) && !n.includes('.test.') ? [p] : []);
+    });
+    const hits = files(SRC).filter(f => /freeHintRefill|FreeRefill|onFreeHints|free hints once|sf_free_hint_refill_at/.test(readFileSync(f, 'utf8')));
+    expect(files(SRC).length).toBeGreaterThan(20); // control: the sweep saw the source tree
+    expect(hits).toEqual([]);
   });
 });

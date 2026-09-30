@@ -371,15 +371,6 @@ export default function Game() {
     if (progress) updateProgress(null, progress, { hints_remaining: newHints });
   };
 
-  // Windows and web daily free refill (CR-64)
-  const handleFreeHints = (amount) => {
-    const newHints = hintsRemaining + amount;
-    setHintsRemaining(newHints);
-    setShowHintModal(false);
-    toast.success(`${amount} free hints added!`);
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
-  };
-
   const handleBonusCellTap = useCallback((letter) => {
     if (!gameDataRef.current?.bonusWord) return;
     const max = gameDataRef.current.bonusWord.length;
@@ -651,7 +642,7 @@ export default function Game() {
         </div>
       )}
 
-      <HintModal isOpen={showHintModal} onClose={() => setShowHintModal(false)} onWatchAd={handleWatchAd} onPurchase={handlePurchase} onFreeHints={handleFreeHints} />
+      <HintModal isOpen={showHintModal} onClose={() => setShowHintModal(false)} onWatchAd={handleWatchAd} onPurchase={handlePurchase} />
       <VictoryModal isOpen={showVictory} score={score} wordsFound={foundWords.length} level={level} onNextLevel={handleNextLevel} onReplay={handleReplay} onHome={handleHome} bonusFound={bonusFound} bonusPoints={bonusPoints} hasBonusWord={!!gameData?.bonusWord} />
     </div>
   );

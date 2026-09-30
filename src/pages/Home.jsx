@@ -8,6 +8,8 @@ import CategorySelector from '@/components/game/CategorySelector';
 import AudioCategorySelector from '@/components/game/AudioCategorySelector';
 import LevelSelector from '@/components/game/LevelSelector';
 import DailyChallengeCard from '@/components/game/DailyChallengeCard';
+import AdModal from '@/components/game/AdModal';
+import RemoveAdsModal from '@/components/game/RemoveAdsModal';
 import { isNative } from '@/lib/platform';
 import { showInterstitial } from '@/lib/admob';
 import HowToPlayModal from '@/components/game/HowToPlayModal';
@@ -25,7 +27,10 @@ export default function Home() {
   const [selectedMode, setSelectedMode] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [progress, setProgress] = useState(null);
-  const [adsRemoved] = useState(() => localStorage.getItem('ads_removed') === 'true');
+  const [showAd, setShowAd] = useState(false);
+  const [showRemoveAds, setShowRemoveAds] = useState(false);
+  const [pendingGameUrl, setPendingGameUrl] = useState(null);
+  const [adsRemoved, setAdsRemoved] = useState(() => localStorage.getItem('ads_removed') === 'true');
   const isOnline = useOnlineStatus();
 
   // Onboarding state
@@ -60,9 +65,6 @@ export default function Home() {
   const handleSelectLevel = async (level) => {
     const url = createPageUrl('Game') + `?mode=${selectedMode}&category=${selectedCategory}&level=${level}`;
     if (adsRemoved || !isOnline) { navigate(url); return; } // skip ad if offline or ads removed
-    // CR-64: Windows and web have no ads (the simulated AdModal is gone), so
-    // they go straight to the game and the ad counters are left untouched.
-    if (!isNative()) { navigate(url); return; }
     // CR-15: Gate ads on completed games (written by Game.jsx on victory),
     // not game starts. Show ad when the player has crossed a new multiple of
     // AD_FREQUENCY completions since the last ad was shown.
@@ -71,11 +73,28 @@ export default function Home() {
     if (completedCount >= AD_FREQUENCY &&
         Math.floor(completedCount / AD_FREQUENCY) > Math.floor(lastAdAt / AD_FREQUENCY)) {
       localStorage.setItem('last_ad_completed_at', String(completedCount));
-      await showInterstitial(); // native full-screen interstitial; resolves on dismiss
-      navigate(url);
+      if (isNative()) {
+        await showInterstitial(); // native full-screen interstitial; resolves on dismiss
+        navigate(url);
+      } else {
+        setPendingGameUrl(url);
+        setShowAd(true); // web / Electron fallback: React AdModal
+      }
     } else {
       navigate(url);
     }
+  };
+
+  const handleAdClosed = () => {
+    setShowAd(false);
+    if (pendingGameUrl) { navigate(pendingGameUrl); setPendingGameUrl(null); }
+  };
+
+  const handleRemoveAdsSuccess = () => {
+    localStorage.setItem('ads_removed', 'true');
+    setAdsRemoved(true);
+    setShowAd(false);
+    if (pendingGameUrl) { navigate(pendingGameUrl); setPendingGameUrl(null); }
   };
 
   const backLabel = step === 'level' ? '← Back to categories' : '← Back to modes';
@@ -177,6 +196,16 @@ export default function Home() {
 
         </div>
 
+        <AdModal
+          isOpen={showAd}
+          onClose={handleAdClosed}
+          onRemoveAds={() => { setShowAd(false); setShowRemoveAds(true); }}
+        />
+        <RemoveAdsModal
+          isOpen={showRemoveAds}
+          onClose={() => setShowRemoveAds(false)}
+          onSuccess={handleRemoveAdsSuccess}
+        />
         <HowToPlayModal
           isOpen={showHowToPlay}
           onClose={() => setShowHowToPlay(false)}

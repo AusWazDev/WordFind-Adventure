@@ -428,6 +428,12 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - ⛔ **Lesson: a commit must be gated on the test command's EXIT CODE.** `1539865` was committed by a command chain that ran `npm test` but did not stop on its result, while one test had timed out; the chain's `&&` covered only the git steps. Fixed in `d1afea4`. From then on: `npm test; RC=$?` and commit only if `$RC` is 0.
 - **Investigated `2b5b6d9`'s Register change:** nothing lost; all 33 rows were restored verbatim by `7ea9316` the same day (CR-32 note (2)).
 
+### 2026-09-30 (Windows — CR-67 the S6 hint and ad model restored, brief SF-3R)
+
+- **CR-67:** the Windows and web builds are back to the developer's model (decision S6): 12 starting hints; when out, "Watch an Ad" (placeholder) or "Buy Hint Pack" (Coming soon); and the placeholder ad after every 6 completed games. CR-64's 3-free-hints-every-24-hours refill is **withdrawn**; it was a monetisation change the chat half decided without asking. The Electron shell hardening and the `node_modules` exclusion stay. iOS and Android are unchanged.
+- ⛔ **Standing rule (S6): monetisation (what is free, what is paid, when ads show) is the developer's decision; the chat half proposes.**
+- Tests: 7 (HintModal rewritten, a new Home ad-gate test); four fault controls failed as expected. The restored Windows build was driven through a game, the 6th-game ad, audio and the Privacy link.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

@@ -425,6 +425,8 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-66:** one set of mode names everywhere (S2), with the census shown before and after. The short names only ever lived in a Daily-card map that is never rendered; the loading screen's "Standard Mode" and missing Mystery Word label, which players did see, are fixed. **The Leaderboard tab is removed** (S3): the nav is Home, Stats, Settings, and an old `#/Leaderboard` link shows Page Not Found with a router-based Go Home. Tap targets were measured at phone and tablet widths. The interstitial stays at 6 (S4, recorded under CR-32).
 - **Decisions S1 to S5 recorded** in the CURRENT DECISIONS block of `C:\dev\CLAUDE.md` and the claude.ai instructions source, as a separate SoundFind table.
 - Tests: 12 new (86 in the suite); six fault controls failed as expected.
+- ⛔ **Lesson: a commit must be gated on the test command's EXIT CODE.** `1539865` was committed by a command chain that ran `npm test` but did not stop on its result, while one test had timed out; the chain's `&&` covered only the git steps. Fixed in `d1afea4`. From then on: `npm test; RC=$?` and commit only if `$RC` is 0.
+- **Investigated `2b5b6d9`'s Register change:** nothing lost; all 33 rows were restored verbatim by `7ea9316` the same day (CR-32 note (2)).
 
 ## Next Steps (Priority Order)
 

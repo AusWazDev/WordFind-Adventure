@@ -16,7 +16,7 @@ const levels = [
   { 
     id: 2, 
     name: 'Medium', 
-    description: '10×10 grid • 12 words',
+    description: '10×10 grid • 10 words',
     icon: Zap,
     gradient: 'from-blue-400 to-indigo-500',
     bgGradient: 'from-blue-50 to-indigo-50',
@@ -25,7 +25,7 @@ const levels = [
   { 
     id: 3, 
     name: 'Hard', 
-    description: '12×12 grid • 18 words',
+    description: '12×12 grid • 15 words',
     icon: Brain,
     gradient: 'from-violet-400 to-purple-500',
     bgGradient: 'from-violet-50 to-purple-50',
@@ -34,7 +34,7 @@ const levels = [
   {
     id: 4,
     name: 'Expert',
-    description: '15×15 grid • 24 words',
+    description: '15×15 grid • 20 words',
     icon: Flame,
     gradient: 'from-orange-400 to-red-500',
     bgGradient: 'from-orange-50 to-red-50',

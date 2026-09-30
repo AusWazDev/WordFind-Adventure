@@ -167,11 +167,15 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Speech Rate */}
+              {/* Speech Rate — CR-65: applies to the Web Speech fallback only
+                  (voiceUtils speakText); the recorded voices ignore it. */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Speech Speed: {settings?.audio_rate?.toFixed(1)}x
+                  Backup Voice Speed: {settings?.audio_rate?.toFixed(1)}x
                 </label>
+                <p className="text-xs text-slate-500 dark:text-slate-400 -mt-1 mb-2">
+                  Used only when a recorded voice isn&apos;t available.
+                </p>
                 <input
                   type="range"
                   min="0.5"
@@ -187,10 +191,10 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Voice Pitch */}
+              {/* Voice Pitch — CR-65: Web Speech fallback only, as above. */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Voice Pitch: {settings?.audio_pitch?.toFixed(1)}
+                  Backup Voice Pitch: {settings?.audio_pitch?.toFixed(1)}
                 </label>
                 <input
                   type="range"
@@ -207,25 +211,9 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Sound Effects Volume */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Sound Effects Volume: {Math.round((settings?.sound_effects_volume || 0.8) * 100)}%
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={settings?.sound_effects_volume || 0.8}
-                  onChange={(e) => handleUpdate('sound_effects_volume', parseFloat(e.target.value))}
-                  className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                />
-                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  <span>Muted</span>
-                  <span>Loud</span>
-                </div>
-              </div>
+              {/* CR-65: the Sound Effects Volume slider was removed; nothing
+                  read sound_effects_volume. The stored field is kept (offlineStorage
+                  DEFAULT_SETTINGS) so existing settings are untouched. */}
 
               {/* Test Voice Button */}
               <Button
@@ -425,7 +413,7 @@ export default function Settings() {
                     Reset Game Data?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will permanently clear all your game progress, scores, hints and settings stored on this device. This action cannot be undone.
+                    This will permanently clear your game progress, scores, Daily Challenge history and settings on this device. Your hints and purchases are kept. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

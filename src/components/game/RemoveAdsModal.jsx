@@ -41,7 +41,7 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
   };
 
   const perks = [
-    'No ads before every game',
+    'No ads between games',
     'Smoother, uninterrupted gameplay',
     'Support the developer ♥',
     'Instant & permanent — no subscription',

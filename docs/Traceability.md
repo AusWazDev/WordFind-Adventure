@@ -128,6 +128,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-25 (settings save), TC-26 (category selection persists), TC-27 (level selection persists) |
 | **Also check when changed** | Are all 23 categories present? Is Master level included? Does Reset Game Data preserve `hints_remaining` and `ads_removed` (DEF-23)? Is auto-save indicator working? |
+| **Also check (CR-65, 30 Sep 2026)** | Does the reset dialog text still match `handleResetData` (hints and purchases kept)? Do the "Backup Voice" rate and pitch controls still affect only `speakText`? `sound_effects_volume` has no control and no reader; it is stored only. |
 
 ---
 
@@ -140,6 +141,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-25 (settings save), TC-26 (category selection persists), TC-27 (level selection persists) |
 | **Also check when changed** | Does the selected state look clearly different from hover? (DEF-15) Are all 5 levels shown? Are all 23 categories present in CategorySelector? Does dark mode text render correctly? (DEF-08) |
+| **Also check (CR-65, 30 Sep 2026)** | Do `LevelSelector`'s word counts still equal `levelConfig`'s `wordCount` (6 / 10 / 15 / 20 / 25)? |
 
 ---
 

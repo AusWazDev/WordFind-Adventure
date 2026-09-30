@@ -84,6 +84,26 @@ copy should use**:
 Only `audio` is marked as degraded offline, where it falls back to the Web
 Speech API.
 
+> ⚠️ **ANNOTATED 30 Sep 2026 (CR-65, brief SF-4); the table above is kept as
+> written.** Its "Label" column is **not** what the game shows. Census of every
+> mode-label site in `src/` (49 files scanned, tests excluded; `label_census`
+> sweep for `id: 'label'` pairs and every quoted label of either set):
+>
+> | Site | standard | audio | anagram | association | mystery_word |
+> |---|---|---|---|---|---|
+> | `GameModeSelector.jsx` (the mode picker) | Standard | Audio Challenge | Anagram Hunt | Word Association | Mystery Word |
+> | `GameHeader.jsx` `modeLabels` (in-game header) | Standard | Audio Challenge | Anagram Hunt | Word Association | Mystery Word |
+> | `HowToPlayModal.jsx` | Standard | Audio Challenge | Anagram Hunt | Word Association | Mystery Word |
+> | `GameLoadingScreen.jsx` `MODE_LABELS` | **Standard Mode** | Audio Challenge | Anagram Hunt | Word Association | **(missing → "Loading Game")**; also a stale `spelling: 'Spelling Bee'` entry for the mode removed in CR-01 |
+> | `DailyChallengeCard.jsx` `MODE_LABELS` | **Word Find** | **Audio** | **Anagram** | **Clue Hunt** | Mystery Word |
+>
+> So the long set (Standard / Audio Challenge / Anagram Hunt / Word Association /
+> Mystery Word) is the player-facing set everywhere except the Daily card and the
+> loading screen's two deviations. The short set in the table above exists
+> **only** in `DailyChallengeCard.MODE_LABELS`. Decision S2 (30 Sep 2026) adopts
+> the long set everywhere; the change is applied in SF-6. Store copy should use
+> the long set.
+
 Pages: `Home`, `Game`, `DailyChallenge`, `Leaderboard`, `Stats`, `Settings`.
 
 ---
@@ -131,6 +151,25 @@ context tags rather than swallowed.
 
 Note the inconsistent prefixes — `wf_`, `wordfind_`, and bare. Legacy naming from
 before the rebrand; renaming any of them orphans existing players' data.
+
+> ⚠️ **ANNOTATED 30 Sep 2026 (CR-65, brief SF-4); the table above is kept as
+> written.** It lists 5 of the **10** keys the app uses, and `last_ad_completed_at`
+> is the *interstitial* throttle (Home.jsx), not a rewarded-ad one. Every key,
+> from a sweep of every `localStorage.getItem/setItem/removeItem` call in `src/`
+> with key constants resolved:
+>
+> | Key | Where | Purpose | Settings Reset |
+> |---|---|---|---|
+> | `wf_progress` | `offlineStorage.jsx` `PROGRESS_KEY` | Level, score, hints, games played, words found, best streak | Cleared, but `hints_remaining` preserved (DEF-23) |
+> | `wf_settings` | `offlineStorage.jsx` `SETTINGS_KEY` | Voice, backup-voice rate and pitch, theme, `sound_effects_volume` (stored, unused) | Cleared |
+> | `wf_daily` | `offlineStorage.jsx` `DAILY_KEY` | Daily Challenge records by date (local date since CR-61) | Cleared |
+> | `wf_welcome_seen` | `WelcomeScreen.jsx` `WELCOME_KEY` | First-run welcome shown | Cleared |
+> | `games_completed_count` | `Game.jsx`, `Home.jsx` | Completed games, for interstitial gating | Cleared |
+> | `last_ad_completed_at` | `Home.jsx` | Completion count at the last interstitial | Cleared |
+> | `ads_removed` | `purchases.js`, `Home.jsx`, `Settings.jsx` | Remove Ads entitlement | Preserved |
+> | `wordfind_reminder_timer` | `ReminderSettings.jsx` | Reminder schedule | Not touched |
+> | `wordfind_reminder` | `ReminderSettings.jsx` `STORAGE_KEY` | Reminder settings (a second reminder key) | Not touched |
+> | `sf_free_hint_refill_at` | `src/lib/freeHintRefill.js` (CR-64) | Last daily free refill on Windows and web | Not touched (so Reset cannot re-grant it) |
 
 ---
 

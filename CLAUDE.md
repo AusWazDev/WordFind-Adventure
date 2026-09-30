@@ -56,6 +56,8 @@ VS Code's git extension holds index.lock frequently. Always prepend commits with
 Remove-Item ".git\index.lock" -ErrorAction SilentlyContinue; Remove-Item ".git\HEAD.lock" -ErrorAction SilentlyContinue
 ```
 
+> ⚠️ **SUPERSEDED 30 Sep 2026 (CR-65, brief SF-4); the advice above is kept as written — do not follow it.** Deleting `index.lock` blindly can corrupt the index if a git process really is running. Instead: **check no git process is running** (for example `Get-CimInstance Win32_Process | ? { $_.Name -match '^git' }`) before deleting a lock, and **prefer `GIT_OPTIONAL_LOCKS=0` in the editor's environment** so read-only git calls (VS Code's status polling) never take the lock in the first place.
+
 ### Traceability pre-commit hook
 Every commit triggers `scripts/check-traceability.js`. It will warn (but not block) if:
 - `src/` files changed without a STATUS.md update

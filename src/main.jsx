@@ -18,7 +18,7 @@ if ('serviceWorker' in navigator && window.Capacitor) {
 Sentry.init(buildSentryOptions({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
-  release: 'soundfind@1.1.0',
+  release: `soundfind@${__APP_VERSION__}`, // CR-65: from package.json via vite define
 }))
 
 ReactDOM.createRoot(document.getElementById('root')).render(

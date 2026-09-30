@@ -62,11 +62,15 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 - **Remove Ads** — $2.99 one-time purchase (RevenueCat TODO)
 - Real AdMob integration deferred to Phase 5 (Capacitor setup)
 
+> ⚠️ **SUPERSEDED — annotated 30 Sep 2026 (CR-65, brief SF-4); the list above is kept as written.** RevenueCat and AdMob are wired on iOS and Android (CR-56, June 2026); "RevenueCat TODO" and "Phase 5" no longer apply. The interstitial runs after every **6th completed** game, not every 3 starts (decision S4, 30 Sep 2026). All ad requests are child-directed and non-personalised (CR-60). Windows and web show no ads and no purchases, only a daily free refill of 3 hints (CR-64). For the current state, read `src/lib/admob.js`, `src/lib/purchases.js`, `Home.jsx` `AD_FREQUENCY` and `docs/ARCHITECTURE.md` §4, not this list.
+
 ## Multi-platform Roadmap
 - **Web PWA** — Vercel deployment (beta testing via `*.vercel.app` URL, testers add to home screen)
 - **Native** — Capacitor for iOS / Android builds (Phase 5)
 - **App Stores** — Apple App Store + Google Play (Phase 6)
 - **Domain** — `uniquegames.com.au` reserved on Hostgator (pending ABN); `play.uniquegames.com.au` → Vercel once active
+
+> ⚠️ **SUPERSEDED — annotated 30 Sep 2026 (CR-65); the list above is kept as written.** The phases are past: Capacitor iOS and Android builds exist, and SoundFind has shipped to the Apple App Store and the Microsoft Store. For live store status, check the consoles, not this file.
 
 ## Change Management
 All changes tracked in `docs/Change Register.md` and `docs/Launch Plan.md` (now inside the repo — accessible from any machine via git pull).
@@ -409,6 +413,12 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **Package:** `node_modules` excluded; appx **296,314,480 → 251,095,000 bytes** for the same code (−15.3%). Proved unneeded by driving the packaged build through a full game, audio, Test Voice and the Privacy link, with a positive control for the missing-module case.
 - **Web (Vercel):** the web build takes the same `!isNative()` path, so the same surfaces change there: no ad step before a game, the free refill in place of the simulated ad and the "Buy Hint Pack" offer, and no Remove Ads button. The web build is deployed (production deploys READY on every push); whether anyone uses it is **not observable** (Vercel Web Analytics is not enabled; Sentry had 0 web events in 90 days).
 - Tests: 12 new (74 in the suite); fault controls failed as expected. Not uploaded to Partner Center.
+
+### 2026-09-30 (Windows — CR-65 truth pass, brief SF-4)
+
+- **CR-65:** in-app copy now matches the code: level word counts (10 / 15 / 20), the Remove Ads perk, the reset dialog (hints and purchases are kept), the Sound Effects slider removed (nothing read it), and the voice rate and pitch relabelled as backup-voice settings. Sentry's release now comes from `package.json`. `package.json` gains `description` and `author`.
+- Docs annotated: ARCHITECTURE §3 (mode-label census) and §5 (all 10 storage keys), this file's overview, CLAUDE.md's lock advice, and SoundFind premise 2 in the claude.ai instructions source.
+- Recorded, not changed: the `AD_FREQUENCY` 3 → 6 revert by DEF-35's commit (decision S4 keeps 6), and DEF-52, the Electron service-worker `InvalidStateError`.
 
 ## Next Steps (Priority Order)
 

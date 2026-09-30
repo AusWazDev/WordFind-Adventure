@@ -9,7 +9,7 @@ import AnagramWordList from '@/components/game/AnagramWordList';
 import AssociationWordList from '@/components/game/AssociationWordList';
 import HintModal from '@/components/game/HintModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
-import { getDailyChallengeConfig, formatCountdown } from '@/components/game/DailyChallengeUtils';
+import { getDailyChallengeConfig, previousLocalDateKey, formatCountdown } from '@/components/game/DailyChallengeUtils';
 import { toast } from 'sonner';
 import { Clock, Trophy, Star, Home, Gift, Flame } from 'lucide-react';
 
@@ -101,6 +101,23 @@ export default function DailyChallenge() {
   useEffect(() => { revealedWordsRef.current = revealedWords; }, [revealedWords]);
   useEffect(() => { hintedWordsRef.current = hintedWords; },   [hintedWords]);
 
+  // Refs for triggerVictory (CR-61, the DEF-33 pattern in Game.jsx): it runs
+  // from handleWordFound, whose closure dates from the first render, when
+  // progress was still null, so every victory skipped the progress save.
+  const progressRef       = useRef(null);
+  const scoreRef          = useRef(0);
+  const hintsRemainingRef = useRef(12);
+  const timeLeftRef       = useRef(time_limit || null);
+  useEffect(() => { progressRef.current = progress; },             [progress]);
+  useEffect(() => { hintsRemainingRef.current = hintsRemaining; }, [hintsRemaining]);
+  useEffect(() => { timeLeftRef.current = timeLeft; },             [timeLeft]);
+
+  // Hint guard (CR-61, ported from Game.jsx): one hint at a time, and its timer
+  // is cleared when the word is found or the page unmounts.
+  const hintWordRef  = useRef(null);
+  const hintTimerRef = useRef(null);
+  useEffect(() => { hintWordRef.current = hintWord; }, [hintWord]);
+
   // Board sizing — measured in JS for exact pixel values (same approach as Game.jsx)
   const boardAreaRef = useRef(null);
   const [boardSize, setBoardSize] = useState(0);
@@ -122,7 +139,10 @@ export default function DailyChallenge() {
   useEffect(() => {
     initGame();
     loadProgressData();
-    return () => clearInterval(timerRef.current);
+    return () => {
+      clearInterval(timerRef.current);
+      clearTimeout(hintTimerRef.current);
+    };
   }, []);
 
   // Countdown timer
@@ -155,9 +175,12 @@ export default function DailyChallenge() {
     setFoundWords([]);
     setRevealedWords([]);
     setHintedWords(new Set());
+    clearTimeout(hintTimerRef.current);
     setHintCells([]);
     setHintWord(null);
+    hintWordRef.current = null;
     setScore(0);
+    scoreRef.current = 0;
     setVictory(false);
     setGameOver(false);
     if (time_limit) {
@@ -166,21 +189,43 @@ export default function DailyChallenge() {
     }
   };
 
-  const handleWordFound = useCallback((selectedWord) => {
+  const handleWordFound = useCallback((selectedWord, cells) => {
     const currentGame  = gameDataRef.current;
     const currentFound = foundWordsRef.current;
     if (!currentGame || gameOver || victory) return;
 
     const foundWord = checkWord(selectedWord, currentGame.words, currentFound);
     if (foundWord) {
+      // Guard (DEF-14, ported from Game.jsx in CR-61): the selected cells must be
+      // this word's stored positions, or CAKE inside PANCAKE would count as CAKE.
+      const storedPositions = currentGame.wordPositions[foundWord.toUpperCase()];
+      if (storedPositions) {
+        const selectedSet = new Set((cells || []).map(c => `${c.row},${c.col}`));
+        const storedSet   = new Set(storedPositions.map(p => `${p.row},${p.col}`));
+        const positionsMatch = selectedSet.size === storedSet.size &&
+          [...selectedSet].every(k => storedSet.has(k));
+        if (!positionsMatch) return;
+      }
+
       const newFoundWords = [...currentFound, foundWord];
+      foundWordsRef.current = newFoundWords;
       setFoundWords(newFoundWords);
+
+      // Clear the hint flash when the hinted word is found (DEF-28 behaviour).
+      if (foundWord === hintWordRef.current) {
+        clearTimeout(hintTimerRef.current);
+        setHintCells([]);
+        setHintWord(null);
+        hintWordRef.current = null;
+      }
 
       const wasRevealed = revealedWordsRef.current.includes(foundWord);
       const wasHinted   = hintedWordsRef.current.has(foundWord);
       const rawScore    = calculateScore(foundWord, level, mode === 'audio');
       const wordScore   = Math.round(rawScore * (wasRevealed ? 0.5 : wasHinted ? 0.75 : 1.0) * bonus_multiplier);
-      setScore(prev => prev + wordScore);
+      // Updated synchronously: triggerVictory runs in this same call, before re-render.
+      scoreRef.current += wordScore;
+      setScore(scoreRef.current);
 
       const bonusNote = bonus_multiplier > 1 ? ` (${bonus_multiplier}× bonus)` : '';
       toast.success(`+${wordScore} pts!${bonusNote}`, { description: `Found: ${foundWord.toUpperCase()}` });
@@ -196,35 +241,45 @@ export default function DailyChallenge() {
     clearInterval(timerRef.current);
     setVictory(true);
 
+    // Read everything through refs (CR-61): this function is reached from the
+    // first render's handleWordFound closure, where progress and score are stale.
+    const currentProgress = progressRef.current;
+    const currentScore    = scoreRef.current;
+    const currentHints    = hintsRemainingRef.current;
+
     // Compute streak before saving so it can be included in the progress update.
-    const yesterday  = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const prevDay    = getDailyRecord(yesterday.toISOString().slice(0, 10));
+    // Yesterday is the previous LOCAL date, matching the record key.
+    const prevDay    = getDailyRecord(previousLocalDateKey());
     const prevStreak = prevDay?.completed ? (prevDay.streak || 1) : 0;
     const newStreak  = prevStreak + 1;
 
-    if (progress) {
-      const updated = await updateProgress(null, progress, {
-        total_score:     (progress.total_score || 0) + score,
-        games_played:    (progress.games_played || 0) + 1,
-        words_found:     (progress.words_found || 0) + wordsFoundCount,
-        hints_remaining: (progress.hints_remaining ?? 12) + reward_hints,
-        best_streak:     Math.max(progress.best_streak || 0, newStreak),
+    if (currentProgress) {
+      // The reward adds to the CURRENT balance, including hints spent this game.
+      const newHints = currentHints + reward_hints;
+      const updated = await updateProgress(null, currentProgress, {
+        total_score:     (currentProgress.total_score || 0) + currentScore,
+        games_played:    (currentProgress.games_played || 0) + 1,
+        words_found:     (currentProgress.words_found || 0) + wordsFoundCount,
+        hints_remaining: newHints,
+        best_streak:     Math.max(currentProgress.best_streak || 0, newStreak),
       });
       setProgress(updated);
+      setHintsRemaining(newHints);
     }
 
     saveDailyRecord(date, {
-      completed: true, score, words_found: wordsFoundCount,
+      completed: true, score: currentScore, words_found: wordsFoundCount,
       total_words:  gameDataRef.current?.words.length,
-      time_taken:   time_limit ? time_limit - (timeLeft ?? 0) : 0,
+      time_taken:   time_limit ? time_limit - (timeLeftRef.current ?? 0) : 0,
       streak:       newStreak,
+      category,
     });
   };
 
   const handleUseHint = () => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     if (!gameData) return;
+    if (hintWordRef.current) return; // hint already active: block re-entry (ported from Game.jsx)
     const unfound = gameData.words.filter(w => !foundWords.includes(w.toLowerCase()));
     if (!unfound.length) return;
     const word      = unfound[Math.floor(Math.random() * unfound.length)];
@@ -234,14 +289,16 @@ export default function DailyChallenge() {
     if (progress) updateProgress(null, progress, { hints_remaining: newHints }).catch(console.error);
     // Mark word as hinted — score will be reduced by 25% when found
     setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
-    if (positions?.length) {
-      setHintCells([positions[0]]);
-      setHintWord(word.toLowerCase());
-      setTimeout(() => { setHintCells([]); setHintWord(null); }, 4000);
-    } else {
-      setHintWord(word.toLowerCase());
-      setTimeout(() => setHintWord(null), 4000);
-    }
+    // Set the ref now, not after re-render, so a second tap in the same frame is blocked too.
+    hintWordRef.current = word.toLowerCase();
+    setHintWord(word.toLowerCase());
+    if (positions?.length) setHintCells([positions[0]]);
+    clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => {
+      setHintCells([]);
+      setHintWord(null);
+      hintWordRef.current = null;
+    }, 4000);
   };
 
   const handleRevealWord = (word) => {

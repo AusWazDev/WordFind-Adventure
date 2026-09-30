@@ -16,15 +16,33 @@ const CHALLENGE_TEMPLATES = [
   { title: "Color Coded", description: "Find colors at lightning speed!", category: "colors", mode: "standard", level: 2, time_limit: 60, bonus_multiplier: 3, reward_hints: 2 },
 ];
 
-export function getDailyChallengeConfig() {
-  const today = new Date();
-  const dateStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
-  // Deterministic index from date
-  const dayIndex = Math.abs(
-    today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
-  ) % CHALLENGE_TEMPLATES.length;
+const pad2 = n => String(n).padStart(2, '0');
+
+// The player's LOCAL calendar date as YYYY-MM-DD (CR-61). Used for the wf_daily
+// record key, the streak lookup and the template index. toISOString() was UTC,
+// so in Australia every morning before 10:00 (11:00 in summer) fell on
+// yesterday's key. Records written before CR-61 keep their UTC keys.
+export function localDateKey(date = new Date()) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+export function previousLocalDateKey(date = new Date()) {
+  return localDateKey(new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1));
+}
+
+// Whole local calendar days since 1 Jan 1970. Built from the local Y/M/D through
+// Date.UTC, so daylight-saving changes cannot shift it. Consecutive days always
+// differ by exactly 1, so consecutive days never share a template. The old
+// YYYYMMDD % 14 jumped by 70 (a multiple of 14) from the 31st to the 1st, which
+// repeated the template six times a year.
+function localDayNumber(date) {
+  return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
+}
+
+export function getDailyChallengeConfig(now = new Date()) {
+  const dayIndex = localDayNumber(now) % CHALLENGE_TEMPLATES.length;
   const template = CHALLENGE_TEMPLATES[dayIndex];
-  return { ...template, date: dateStr };
+  return { ...template, date: localDateKey(now) };
 }
 
 export function formatTimeLimit(seconds) {

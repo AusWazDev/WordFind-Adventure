@@ -98,6 +98,8 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-22 (Daily Challenge loads), TC-23 (correct puzzle for date), TC-24 (streak tracked) |
 | **Also check when changed** | Do MODE_LABELS still match in `DailyChallengeCard.jsx`? Is orientation support intact? Do hint counts still use `hintCells` (not hardcoded 3)? |
+| **Tests (added 30 Sep 2026, CR-61)** | `src/components/game/DailyChallengeUtils.test.js` (dates and rotation, run in `Australia/Melbourne`), `src/pages/DailyChallenge.test.jsx` (the page rendered in jsdom). Run `npm test` |
+| **Also check (CR-61)** | Is every date key built with `localDateKey` / `previousLocalDateKey`, never `toISOString()`? Does `triggerVictory` still read progress, score, hints and time through refs? Does `handleWordFound` still check cell positions (DEF-14)? Is the one-hint-at-a-time guard intact, and is its timer cleared on unmount? Does the daily record still carry `category` (read by `Stats.jsx`)? Are the 14 templates unchanged? |
 
 ---
 

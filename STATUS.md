@@ -378,6 +378,17 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-60 amendment (g), same day:** TFUA removed from `initialize` (Google: TFCD and TFUA should not both be true); it stays on the UMP consent request. `initialize` now carries TFCD and rating G only. Tests updated; fault control failed as expected. Decision S5 (App Store "Tracking" is NO) recorded in the brief; it reaches CURRENT DECISIONS via SF-6.
 - **Console steps (developer):** see the CR-60 report. AdMob app-level child-directed and G rating; no IDFA message; App Store privacy answers (the Tracking question is still open); do not opt into the Kids Category; Play target audience and Families when Android ships.
 
+### 2026-09-30 (Windows — CR-61 Daily Challenge, brief SF-1)
+
+- **CR-61:** a Daily Challenge victory now saves score, games played, words found, best streak and the reward hints; before this, only the daily record was written, and with `score: 0`. The record is keyed by the player's **local** date, and the streak looks up the previous local date. Templates rotate by whole days, so consecutive days never repeat (the old formula repeated on six day-pairs a year). CAKE inside PANCAKE is rejected, as in the main game, and hints are one at a time with the timer cleaned up. Daily records now carry `category`, so the Stats category chart fills in.
+- **Existing `wf_daily` records keep their UTC keys and are read at face value: no migration, no fallback lookup.** Why: an old key cannot be mapped back to a local day, because the record holds no timestamp. For an Australian player, a key could mean "that day after 10:00" or "the next day before 10:00". Any fallback that guesses would, every morning before 10:00, read yesterday's completion as today's and lock the player out, which is worse than the one-off below.
+  - **What a player sees on upgrade day:** if they completed that day's challenge **before 10:00 (11:00 in daylight saving)** on the old version, the new version shows it as **not done**. They can play once more and earn its reward hints a second time.
+  - **Streak:** a streak spanning the upgrade can be off by one day, once. `best_streak` never decreases, since it is a `Math.max`.
+  - A completion after 10:00 on the old version already had the local date as its key and carries over exactly.
+  - Players west of UTC (the Americas) see the opposite edge: an evening completion on the old version can show as done on the next local day, once.
+  - The challenge **title** for a given date also changes once at upgrade (e.g. 30 Sep: Ocean Deep before, Emotional Journey after). Completion is keyed by date, not template, so this does not reopen or close anything.
+- Tests: 16 new (50 in the suite). Ten fault controls each failed the expected tests.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

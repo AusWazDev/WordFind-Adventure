@@ -185,6 +185,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Native ads (added 30 Sep 2026, CR-60)** | `src/lib/admob.js` was missing from this section. It holds `CHILD_DIRECTED_CONFIG` (decision S1) and the UMP call. Callers: `src/App.jsx` (`initAdMob`), `src/pages/Home.jsx` (`showInterstitial`), `src/components/game/HintModal.jsx` (`showRewarded`) |
 | **Tests** | `src/lib/admob.test.js` (plugin mocked). Run `npm test` |
 | **Also check (CR-60)** | Are all three child-directed flags still `true` in `initialize`? Does every ad request, including any new format, carry `npa: true`? Is `requestConsentInfo` still before `initialize` with TFUA true? Is `showConsentForm`, `showPrivacyOptionsForm` or `requestTrackingAuthorization` still never called? On a plugin upgrade, see held item K7 (`ageRestrictedTreatment`) |
+| **Also check (CR-60 amendment g, 30 Sep 2026)** | ⚠️ *"all three child-directed flags still `true` in `initialize`"* above is superseded. `initialize` carries TFCD `true` and rating `General` only; TFUA must be **absent** there and present only on `requestConsentInfo`. Google: TFCD and TFUA "shouldn't both simultaneously be set to true" |
 
 ---
 

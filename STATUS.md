@@ -375,6 +375,7 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **Found while verifying:** the UMP binary does contain `requestTrackingAuthorization`, reachable only when a UMP form is shown. The app never shows one; the tests pin that. Also, do not create an IDFA explainer message in AdMob Privacy & messaging.
 - Tests: `src/lib/admob.test.js`, 13 tests; 32 in the suite. Ten fault controls each failed the expected tests.
 - **Needs a device build to take effect on iOS/Android**; the web and Electron builds make no ad calls. The EEA consent status can only be read on a device (plugin `debugGeography: EEA` plus a test device id).
+- **CR-60 amendment (g), same day:** TFUA removed from `initialize` (Google: TFCD and TFUA should not both be true); it stays on the UMP consent request. `initialize` now carries TFCD and rating G only. Tests updated; fault control failed as expected. Decision S5 (App Store "Tracking" is NO) recorded in the brief; it reaches CURRENT DECISIONS via SF-6.
 - **Console steps (developer):** see the CR-60 report. AdMob app-level child-directed and G rating; no IDFA message; App Store privacy answers (the Tracking question is still open); do not opt into the Kids Category; Play target audience and Families when Android ships.
 
 ## Next Steps (Priority Order)

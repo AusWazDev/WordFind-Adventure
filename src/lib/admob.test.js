@@ -39,20 +39,23 @@ beforeEach(() => {
 describe.each(['ios', 'android'])('initAdMob on %s', plat => {
   beforeEach(() => { platform.value = plat; });
 
-  it('passes all three child-directed flags to initialize, all true, rating General', async () => {
+  it('passes TFCD true and rating General to initialize', async () => {
     await admob.initAdMob();
     const [init] = named('initialize');
     expect(init.options.tagForChildDirectedTreatment).toBe(true);
-    expect(init.options.tagForUnderAgeOfConsent).toBe(true);
     expect(init.options.maxAdContentRating).toBe('General');
+  });
+
+  it('does not pass TFUA to initialize (CR-60 amendment g: never TFCD and TFUA together)', async () => {
+    await admob.initAdMob();
+    const [init] = named('initialize');
+    expect('tagForUnderAgeOfConsent' in init.options).toBe(false);
   });
 
   it('never passes false for a child-directed flag', async () => {
     await admob.initAdMob();
     const [init] = named('initialize');
-    for (const key of ['tagForChildDirectedTreatment', 'tagForUnderAgeOfConsent']) {
-      expect(init.options[key]).not.toBe(false);
-    }
+    expect(init.options.tagForChildDirectedTreatment).not.toBe(false);
   });
 
   it('requests consent info with TFUA true, once, before initialize', async () => {

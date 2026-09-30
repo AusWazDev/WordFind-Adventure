@@ -6,13 +6,14 @@ import { getPlatform } from './platform';
 // as a possible child). The plugin applies these in initialize() BEFORE the SDK
 // starts, on iOS and Android, so they cover every request and every format.
 // Only ever pass `true`: on iOS the plugin sets a flag only when it is true, so
-// `false` could not clear one. TFCD and TFUA are deprecated by Google in favour
-// of ageRestrictedTreatment, which this plugin version does not expose (K7);
-// Google applies the most conservative treatment when both are set.
+// `false` could not clear one. TFCD is deprecated by Google in favour of
+// ageRestrictedTreatment, which this plugin version does not expose (K7).
+// tagForUnderAgeOfConsent is deliberately NOT set here (CR-60 amendment g):
+// Google says TFCD and TFUA "shouldn't both simultaneously be set to true".
+// TFUA goes only on the UMP consent request below.
 export const CHILD_DIRECTED_CONFIG = {
   initializeForTesting: false,
   tagForChildDirectedTreatment: true,
-  tagForUnderAgeOfConsent: true,
   maxAdContentRating: MaxAdContentRating.General,
 };
 

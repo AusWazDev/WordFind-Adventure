@@ -233,6 +233,20 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 
 ---
 
+### 18. Error Monitoring (Sentry)
+
+*Added 30 Sep 2026 (CR-59).*
+
+| | Files |
+|---|---|
+| **Primary source** | `src/lib/sentryConfig.js` (all `Sentry.init` options), `src/main.jsx` (calls it) |
+| **Supporting source** | `src/lib/admob.js`, `src/lib/purchases.js`, `src/components/game/HintModal.jsx`, `src/components/game/RemoveAdsModal.jsx` (CR-58 capture calls) |
+| **Tests** | `src/lib/sentryConfig.test.js`, `src/lib/sentryConfig.e2e.test.js` (real SDK, capturing transport). Run `npm test` |
+| **Related docs** | `docs/Change Register.md`, `STATUS.md`; uniquegames-site SoundFind privacy policy (Sentry section) |
+| **Also check when changed** | Does `npm test` still pass? Is `tracesSampleRate` still OMITTED (0 counts as enabled)? Does any new breadcrumb, header or context carry a route query or device detail? Does the privacy policy still describe what Sentry receives? |
+
+---
+
 ## Cross-Cutting Rules
 
 These apply to **every** code commit, regardless of feature area:

@@ -216,7 +216,7 @@ Current baseline: commit `129f64f`
 ### 2026-04-26 (Windows — integrity checks, missing clues, Sentry, privacy)
 - Fixed: 5 words in wordLists (ATMOSPHERE, DATA, LORD, MEMORY, SUNLIGHT) had no Association clue — all 1,306 words now have dedicated clues. Commit `68c73bc`.
 - CR-39: Added Sentry crash reporting (`@sentry/react`) — `sendDefaultPii:false`, disabled when `VITE_SENTRY_DSN` unset, app wrapped with `Sentry.withProfiler`. Commits `c810a2a` + `0365e82`.
-- Sentry project created at sentry.io (slug: soundfind, org: bedlin-development). DSN added to Vercel (Production + Preview) and `.env.local`. End-to-end verified — test error appeared in Sentry dashboard (SOUNDFIND-2), then resolved.
+- Sentry project created at sentry.io (slug: soundfind, org: bedlin-development ⚠️ **CORRECTED 30 Sep 2026: the live org slug is `bedlin-pty-ltd`**, region `us.sentry.io`, per the Sentry MCP `find_organizations`; the old value is kept as written). DSN added to Vercel (Production + Preview) and `.env.local`. End-to-end verified — test error appeared in Sentry dashboard (SOUNDFIND-2), then resolved.
 - Privacy Policy (uniquegames-site) updated with Sentry disclosure — Section 8 now covers crash reporting (US storage, 30-day retention, no PII). Site deployed and verified at uniquegames.com.au/soundfind/privacy/. Commit `a847117`.
 - MER Change Register updated — entries 33–37 added covering commits f693b57, 52b41b9, a42594f, a42594f, fc01e97.
 - ClickUp handoff document updated.
@@ -361,6 +361,13 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **AdMob:** Account approved ✅ Payment profile complete ✅ `app-ads.txt` live at `uniquegames.com.au/app-ads.txt` ✅ iOS app "Requires review" — blocked because App Store listing has no developer website URL (app is under Notiva account). Fix: add `https://www.uniquegames.com.au` as Marketing URL in v1.1 submission → AdMob will verify automatically once v1.1 is live.
 - **Android RevenueCat key** still TODO — waiting for Google Play production access (after 12 testers × 14 days closed testing).
 - Change Register CR-56 entry added, committed and pushed (`363e9a2`).
+
+### 2026-09-30 (Windows — CR-59 Sentry minimised for a child-directed app, brief SF-8)
+
+- **CR-59:** Sentry now sends scrubbed error events only. New `src/lib/sentryConfig.js` holds every `Sentry.init` option; `main.jsx` calls it. Tracing removed (`browserTracingIntegration` gone, `tracesSampleRate` omitted, because `@sentry/core` 10.50.0 treats `0` as enabled). `beforeSend` cuts `request.url` to scheme, host and path and removes `User-Agent` and `Referer`. `beforeBreadcrumb` drops navigation breadcrumbs. The `BrowserSession` integration is removed because session envelopes carry the user agent and bypass `beforeSend`. `sendDefaultPii: false` kept. CR-58 capture calls unchanged. Release string unchanged (SF-4 owns it).
+- **First test harness in the repo:** Vitest 3.2 + jsdom, `npm test`. 19 tests across two files, including an end-to-end test that runs the real SDK with a capturing transport. Five fault controls run in a scratch copy; each failed the expected tests.
+- Sentry org slug corrected in the 2026-04-26 entry (annotated, old value kept).
+- **Developer actions (not done by the CLI):** in Sentry project settings turn on *Prevent storing of IP addresses* and the default data scrubber; on the Mac, check whether `.env.local` holds `VITE_SENTRY_DSN` (iOS 1.1.0 sent 0 events in 90 days).
 
 ## Next Steps (Priority Order)
 

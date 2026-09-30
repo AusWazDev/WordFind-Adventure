@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import * as Sentry from '@sentry/react'
 import App from '@/App.jsx'
 import '@/index.css'
+import { buildSentryOptions } from '@/lib/sentryConfig'
 
 // Unregister any stale service worker (e.g. from an App Store build that had a PWA SW).
 // In Capacitor WKWebView, service workers can't fetch from the capacitor:// scheme in the SW thread,
@@ -13,17 +14,12 @@ if ('serviceWorker' in navigator && window.Capacitor) {
   );
 }
 
-Sentry.init({
+// Error capture only, scrubbed for a child-directed app (CR-59): see sentryConfig.js
+Sentry.init(buildSentryOptions({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
   release: 'soundfind@1.1.0',
-  sendDefaultPii: false,
-  integrations: [
-    Sentry.browserTracingIntegration(),
-  ],
-  tracesSampleRate: 0.1,
-  enabled: !!import.meta.env.VITE_SENTRY_DSN,
-})
+}))
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <App />

@@ -188,14 +188,50 @@ export function getPreferredVoice(voices, genderPreference = 'female') {
   return scored[0]?.voice || null;
 }
 
+// ─── One playback channel (CR-63, brief SF-9) ─────────────────────────────────
+// At most one thing speaks at a time, and the newest request wins. Every public
+// play function calls beginPlay(), which stops everything playing and bumps the
+// generation. After each await, a play checks its generation is still current
+// and gives up if a newer play (or stopAllAudio) has happened since.
+
+const _activeSources = new Set();
+let _generation = 0;
+// True only while an utterance started by speakText is queued or speaking. The
+// DEF-38 unlock utterance in unlockAudio() is deliberately NOT tracked, so
+// stopAllAudio() never cancels it.
+let _speechActive = false;
+
+export function stopAllAudio() {
+  _generation++;
+  for (const src of _activeSources) {
+    src.onended = null;
+    try { src.stop(); } catch { /* already stopped */ }
+    try { src.disconnect(); } catch { /* already disconnected */ }
+  }
+  _activeSources.clear();
+  if (_speechActive && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  _speechActive = false;
+}
+
+function beginPlay() {
+  stopAllAudio();
+  return _generation;
+}
+
+const isCurrent = generation => generation === _generation;
+
 // ─── Main speak function ──────────────────────────────────────────────────────
 export async function speakText(text, settings = {}) {
   if (!('speechSynthesis' in window)) return;
+  const generation = beginPlay();
 
   window.speechSynthesis.cancel();
 
   // Brief pause after cancel — Chrome needs this to reset
   await new Promise(resolve => setTimeout(resolve, 150));
+  if (!isCurrent(generation)) return;
 
   const utterance = new SpeechSynthesisUtterance(text);
   const genderPref = settings.audio_voice || 'female';
@@ -206,6 +242,7 @@ export async function speakText(text, settings = {}) {
 
   // Select best voice
   const voices = await getVoices();
+  if (!isCurrent(generation)) return;
   const voice = getPreferredVoice(voices, genderPref);
   if (voice) {
     utterance.voice = voice;
@@ -227,9 +264,14 @@ export async function speakText(text, settings = {}) {
     }
   }, 5000);
 
-  utterance.onend   = () => clearInterval(keepAlive);
-  utterance.onerror = () => clearInterval(keepAlive);
+  const finished = () => {
+    clearInterval(keepAlive);
+    if (isCurrent(generation)) _speechActive = false;
+  };
+  utterance.onend   = finished;
+  utterance.onerror = finished;
 
+  _speechActive = true;
   window.speechSynthesis.speak(utterance);
 }
 
@@ -305,6 +347,7 @@ export function preloadGameAudio(words, settings = {}) {
 
 // Schedule one or more pre-decoded AudioBuffers to play back-to-back with
 // zero gap. Buffers are passed in playback order.
+// Every source is tracked so stopAllAudio() can stop it (CR-63).
 function scheduleBuffers(buffers, startTime) {
   const ctx = getAudioContext();
   let t = startTime;
@@ -312,15 +355,19 @@ function scheduleBuffers(buffers, startTime) {
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.connect(ctx.destination);
+    _activeSources.add(src);
+    src.onended = () => { _activeSources.delete(src); };
     src.start(t);
     t += buf.duration;
   }
   return t; // returns the time when the last buffer ends
 }
 
-// Fetch all urls in parallel, then play them gaplessly in sequence.
-async function playSeamless(...urls) {
+// Fetch all urls in parallel, then play them gaplessly in sequence — unless a
+// newer play started while the fetch was in flight.
+async function playSeamless(generation, ...urls) {
   const buffers = await Promise.all(urls.map(fetchBuffer));
+  if (!isCurrent(generation)) return;
   const ctx     = getAudioContext();
   const endTime = scheduleBuffers(buffers, ctx.currentTime + 0.05);
   return new Promise(r => setTimeout(r, (endTime - ctx.currentTime) * 1000 + 50));
@@ -334,9 +381,11 @@ export async function speakWordAudio(word, settings = {}) {
   const gender = settings.audio_voice || 'female';
   const upper  = word.toUpperCase();
   const url    = `/audio/${gender}/${upper}.mp3`;
+  const generation = beginPlay();
 
   try {
     const buf = await fetchBuffer(url);
+    if (!isCurrent(generation)) return;
     const ctx = getAudioContext();
     const t1  = ctx.currentTime + 0.05;
     const t2  = t1 + buf.duration + 0.4;   // 400ms gap — intentional for word repetition
@@ -344,6 +393,7 @@ export async function speakWordAudio(word, settings = {}) {
     scheduleBuffers([buf], t2);
     await new Promise(r => setTimeout(r, (t2 + buf.duration - ctx.currentTime) * 1000 + 50));
   } catch {
+    if (!isCurrent(generation)) return;
     const spoken = word.toLowerCase();
     await speakText(`${spoken}... ${spoken}.`, settings);
   }
@@ -357,10 +407,12 @@ export async function speakWordAudio(word, settings = {}) {
 export async function speakSentenceAudio(word, sentence, settings = {}) {
   const gender = settings.audio_voice || 'female';
   const upper  = word.toUpperCase();
+  const generation = beginPlay();
 
   try {
-    await playSeamless(`/audio/sentences/${gender}_${upper}.mp3`);
+    await playSeamless(generation, `/audio/sentences/${gender}_${upper}.mp3`);
   } catch {
+    if (!isCurrent(generation)) return;
     const spoken = word.toLowerCase();
     await speakText(`${spoken}... ${sentence}... ${spoken}.`, settings);
   }
@@ -374,13 +426,16 @@ export async function speakSentenceAudio(word, sentence, settings = {}) {
 export async function speakPhraseAndWord(phraseKey, word, fallbackText, settings = {}) {
   const gender = settings.audio_voice || 'female';
   const upper  = word.toUpperCase();
+  const generation = beginPlay();
 
   try {
     await playSeamless(
+      generation,
       `/audio/phrases/${gender}_${phraseKey}.mp3`,
       `/audio/${gender}/${upper}.mp3`
     );
   } catch {
+    if (!isCurrent(generation)) return;
     await speakText(fallbackText, settings);
   }
 }
@@ -392,10 +447,12 @@ export async function speakPhraseAndWord(phraseKey, word, fallbackText, settings
  */
 export async function speakFixedPhrase(phraseKey, fallbackText, settings = {}) {
   const gender = settings.audio_voice || 'female';
+  const generation = beginPlay();
 
   try {
-    await playSeamless(`/audio/phrases/${gender}_${phraseKey}.mp3`);
+    await playSeamless(generation, `/audio/phrases/${gender}_${phraseKey}.mp3`);
   } catch {
+    if (!isCurrent(generation)) return;
     await speakText(fallbackText, settings);
   }
 }

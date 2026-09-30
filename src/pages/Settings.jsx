@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun, RotateCcw, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { speakPhraseAndWord, unlockAudio } from '@/components/game/voiceUtils';
+import { speakPhraseAndWord, unlockAudio, stopAllAudio } from '@/components/game/voiceUtils';
 import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineStorage';
 import ReminderSettings from '@/components/game/ReminderSettings';
 import { toast } from 'sonner';
@@ -47,6 +47,9 @@ export default function Settings() {
     setSettings(s);
     setLoading(false);
   }, []);
+
+  // Silence Test Voice when leaving Settings (CR-63).
+  useEffect(() => () => stopAllAudio(), []);
 
   const handleUpdate = (field, value) => {
     if (!settings) return;

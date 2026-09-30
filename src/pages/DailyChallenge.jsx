@@ -11,6 +11,7 @@ import HintModal from '@/components/game/HintModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
 import { getDailyChallengeConfig, previousLocalDateKey, formatCountdown } from '@/components/game/DailyChallengeUtils';
 import { toast } from 'sonner';
+import { stopAllAudio } from '@/components/game/voiceUtils';
 import { Clock, Trophy, Star, Home, Gift, Flame } from 'lucide-react';
 
 // ─── Orientation hook ──────────────────────────────────────────────────────────
@@ -142,6 +143,7 @@ export default function DailyChallenge() {
     return () => {
       clearInterval(timerRef.current);
       clearTimeout(hintTimerRef.current);
+      stopAllAudio(); // Sound Check's speaker taps must not outlive the page (CR-63)
     };
   }, []);
 

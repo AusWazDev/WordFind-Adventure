@@ -26,6 +26,8 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `docs/Safari Voice Investigation.md`, `STATUS.md` |
 | **Beta test cases** | TC-14 (Audio Challenge loads), TC-15 (correct word spoken), TC-16 (skip button), TC-17 (audio mode dots hidden) |
 | **Also check when changed** | Does `Safari Voice Investigation.md` still reflect current voice-loading strategy? Does scoring algorithm need updating? |
+| **Playback channel (added 30 Sep 2026, CR-63)** | Callers: `WordList.jsx` (speaker tap), `Game.jsx` (found, last word, bonus hunt, bonus word), `Settings.jsx` (Test Voice). `stopAllAudio()` runs on unmount of `Game.jsx`, `DailyChallenge.jsx` and `Settings.jsx`. Tests: `src/components/game/voiceUtils.test.js` |
+| **Also check (CR-63)** | Does every NEW public play function call `beginPlay()` first and check `isCurrent(generation)` after every await? Is every source scheduled through `scheduleBuffers` (so it is tracked)? Is `stopAllAudio` still conditional on `_speechActive`, so it never cancels the DEF-38 unlock utterance? Are `unlockAudio()` call sites unchanged? |
 
 ---
 

@@ -10,7 +10,7 @@ import GameLoadingScreen from '@/components/game/GameLoadingScreen';
 import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
-import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio } from '@/components/game/voiceUtils';
+import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio, stopAllAudio } from '@/components/game/voiceUtils';
 import { loadProgress, updateProgress, loadSettings } from '@/components/game/offlineStorage';
 import { toast } from 'sonner';
 
@@ -169,6 +169,9 @@ export default function Game() {
     loadProgressData();
   }, [level, mode, category]);
 
+  // Leaving the game mid-announcement leaves silence on the next screen (CR-63).
+  useEffect(() => () => stopAllAudio(), []);
+
   const loadProgressData = async () => {
     const p = await loadProgress();
     setProgress(p);
@@ -240,7 +243,8 @@ export default function Game() {
       if (mode === 'audio' && audioEnabled) {
         unlockAudio().then(() => loadSettings()).then(settings => {
           if (isLastWord && hasBonusHunt) {
-            // Skip great_you_found — all_words_found fires below to avoid AudioContext overlap
+            // Skip great_you_found: all_words_found fires below. Since CR-63 the single
+            // audio channel would cut great_you_found off anyway; skipping avoids a clipped fragment.
           } else if (isLastWord) {
             speakFixedPhrase('game_complete', 'Incredible! You found all the words!', settings);
           } else {

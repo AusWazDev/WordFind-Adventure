@@ -394,6 +394,13 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-62:** after Replay or Next Level, Anagram mode showed every word unscrambled, because the list component stayed mounted and never re-scrambled the new words. It now re-scrambles whenever the words change, and can never fall back to showing the answer. This also fixes Try Again on the Daily screen's anagram challenges. Reshuffle per word still works.
 - Tests: 5 new (55 in the suite); both fault controls failed as expected.
 
+### 2026-09-30 (Windows — CR-63 audio overlaps, brief SF-9)
+
+- **CR-63:** audio now has one playback channel: at most one thing speaks at a time, and the newest request wins. Finding a word mid-announcement stops the announcement; two quick finds no longer layer; a slow earlier fetch can no longer play late; leaving Game, the Daily Challenge or Settings silences audio. The Web Speech fallback obeys the same rules. The iOS/Android unlock (DEF-38) is untouched.
+- **Found, not changed (for the developer):** the bonus-word find plays "Great! You found X" from the MP3, while its text fallback says "Amazing! The hidden word was X". The `hidden_word_was` MP3 exists and is preloaded but is never played.
+- Tests: 7 new (62 in the suite); fault controls failed as expected.
+- **Device check still to do (developer):** run the seven SF-9 scenarios on an iPhone build and in the Windows build (see the CR-63 report).
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

@@ -7,6 +7,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, it, expect, afterEach } from 'vitest';
+// Imported statically, at collection time: a dynamic import inside the first
+// test paid for loading framer-motion and hit the 5 s per-test timeout under load.
+import GameLoadingScreen from './GameLoadingScreen';
 
 const LONG = {
   standard: 'Standard',
@@ -94,7 +97,6 @@ describe('the loading screen shows the long name for every mode', () => {
 
   for (const [mode, label] of Object.entries(LONG)) {
     it(`${mode} reads "${label}"`, async () => {
-      const { default: GameLoadingScreen } = await import('./GameLoadingScreen');
       container = document.createElement('div');
       document.body.appendChild(container);
       root = createRoot(container);

@@ -2,12 +2,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 
+// CR-66 (decision S2): the long set. 'Standard Mode' became 'Standard', and
+// mystery_word was missing, so Mystery Word games loaded under "Loading Game".
+// The spelling entry is for the mode removed in CR-01 and is unreachable.
 const MODE_LABELS = {
-  standard: 'Standard Mode',
+  standard: 'Standard',
   audio: 'Audio Challenge',
   anagram: 'Anagram Hunt',
   spelling: 'Spelling Bee',
   association: 'Word Association',
+  mystery_word: 'Mystery Word',
 };
 
 export default function GameLoadingScreen({ mode, level }) {

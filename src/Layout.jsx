@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
-import { Home, Trophy, BarChart2, Settings } from 'lucide-react';
+import { Home, BarChart2, Settings } from 'lucide-react';
 import { getLocalSettings } from '@/components/game/offlineStorage';
 
+// CR-66 (decision S3): the Leaderboard tab is removed.
 const NAV_ITEMS = [
   { label: 'Home', icon: Home, page: 'Home' },
-  { label: 'Leaderboard', icon: Trophy, page: 'Leaderboard' },
   { label: 'Stats', icon: BarChart2, page: 'Stats' },
   { label: 'Settings', icon: Settings, page: 'Settings' },
 ];
@@ -18,7 +18,6 @@ const HIDE_NAV_PAGES = ['Game', 'DailyChallenge'];
 // Track which tab is "root" for each tab
 const TAB_ROOTS = {
   Home: createPageUrl('Home'),
-  Leaderboard: createPageUrl('Leaderboard'),
   Stats: createPageUrl('Stats'),
   Settings: createPageUrl('Settings'),
 };

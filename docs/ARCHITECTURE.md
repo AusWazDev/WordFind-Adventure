@@ -106,6 +106,12 @@ Speech API.
 
 Pages: `Home`, `Game`, `DailyChallenge`, `Leaderboard`, `Stats`, `Settings`.
 
+> ⚠️ **ANNOTATED 30 Sep 2026 (CR-66, decision S3); the line above is kept as
+> written.** `Leaderboard` was removed: no route, no tab, file deleted. The bottom
+> nav is Home, Stats, Settings. The long mode names (S2) now apply everywhere,
+> including `DailyChallengeCard.MODE_LABELS` (which the card does not render) and
+> the loading screen ("Standard"; Mystery Word no longer shows "Loading Game").
+
 ---
 
 ## 4. Monetisation — both paths are wired

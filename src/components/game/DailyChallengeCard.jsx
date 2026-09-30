@@ -6,11 +6,14 @@ import { getDailyChallengeConfig } from '@/components/game/DailyChallengeUtils';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 
+// CR-66 (decision S2): the long set, as everywhere else. Note: this map is not
+// currently rendered by the card; it is kept consistent so a future use of it
+// cannot reintroduce the old short names.
 const MODE_LABELS = {
-  standard:     'Word Find',
-  audio:        'Audio',
-  anagram:      'Anagram',
-  association:  'Clue Hunt',
+  standard:     'Standard',
+  audio:        'Audio Challenge',
+  anagram:      'Anagram Hunt',
+  association:  'Word Association',
   mystery_word: 'Mystery Word',
 };
 

@@ -420,6 +420,12 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - Docs annotated: ARCHITECTURE §3 (mode-label census) and §5 (all 10 storage keys), this file's overview, CLAUDE.md's lock advice, and SoundFind premise 2 in the claude.ai instructions source.
 - Recorded, not changed: the `AD_FREQUENCY` 3 → 6 revert by DEF-35's commit (decision S4 keeps 6), and DEF-52, the Electron service-worker `InvalidStateError`.
 
+### 2026-09-30 (Windows — CR-66 decisions S2 to S4, brief SF-6)
+
+- **CR-66:** one set of mode names everywhere (S2), with the census shown before and after. The short names only ever lived in a Daily-card map that is never rendered; the loading screen's "Standard Mode" and missing Mystery Word label, which players did see, are fixed. **The Leaderboard tab is removed** (S3): the nav is Home, Stats, Settings, and an old `#/Leaderboard` link shows Page Not Found with a router-based Go Home. Tap targets were measured at phone and tablet widths. The interstitial stays at 6 (S4, recorded under CR-32).
+- **Decisions S1 to S5 recorded** in the CURRENT DECISIONS block of `C:\dev\CLAUDE.md` and the claude.ai instructions source, as a separate SoundFind table.
+- Tests: 12 new (86 in the suite); six fault controls failed as expected.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

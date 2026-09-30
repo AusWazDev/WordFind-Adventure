@@ -208,6 +208,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `STATUS.md`, `README.md` |
 | **Beta test cases** | TC-01 (app loads), TC-13 (navigation works) |
 | **Also check when changed** | Does `README.md` still accurately describe the tech stack? Is Vercel deployment config (`vite.config.js`, `package.json`, `vercel.json`) still consistent? |
+| **Also check (CR-66, 30 Sep 2026)** | The bottom nav is Home, Stats, Settings (decision S3): does a new page need a tab, and does `TAB_ROOTS` match `NAV_ITEMS`? Does an unknown hash still reach `PageNotFound`, and does it still use `navigate`, not a reload (CR-34)? Tests: `src/leaderboardRoute.test.jsx`. Every mode-label map uses the long set (decision S2); tests: `src/components/game/modeLabels.test.jsx`. |
 
 ---
 

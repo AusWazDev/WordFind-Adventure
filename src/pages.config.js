@@ -7,7 +7,6 @@
 import DailyChallenge from './pages/DailyChallenge';
 import Game from './pages/Game';
 import Home from './pages/Home';
-import Leaderboard from './pages/Leaderboard';
 import Settings from './pages/Settings';
 import Stats from './pages/Stats';
 import __Layout from './Layout.jsx';
@@ -17,7 +16,6 @@ export const PAGES = {
     "DailyChallenge": DailyChallenge,
     "Game": Game,
     "Home": Home,
-    "Leaderboard": Leaderboard,
     "Settings": Settings,
     "Stats": Stats,
 }

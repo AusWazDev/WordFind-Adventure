@@ -433,6 +433,14 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-67:** the Windows and web builds are back to the developer's model (decision S6): 12 starting hints; when out, "Watch an Ad" (placeholder) or "Buy Hint Pack" (Coming soon); and the placeholder ad after every 6 completed games. CR-64's 3-free-hints-every-24-hours refill is **withdrawn**; it was a monetisation change the chat half decided without asking. The Electron shell hardening and the `node_modules` exclusion stay. iOS and Android are unchanged.
 - ⛔ **Standing rule (S6): monetisation (what is free, what is paid, when ads show) is the developer's decision; the chat half proposes.**
 - Tests: 7 (HintModal rewritten, a new Home ad-gate test); four fault controls failed as expected. The restored Windows build was driven through a game, the 6th-game ad, audio and the Privacy link.
+- The "Watch an Ad" test passed on its own but **failed once in the full suite**, which blocked the gated commit, as intended. Cause: the modal's views sit in `AnimatePresence mode="wait"`, so the ad view mounts only after the menu's exit animation. The test now waits for it (bounded) instead of assuming it is there; the fault controls were re-run against the new test and still fail.
+- The restore brought back the 4 `images.unsplash.com` URLs (in `AdModal.jsx` and `HintModal.jsx`), as the brief intended ("unchanged"). So the web and Windows builds make third-party image requests again, and the CR-64 annotation on premise 7 in the claude.ai instructions ("0 Unsplash URLs") is now out of date. Not corrected in this pass.
+
+### 2026-09-30 (Windows — CR-68 the offline audio cache matches, brief SF-13)
+
+- **CR-68:** the web service worker's audio route never matched (Workbox tests a RegExp against the full URL, and the pattern was anchored to `/audio/`), so no audio was cached for offline play. It is now a pathname matcher (`src/lib/audioCacheRoute.js`). The cache name `soundfind-audio-v1` and its expiry are unchanged.
+- Proof: 4 tests through Workbox's own route classes, with a fault control; the generated `sw.js` checked; and in headless Chrome the new build cached `RAIN.mp3` while the live site (old pattern) cached nothing.
+- Recorded, not changed: asset and audio paths are root-absolute, which matters only for a sub-path host such as itch.io (deferred by S8).
 
 ## Next Steps (Priority Order)
 

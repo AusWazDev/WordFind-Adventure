@@ -178,6 +178,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-07 (offline hint limit), TC-19 (game loads offline), TC-20 (progress saved offline) |
 | **Also check when changed** | Does the CR-08 offline gate removal for Word Association remain intact? Does the interstitial ad still skip when offline (CR-10)? |
+| **Offline audio cache (CR-68, 30 Sep 2026)** | `vite.config.js` (`runtimeCaching`), `src/lib/audioCacheRoute.js`. **Also check:** does `audioCacheMatch` still match a full same-origin `/audio/…mp3` URL (Workbox tests RegExps against `url.href`, so never go back to an anchored path RegExp)? Is it still self-contained (it is serialised into `sw.js`)? Is the cache name still `soundfind-audio-v1`, with the same expiry? Test: `src/lib/audioCacheRoute.test.js`. Asset and audio paths are root-absolute, which matters only under a sub-path host (itch.io, deferred by S8). |
 
 ---
 

@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from 'vite'
 import path from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 import { readFileSync } from 'fs'
+import { audioCacheMatch } from './src/lib/audioCacheRoute.js'
 const { version } = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
 // https://vite.dev/config/
@@ -28,7 +29,7 @@ export default defineConfig(({ mode }) => {
         // fetched on WiFi it is served from cache offline indefinitely.
         runtimeCaching: [
           {
-            urlPattern: /^\/audio\/.+\.mp3$/,
+            urlPattern: audioCacheMatch,
             handler: 'CacheFirst',
             options: {
               cacheName: 'soundfind-audio-v1',

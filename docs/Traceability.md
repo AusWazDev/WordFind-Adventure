@@ -192,6 +192,8 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Tests** | `src/lib/admob.test.js` (plugin mocked). Run `npm test` |
 | **Also check (CR-60)** | Are all three child-directed flags still `true` in `initialize`? Does every ad request, including any new format, carry `npa: true`? Is `requestConsentInfo` still before `initialize` with TFUA true? Is `showConsentForm`, `showPrivacyOptionsForm` or `requestTrackingAuthorization` still never called? On a plugin upgrade, see held item K7 (`ageRestrictedTreatment`) |
 | **Also check (CR-60 amendment g, 30 Sep 2026)** | ⚠️ *"all three child-directed flags still `true` in `initialize`"* above is superseded. `initialize` carries TFCD `true` and rating `General` only; TFUA must be **absent** there and present only on `requestConsentInfo`. Google: TFCD and TFUA "shouldn't both simultaneously be set to true" |
+| **Windows and web (added 30 Sep 2026, CR-64)** | ⚠️ `AdModal.jsx` in *Primary source* above was **deleted** in CR-64 (the row is kept as written). On `!isNative()` there are no ads and no purchases: `HintModal.jsx` shows only the daily free refill (`src/lib/freeHintRefill.js`, key `sf_free_hint_refill_at`), and `Home.jsx` skips the ad step. Tests: `src/lib/freeHintRefill.test.js`, `src/components/game/HintModal.test.jsx` |
+| **Also check (CR-64)** | Is the native branch of `HintModal` (Watch an Ad, Buy Hint Pack) still unchanged? Does any `!isNative()` path offer an ad, a purchase or Remove Ads, or load a third-party image? Is the refill still 3 hints per 24 hours under its own key? |
 
 ---
 
@@ -240,6 +242,19 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-01 (header renders), TC-04 (category name not truncated — DEF-04) |
 | **Also check when changed** | Is `modeLabels` still free of removed mode entries (CR-07)? Is the category name display still untruncated? |
+
+---
+
+### 19. Windows (Electron) Build
+
+*Added 30 Sep 2026 (CR-64).*
+
+| | Files |
+|---|---|
+| **Primary source** | `electron/main.cjs` (window, `app://` protocol, link and navigation guards, menu, single-instance lock), `package.json` `build` block (`files` excludes `node_modules`) |
+| **Supporting source** | `scripts/patch-appx-assets.mjs` (branded tiles), `electron/appx-assets/`, `vite.config.js` (`--mode electron`) |
+| **Related docs** | `docs/Store Submission Checklist.md`, `docs/Change Register.md`, `STATUS.md` |
+| **Also check when changed** | Does the main process still require only Electron built-ins? A new `require` of a package would fail at launch now that `node_modules` is excluded, and it shows only as an "Error" dialog, never on stderr. Do external links still open in the system browser (`setWindowOpenHandler`, `will-navigate`)? Run the full smoke test in `docs/Store Submission Checklist.md` §3 on the packaged build, not just a launch |
 
 ---
 

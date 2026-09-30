@@ -402,6 +402,14 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **Device check still to do (developer):** run the seven SF-9 scenarios on an iPhone build and in the Windows build (see the CR-63 report).
 - **Follow-up (h), same day:** the bonus-word audio "mismatch" is unreachable. Bonus words exist only in Mystery Word mode, and audio feedback only in Audio mode (measured: 0 bonus words in 350 audio games; 217 in 350 Mystery Word games). No code change. SF-9 scenario 4 cannot happen, so skip it on the device check.
 
+### 2026-09-30 (Windows — CR-64 Windows build, brief SF-3)
+
+- **CR-64:** the Windows and web builds no longer show a fake "Ad", a Skip that still paid out, a hint-pack offer they cannot fulfil, or any Unsplash image. Out of hints, they offer **3 free hints once every 24 hours** (new key `sf_free_hint_refill_at`). iOS and Android are unchanged.
+- **Electron shell:** links open in the system browser, navigation away from the app is blocked, no menu bar, one instance only.
+- **Package:** `node_modules` excluded; appx **296,314,480 → 251,095,000 bytes** for the same code (−15.3%). Proved unneeded by driving the packaged build through a full game, audio, Test Voice and the Privacy link, with a positive control for the missing-module case.
+- **Web (Vercel):** the web build takes the same `!isNative()` path, so the same surfaces change there: no ad step before a game, the free refill in place of the simulated ad and the "Buy Hint Pack" offer, and no Remove Ads button. The web build is deployed (production deploys READY on every push); whether anyone uses it is **not observable** (Vercel Web Analytics is not enabled; Sentry had 0 web events in 90 days).
+- Tests: 12 new (74 in the suite); fault controls failed as expected. Not uploaded to Partner Center.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Coins, Sparkles, Star, Shield, WifiOff } from 'lucide-react';
+import { X, Play, Coins, Sparkles, Star, Shield, WifiOff, Gift, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { toast } from 'sonner';
@@ -8,66 +8,48 @@ import { isNative } from '@/lib/platform';
 import { showRewarded } from '@/lib/admob';
 import * as Sentry from '@sentry/react';
 import { purchaseProduct, PURCHASE_OPTIONS, getPrice } from '@/lib/purchases';
+import { claimFreeRefill, msUntilFreeRefill, formatRefillWait, FREE_REFILL_HINTS } from '@/lib/freeHintRefill';
 
+// Windows and web (CR-64): no ads and no purchases, so the only offer is a
+// daily free refill. Replaces the simulated AdPlayer, whose Skip still granted
+// a hint and whose image was a third-party (Unsplash) request.
+function FreeRefillCard({ onFreeHints }) {
+  const waitMs = msUntilFreeRefill();
 
-function AdPlayer({ onComplete, onSkip }) {
-  const [countdown, setCountdown] = useState(5);
-  const [canSkip, setCanSkip] = useState(false);
-  const [adProgress, setAdProgress] = useState(0);
-  const AD_DURATION = 15;
+  const handleClaim = () => {
+    const granted = claimFreeRefill();
+    if (granted > 0) onFreeHints(granted);
+  };
 
-  React.useEffect(() => {
-    const skipTimer = setTimeout(() => setCanSkip(true), 5000);
-    const interval = setInterval(() => {
-      setAdProgress(prev => {
-        const next = prev + (100 / AD_DURATION);
-        if (next >= 100) {
-          clearInterval(interval);
-          setTimeout(onComplete, 300);
-          return 100;
-        }
-        return next;
-      });
-    }, 1000);
-    const cdInterval = setInterval(() => {
-      setCountdown(prev => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => {
-      clearTimeout(skipTimer);
-      clearInterval(interval);
-      clearInterval(cdInterval);
-    };
-  }, [onComplete]);
+  if (waitMs === 0) {
+    return (
+      <motion.button
+        onClick={handleClaim}
+        className="w-full p-4 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-2xl text-white text-left flex items-center gap-4 hover:shadow-lg hover:shadow-violet-200 transition-shadow"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <div className="p-3 bg-white/20 rounded-xl">
+          <Gift className="w-6 h-6" />
+        </div>
+        <div>
+          <h3 className="font-bold">Get {FREE_REFILL_HINTS} free hints</h3>
+          <p className="text-violet-200 text-sm">Once a day, on the house</p>
+        </div>
+        <span className="ml-auto text-white/60 text-sm font-medium">FREE</span>
+      </motion.button>
+    );
+  }
 
   return (
-    <div className="text-center">
-      <div className="relative rounded-2xl overflow-hidden mb-4 bg-slate-900">
-        <img
-          src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=200&fit=crop"
-          alt="Advertisement"
-          className="w-full h-40 object-cover opacity-80"
-        />
-        <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md font-medium">
-          AD
-        </div>
-        {!canSkip && (
-          <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
-            Skip in {countdown}s
-          </div>
-        )}
-        {canSkip && (
-          <button
-            onClick={onSkip}
-            className="absolute top-2 right-2 bg-white text-slate-800 text-xs px-3 py-1 rounded-md font-bold hover:bg-slate-100 transition"
-          >
-            Skip Ad →
-          </button>
-        )}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-          <motion.div className="h-full bg-violet-400" style={{ width: `${adProgress}%` }} />
-        </div>
+    <div className="w-full p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-left flex items-center gap-4">
+      <div className="p-3 bg-slate-200 dark:bg-slate-700 rounded-xl">
+        <Clock className="w-6 h-6 text-slate-500" />
       </div>
-      <p className="text-slate-500 dark:text-slate-400 text-sm">Watch the full ad to earn your hint</p>
+      <div>
+        <h3 className="font-bold text-slate-600 dark:text-slate-300">Free hints refill daily</h3>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">Next {FREE_REFILL_HINTS} free hints in {formatRefillWait(waitMs)}</p>
+      </div>
     </div>
   );
 }
@@ -145,7 +127,8 @@ function PurchaseView({ onPurchase }) {
   );
 }
 
-export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
+export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase, onFreeHints }) {
+  const native = isNative();
   const [view, setView] = useState('options');
   const isOnline = useOnlineStatus();
 
@@ -159,14 +142,9 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
     }
   };
 
-  const handleAdComplete = () => {
+  const handleFreeHints = (amount) => {
     setView('options');
-    onWatchAd();
-  };
-
-  const handleAdSkip = () => {
-    setView('options');
-    onWatchAd();
+    onFreeHints?.(amount);
   };
 
   const handlePurchaseDone = (amount) => {
@@ -200,11 +178,9 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
             <div className="flex justify-between items-start mb-5">
               <div>
                 {view === 'options'  && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Need a Hint? 💡</h2>}
-                {view === 'ad'       && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Watch & Earn</h2>}
                 {view === 'purchase' && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Get More Hints</h2>}
                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                  {view === 'options'  && 'Choose how to unlock your next hint'}
-                  {view === 'ad'       && 'Watch a short ad for a free hint'}
+                  {view === 'options'  && (native ? 'Choose how to unlock your next hint' : "You're out of hints")}
                   {view === 'purchase' && 'One-time purchase, no subscription'}
                 </p>
               </div>
@@ -222,9 +198,12 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                   exit={{ opacity: 0 }}
                   className="space-y-3"
                 >
+                  {!native && <FreeRefillCard onFreeHints={handleFreeHints} />}
+
+                  {native && <>
                   {isOnline ? (
                     <motion.button
-                      onClick={isNative() ? handleWatchAdNative : () => setView('ad')}
+                      onClick={handleWatchAdNative}
                       className="w-full p-4 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-2xl text-white text-left flex items-center gap-4 hover:shadow-lg hover:shadow-violet-200 transition-shadow"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -283,19 +262,11 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                     <p className="text-xs text-slate-400 dark:text-slate-500">Purchases support the developer</p>
                     <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                   </div>
+                  </>}
                 </motion.div>
               )}
 
-              {view === 'ad' && (
-                <motion.div key="ad" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <AdPlayer onComplete={handleAdComplete} onSkip={handleAdSkip} />
-                  <Button variant="ghost" className="w-full mt-2 text-slate-400" onClick={() => setView('options')}>
-                    ← Back
-                  </Button>
-                </motion.div>
-              )}
-
-              {view === 'purchase' && (
+              {native && view === 'purchase' && (
                 <motion.div key="purchase" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <PurchaseView onPurchase={handlePurchaseDone} />
                   <Button variant="ghost" className="w-full mt-2 text-slate-400" onClick={() => setView('options')}>

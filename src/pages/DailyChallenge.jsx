@@ -328,6 +328,15 @@ export default function DailyChallenge() {
     if (progress) updateProgress(null, progress, { hints_remaining: newHints });
   };
 
+  // Windows and web daily free refill (CR-64)
+  const handleFreeHints = (amount) => {
+    const newHints = hintsRemaining + amount;
+    setHintsRemaining(newHints);
+    setShowHintModal(false);
+    toast.success(`${amount} free hints added!`);
+    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+  };
+
   if (!gameData) {
     return (
       <div style={{ width: '100vw', height: containerH, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--background)' }}>
@@ -484,6 +493,7 @@ export default function DailyChallenge() {
         onClose={() => setShowHintModal(false)}
         onWatchAd={handleWatchAd}
         onPurchase={handlePurchase}
+        onFreeHints={handleFreeHints}
       />
 
       {/* Victory overlay */}

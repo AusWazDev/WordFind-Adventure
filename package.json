@@ -23,7 +23,8 @@
     "files": [
       "electron/main.cjs",
       "dist/**/*",
-      "!dist/**/*.map"
+      "!dist/**/*.map",
+      "!node_modules/**/*"
     ],
     "directories": {
       "output": "electron-dist"

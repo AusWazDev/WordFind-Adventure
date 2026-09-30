@@ -389,6 +389,11 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - The challenge **title** for a given date also changes once at upgrade (e.g. 30 Sep: Ocean Deep before, Emotional Journey after). Completion is keyed by date, not template, so this does not reopen or close anything.
 - Tests: 16 new (50 in the suite). Ten fault controls each failed the expected tests.
 
+### 2026-09-30 (Windows — CR-62 Anagram scrambles, brief SF-2)
+
+- **CR-62:** after Replay or Next Level, Anagram mode showed every word unscrambled, because the list component stayed mounted and never re-scrambled the new words. It now re-scrambles whenever the words change, and can never fall back to showing the answer. This also fixes Try Again on the Daily screen's anagram challenges. Reshuffle per word still works.
+- Tests: 5 new (55 in the suite); both fault controls failed as expected.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

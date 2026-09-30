@@ -5,13 +5,26 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { scrambleWord } from '@/components/game/gameUtils';
 
+function scrambleAll(words) {
+  const m = {};
+  words.forEach(w => { m[w] = scrambleWord(w); });
+  return m;
+}
+
 export default function AnagramWordList({ words, foundWords, hintWord, onHintCell, hintsRemaining }) {
-  // Stable scrambles per word (re-scramble button)
-  const [scrambles, setScrambles] = useState(() => {
-    const m = {};
-    words.forEach(w => { m[w] = scrambleWord(w); });
-    return m;
-  });
+  // Stable scrambles per word (re-scramble button). CR-62: Replay and Next Level
+  // keep this component mounted and pass NEW words, so the scrambles must be
+  // rebuilt whenever the word set changes. Otherwise every new word had no entry
+  // and the old `|| word` fallback showed the answers in plain text. Rebuilding
+  // during render (React's "adjusting state when a prop changes" pattern) means
+  // the plain words are never committed to the screen.
+  const wordsKey = words.join('|');
+  const [scrambles, setScrambles] = useState(() => scrambleAll(words));
+  const [scrambledFor, setScrambledFor] = useState(wordsKey);
+  if (scrambledFor !== wordsKey) {
+    setScrambledFor(wordsKey);
+    setScrambles(scrambleAll(words));
+  }
 
   const reshuffleWord = (word) => {
     setScrambles(prev => ({ ...prev, [word]: scrambleWord(word) }));
@@ -59,7 +72,7 @@ export default function AnagramWordList({ words, foundWords, hintWord, onHintCel
                     : isHinted ? "text-amber-700"
                     : "text-violet-700"
                 )}>
-                  {isFound ? word : scrambles[word] || word}
+                  {isFound ? word : scrambles[word] ?? scrambleWord(word)}
                 </span>
                 {!isFound && (
                   <div className="flex gap-1">

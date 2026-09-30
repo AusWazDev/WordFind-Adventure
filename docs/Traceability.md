@@ -86,6 +86,8 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-11 (anagram clue shown), TC-12 (anagram correct) |
 | **Also check when changed** | Does `WordList.jsx` share any display logic that may need the same fix? |
+| **Tests (added 30 Sep 2026, CR-62)** | `src/components/game/AnagramWordList.test.jsx`. Run `npm test` |
+| **Also check (CR-62)** | The list stays MOUNTED across Replay, Next Level and the Daily screen's Try Again, and receives new `words`: are scrambles still rebuilt when the word set changes? Can any path still render a plain answer (never fall back to `word`)? `scrambleWord` would recurse forever on a word of one repeated letter (none in the lists as at 30 Sep 2026, measured over 1,357 words). |
 
 ---
 

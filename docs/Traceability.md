@@ -182,6 +182,9 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-21 (ad shown at correct intervals), TC-21b (ad skipped offline) |
 | **Also check when changed** | Does ad skip logic still fire when offline? Does Remove Ads modal still gate correctly? |
+| **Native ads (added 30 Sep 2026, CR-60)** | `src/lib/admob.js` was missing from this section. It holds `CHILD_DIRECTED_CONFIG` (decision S1) and the UMP call. Callers: `src/App.jsx` (`initAdMob`), `src/pages/Home.jsx` (`showInterstitial`), `src/components/game/HintModal.jsx` (`showRewarded`) |
+| **Tests** | `src/lib/admob.test.js` (plugin mocked). Run `npm test` |
+| **Also check (CR-60)** | Are all three child-directed flags still `true` in `initialize`? Does every ad request, including any new format, carry `npa: true`? Is `requestConsentInfo` still before `initialize` with TFUA true? Is `showConsentForm`, `showPrivacyOptionsForm` or `requestTrackingAuthorization` still never called? On a plugin upgrade, see held item K7 (`ageRestrictedTreatment`) |
 
 ---
 

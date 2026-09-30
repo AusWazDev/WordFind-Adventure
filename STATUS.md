@@ -369,6 +369,14 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - Sentry org slug corrected in the 2026-04-26 entry (annotated, old value kept).
 - **Developer actions (not done by the CLI):** in Sentry project settings turn on *Prevent storing of IP addresses* and the default data scrubber; on the Mac, check whether `.env.local` holds `VITE_SENTRY_DSN` (iOS 1.1.0 sent 0 events in 90 days).
 
+### 2026-09-30 (Windows — CR-60 child-directed ads, brief SF-7)
+
+- **CR-60:** every ad request is child-directed and non-personalised (decision S1). `initialize` gets `tagForChildDirectedTreatment`, `tagForUnderAgeOfConsent` (both `true`) and `maxAdContentRating: General`; every interstitial and rewarded request gets `npa: true`. UMP is asked for consent info with TFUA true, before `initialize`, failure-safe; no consent or privacy-options form is ever shown. No ATT prompt and no `NSUserTrackingUsageDescription`. AdMob plugin left at 8.0.0.
+- **Found while verifying:** the UMP binary does contain `requestTrackingAuthorization`, reachable only when a UMP form is shown. The app never shows one; the tests pin that. Also, do not create an IDFA explainer message in AdMob Privacy & messaging.
+- Tests: `src/lib/admob.test.js`, 13 tests; 32 in the suite. Ten fault controls each failed the expected tests.
+- **Needs a device build to take effect on iOS/Android**; the web and Electron builds make no ad calls. The EEA consent status can only be read on a device (plugin `debugGeography: EEA` plus a test device id).
+- **Console steps (developer):** see the CR-60 report. AdMob app-level child-directed and G rating; no IDFA message; App Store privacy answers (the Tracking question is still open); do not opt into the Kids Category; Play target audience and Families when Android ships.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

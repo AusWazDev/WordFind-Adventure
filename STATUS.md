@@ -459,7 +459,17 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 **Remaining, developer (consoles):**
 1. App Store Connect: App Privacy answers (S5: Tracking NO; GMA data types; RevenueCat Purchase History; whether Sentry "Performance Data" still applies after CR-59); submit 1.1.1.
 2. Settle SF-8's gate 2 (whether the privacy policy must publish the same day).
+   ⚠️ *Settled later on 1 Oct 2026, by the chat half: see the next entry.*
 3. Android: RevenueCat Android app and key (the key in `purchases.js` is still empty, so purchases are off on Android); confirm the AdMob Android app and units; the upload key and Play App Signing; build and sign the release AAB with `npm run build:android && npx cap sync android`; closed testing (12 testers for 14 days); Data safety and Families declarations; decide the `ACCESS_ADSERVICES_*` question.
+   ⚠️ *The `ACCESS_ADSERVICES_*` question was closed later on 1 Oct 2026: the permissions were removed in CR-73.*
+
+### 2026-10-01, later (Windows — CR-72, CR-73; gate 2 settled)
+
+- **SF-8 gate 2, settled by the chat half on 1 Oct 2026:** the new privacy policy and terms publish **on the day iOS 1.1.1 is released, not before**.
+- **`CLAUDE.md`:** the "Build → App Store" steps (`npm run build`) are annotated as superseded: native builds use `build:ios` / `build:android` (CR-55, CR-70). It was the only native build instruction in the file.
+- **CR-73:** the three Privacy Sandbox permissions (`ACCESS_ADSERVICES_AD_ID`, `_ATTRIBUTION`, `_TOPICS`) are removed from the Android manifest, which closes that open point. The debug APK now requests only INTERNET, ACCESS_NETWORK_STATE, BILLING, WAKE_LOCK, FOREGROUND_SERVICE and the app's own receiver permission. S21 is annotated in both decisions-table copies.
+- **Target SDK:** compileSdk 36, targetSdk 36 and minSdk 24, all set once, in `android/variables.gradle`. Google Play requires API 36 for new apps and updates from 31 August 2026, so the project meets it.
+- **CR-72, Android with no RevenueCat key (tests only):** nothing hangs, but tapping a hint pack, Remove Ads or Restore Purchases ends in *"Purchase failed / Restore failed — Please try again."*, which can never succeed without a key, and the purchase taps also send an exception to Sentry. "Watch an Ad" works on AdMob alone. **Open, for the developer:** what those three points should say until the key exists (copy is the developer's call).
 
 ## Next Steps (Priority Order)
 

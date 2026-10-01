@@ -48,9 +48,8 @@ export default function AnagramWordList({ words, foundWords, hintWord, onHintCel
             return (
               <motion.div
                 key={word}
-                initial={{ opacity: 0, y: 10 }}
+                initial={false} // rows paint on the first frame, no fade-in (FB-13, CR-80)
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
                 className={cn(
                   "relative flex items-center gap-1 px-3 py-2 rounded-xl transition-all",
                   isFound

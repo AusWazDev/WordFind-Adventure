@@ -84,10 +84,11 @@ describe('native Android with no RevenueCat key: current behaviour', () => {
     expect(Purchases.configure).not.toHaveBeenCalled();
   });
 
-  it('opening the hint shop shows the fallback prices, with no error', async () => {
+  it('opening the hint shop shows the packs with no price figure, and no error', async () => {
     await show(<HintModal isOpen onClose={() => {}} onWatchAd={() => {}} onPurchase={() => {}} />);
     await tap('Buy Hint Pack');
-    expect(text()).toContain('US$1.99'); // fallback string: no store price was fetched
+    expect(text()).toContain('10 Hints');
+    expect(text()).not.toMatch(/\$/); // FB-1: no store price was fetched, so no figure at all
     expect(toast.error).not.toHaveBeenCalled();
   });
 
@@ -104,16 +105,17 @@ describe('native Android with no RevenueCat key: current behaviour', () => {
     expect(button('Buy 10 Hints').disabled).toBe(false);
   });
 
-  it('opening Remove Ads shows the fallback price, with no error', async () => {
+  it('opening Remove Ads shows no price figure, and no error', async () => {
     await show(<RemoveAdsModal isOpen onClose={() => {}} onSuccess={() => {}} />);
-    expect(button('Remove Ads —')).toBeDefined();
+    expect(button('Remove Ads')).toBeDefined();
+    expect(text()).not.toMatch(/\$/); // FB-1: no store price, so no figure
     expect(toast.error).not.toHaveBeenCalled();
   });
 
   it('tapping Remove Ads ends in the same "Purchase failed" toast, and recovers', async () => {
     const onSuccess = vi.fn();
     await show(<RemoveAdsModal isOpen onClose={() => {}} onSuccess={onSuccess} />);
-    await tap('Remove Ads —');
+    await tap('Remove Ads');
     expect(toast.error).toHaveBeenCalledWith('Purchase failed', { description: 'Please try again.' });
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(onSuccess).not.toHaveBeenCalled();

@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
 import * as Sentry from '@sentry/react';
-import { purchaseProduct, REMOVE_ADS_PRODUCT_ID, getPrice } from '@/lib/purchases';
-
-const REMOVE_ADS_FALLBACK = 'US$2.99';
+import { purchaseProduct, REMOVE_ADS_PRODUCT_ID, usePrice } from '@/lib/purchases';
 
 export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
   const [success, setSuccess] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
+  // The store's own price, or no figure until it has loaded (FB-1, CR-74).
+  const price = usePrice(REMOVE_ADS_PRODUCT_ID);
 
   const handlePurchase = async () => {
     if (purchasing) return;
@@ -94,7 +94,7 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
                 {/* Price badge */}
                 <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-center text-white mb-5 shadow-lg shadow-amber-200">
                   <p className="text-amber-100 text-sm mb-1">One-time price</p>
-                  <p className="text-5xl font-bold">{getPrice(REMOVE_ADS_PRODUCT_ID, REMOVE_ADS_FALLBACK)}</p>
+                  {price && <p className="text-5xl font-bold">{price}</p>}
                   <p className="text-amber-100 text-sm mt-1">Forever — not a subscription</p>
                 </div>
 
@@ -118,7 +118,7 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
                   disabled={purchasing}
                   className="w-full h-12 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl font-semibold shadow-md shadow-amber-200"
                 >
-                  {purchasing ? 'Processing…' : `Remove Ads — ${getPrice(REMOVE_ADS_PRODUCT_ID, REMOVE_ADS_FALLBACK)}`}
+                  {purchasing ? 'Processing…' : `Remove Ads${price ? ` — ${price}` : ''}`}
                 </Button>
                 <p className="text-center text-xs text-slate-400 mt-1">Billed through the App Store / Google Play</p>
 

@@ -471,6 +471,10 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **Target SDK:** compileSdk 36, targetSdk 36 and minSdk 24, all set once, in `android/variables.gradle`. Google Play requires API 36 for new apps and updates from 31 August 2026, so the project meets it.
 - **CR-72, Android with no RevenueCat key (tests only):** nothing hangs, but tapping a hint pack, Remove Ads or Restore Purchases ends in *"Purchase failed / Restore failed — Please try again."*, which can never succeed without a key, and the purchase taps also send an exception to Sentry. "Watch an Ad" works on AdMob alone. **Open, for the developer:** what those three points should say until the key exists (copy is the developer's call).
 
+### 2026-10-01, evening (Windows — FB-1 and FB-2, brief SF-16)
+
+- **CR-74, FB-1 (store prices):** every price shown is now the store's own `priceString`, or no figure until it loads. The hard-coded *"from $0.99"* and the `US$` fallbacks are gone, and a shop opened before the store answers updates when the prices arrive. On web and Windows no figure appears, since no store price exists there; "Coming soon" is unchanged.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

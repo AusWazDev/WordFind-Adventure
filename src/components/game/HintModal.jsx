@@ -7,7 +7,15 @@ import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
 import { showRewarded } from '@/lib/admob';
 import * as Sentry from '@sentry/react';
-import { purchaseProduct, PURCHASE_OPTIONS, getPrice } from '@/lib/purchases';
+import { purchaseProduct, PURCHASE_OPTIONS, usePrice, useLowestPrice } from '@/lib/purchases';
+
+const PACK_IDS = PURCHASE_OPTIONS.map(o => o.productId);
+
+// The store's price for one pack, or nothing until it has loaded (FB-1, CR-74).
+function PackPrice({ productId }) {
+  const price = usePrice(productId);
+  return price ? <span className="text-lg font-bold text-slate-800 dark:text-slate-100">{price}</span> : null;
+}
 
 
 function AdPlayer({ onComplete, onSkip }) {
@@ -77,6 +85,7 @@ function PurchaseView({ onPurchase }) {
   const [purchasing, setPurchasing] = useState(false);
 
   const selectedOption = PURCHASE_OPTIONS.find(o => o.productId === selected);
+  const selectedPrice = usePrice(selected);
 
   const handlePurchase = async () => {
     if (purchasing) return;
@@ -123,7 +132,7 @@ function PurchaseView({ onPurchase }) {
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">{option.label}</p>
           </div>
-          <span className="text-lg font-bold text-slate-800 dark:text-slate-100">{getPrice(option.productId, option.price)}</span>
+          <PackPrice productId={option.productId} />
         </motion.button>
       ))}
 
@@ -139,7 +148,7 @@ function PurchaseView({ onPurchase }) {
       >
         {purchasing
           ? 'Processing…'
-          : `Buy ${selectedOption?.hints} Hints — ${getPrice(selected, selectedOption?.price)}`}
+          : `Buy ${selectedOption?.hints} Hints${selectedPrice ? ` — ${selectedPrice}` : ''}`}
       </Button>
     </div>
   );
@@ -148,6 +157,7 @@ function PurchaseView({ onPurchase }) {
 export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
   const [view, setView] = useState('options');
   const isOnline = useOnlineStatus();
+  const fromPrice = useLowestPrice(PACK_IDS);
 
   const handleWatchAdNative = async () => {
     handleClose();
@@ -264,7 +274,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                         <h3 className="font-bold">Buy Hint Pack</h3>
                         <p className="text-amber-100 text-sm">3, 10 or 25 hints</p>
                       </div>
-                      <span className="ml-auto text-white/80 text-sm font-medium">from $0.99</span>
+                      {fromPrice && <span className="ml-auto text-white/80 text-sm font-medium">from {fromPrice}</span>}
                     </motion.button>
                   ) : (
                     <div className="w-full p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-left flex items-center gap-4 opacity-60">

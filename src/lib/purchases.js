@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { Purchases, PRODUCT_CATEGORY } from '@revenuecat/purchases-capacitor';
 import * as Sentry from '@sentry/react';
 import { getPlatform } from './platform';
@@ -7,7 +8,13 @@ const API_KEYS = {
   android: '', // TODO: add once Google Play goes to production
 };
 
+// Store prices from RevenueCat (FB-1, CR-74). Each entry is the store's own
+// priceString, already formatted for the player's storefront, plus its numeric
+// price for ordering. Nothing here ever holds a figure of our own: until the
+// store answers, a price is null and the screens show no figure.
 const _prices = {};
+const _amounts = {};
+const _listeners = new Set();
 
 export const REMOVE_ADS_PRODUCT_ID = 'au.com.uniquegames.soundfind.remove_ads';
 
@@ -18,13 +25,42 @@ const HINT_PACK_MAP = {
 };
 
 export const PURCHASE_OPTIONS = [
-  { productId: 'au.com.uniquegames.soundfind.hints_3',  hints: 3,  price: 'US$0.99', label: 'Starter',    gradient: 'from-amber-400 to-orange-500',   shadow: 'shadow-amber-200',  popular: false },
-  { productId: 'au.com.uniquegames.soundfind.hints_10', hints: 10, price: 'US$1.99', label: 'Best Value',  gradient: 'from-violet-500 to-indigo-600',  shadow: 'shadow-violet-200', popular: true  },
-  { productId: 'au.com.uniquegames.soundfind.hints_25', hints: 25, price: 'US$3.99', label: 'Power Pack',  gradient: 'from-emerald-400 to-teal-500',   shadow: 'shadow-emerald-200', popular: false },
+  { productId: 'au.com.uniquegames.soundfind.hints_3',  hints: 3,  label: 'Starter',    gradient: 'from-amber-400 to-orange-500',   shadow: 'shadow-amber-200',  popular: false },
+  { productId: 'au.com.uniquegames.soundfind.hints_10', hints: 10, label: 'Best Value',  gradient: 'from-violet-500 to-indigo-600',  shadow: 'shadow-violet-200', popular: true  },
+  { productId: 'au.com.uniquegames.soundfind.hints_25', hints: 25, label: 'Power Pack',  gradient: 'from-emerald-400 to-teal-500',   shadow: 'shadow-emerald-200', popular: false },
 ];
 
-export function getPrice(productId, fallback) {
-  return _prices[productId] || fallback;
+export function subscribePrices(listener) {
+  _listeners.add(listener);
+  return () => _listeners.delete(listener);
+}
+
+// The store's priceString for a product once loaded, otherwise null.
+export function getPrice(productId) {
+  return _prices[productId] ?? null;
+}
+
+// The cheapest loaded price among `productIds`, as the store formats it, or null.
+export function getLowestPrice(productIds) {
+  let best = null;
+  for (const id of productIds) {
+    if (_prices[id] != null && (best == null || _amounts[id] < _amounts[best])) best = id;
+  }
+  return best == null ? null : _prices[best];
+}
+
+// Re-render when prices arrive, so a screen opened before the store answered
+// still shows them.
+// The same snapshot serves as the server snapshot, so a first render done by
+// renderToString (the FB-2 guard test) reads the cache too.
+export function usePrice(productId) {
+  const snapshot = () => getPrice(productId);
+  return useSyncExternalStore(subscribePrices, snapshot, snapshot);
+}
+
+export function useLowestPrice(productIds) {
+  const snapshot = () => getLowestPrice(productIds);
+  return useSyncExternalStore(subscribePrices, snapshot, snapshot);
 }
 
 async function fetchAndCachePrices() {
@@ -34,8 +70,12 @@ async function fetchAndCachePrices() {
     current.availablePackages.forEach(pkg => {
       const product = pkg.storeProduct ?? pkg.product;
       const id = product?.identifier ?? product?.productIdentifier;
-      if (id && product?.priceString) _prices[id] = product.priceString;
+      if (id && product?.priceString) {
+        _prices[id] = product.priceString;
+        _amounts[id] = typeof product.price === 'number' ? product.price : Number.POSITIVE_INFINITY;
+      }
     });
+    _listeners.forEach(listener => listener());
   } catch (e) {
     Sentry.addBreadcrumb({ category: 'purchases', message: 'fetchAndCachePrices failed — using fallbacks', data: { error: String(e) }, level: 'warning' });
   }

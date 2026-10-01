@@ -16,8 +16,9 @@ vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform:
 vi.mock('@/lib/admob', () => ({ showRewarded: (...a) => showRewarded(...a) }));
 vi.mock('@/lib/purchases', () => ({
   purchaseProduct: vi.fn(),
-  getPrice: (_id, fallback) => fallback,
-  PURCHASE_OPTIONS: [{ productId: 'au.com.uniquegames.soundfind.hints_10', hints: 10, price: 'US$1.99', label: 'Best Value', gradient: '', popular: true }],
+  usePrice: () => null,
+  useLowestPrice: () => null,
+  PURCHASE_OPTIONS: [{ productId: 'au.com.uniquegames.soundfind.hints_10', hints: 10, label: 'Best Value', gradient: '', popular: true }],
 }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 

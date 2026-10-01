@@ -5,7 +5,7 @@
 // was silent until the app was force-quit. These tests assert that the next
 // play after such an interruption reaches a RUNNING context, and that the
 // decoded-audio cache survives a rebuild.
-import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterAll } from 'vitest';
 
 const contexts = [];
 class MockAudioContext {
@@ -45,7 +45,12 @@ class MockXHR {
   send() { this.status = 200; this.response = { url: this.url }; queueMicrotask(() => this.onload()); }
 }
 
-const speech = { speaking: false, speak: vi.fn(), cancel: vi.fn(), pause: vi.fn(), resume: vi.fn(), getVoices: () => [], onvoiceschanged: null };
+// One voice, so voiceUtils' 200 ms voice poll (started on import, and again by
+// any speech fallback) stops on its first tick. With none it ran for 5 s and
+// could fire after the environment was torn down: "window is not defined" at
+// voiceUtils.jsx:71, failing a green run (SF-25).
+const VOICES = [{ name: 'Karen', lang: 'en-AU', localService: true, default: true }];
+const speech = { speaking: false, speak: vi.fn(), cancel: vi.fn(), pause: vi.fn(), resume: vi.fn(), getVoices: () => VOICES, onvoiceschanged: null };
 
 let voice;
 beforeAll(async () => {
@@ -68,6 +73,11 @@ beforeEach(() => {
   speech.cancel.mockClear();
   speech.speak.mockClear();
 });
+
+// Let any poll started during the tests reach its first tick, and so stop,
+// before the environment is torn down.
+const VOICE_POLL_MS = 200;
+afterAll(() => new Promise(r => setTimeout(r, VOICE_POLL_MS + 50)));
 
 describe('audio after an interruption (FB-10)', () => {
   it('control: a normal play starts sources on a running context', async () => {

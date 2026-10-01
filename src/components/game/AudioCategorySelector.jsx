@@ -119,9 +119,8 @@ export default function AudioCategorySelector({ onSelectCategory }) {
               cat.borderColor,
               'hover:shadow-lg'
             )}
-            initial={{ opacity: 0, y: 10 }}
+            initial={false} // cards paint on the first frame, no fade-in (FB-15, CR-81)
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -169,9 +168,8 @@ export default function AudioCategorySelector({ onSelectCategory }) {
                 'border-transparent hover:shadow-md',
                 hoveredId === cat.id && cat.borderColor
               )}
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={false} // cards paint on the first frame, no fade-in (FB-15, CR-81)
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 + index * 0.06 }}
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}
               onHoverStart={() => setHoveredId(cat.id)}

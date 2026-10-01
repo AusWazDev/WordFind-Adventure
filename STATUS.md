@@ -478,6 +478,11 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-76, build numbers for this build:** iOS **1.1.1 (6)**; Android stays **1.1.1 (versionCode 3)**, since 3 was never uploaded. `android/app/release/` is now gitignored.
 - **CR-77, FB-10 (audio silent after a screen lock, brief SF-17):** iOS leaves the shared audio context `'interrupted'` after a lock, and nothing resumed it, so every play was silent until a force-quit. Every play now makes sure the context is running, rebuilding it if it stays stuck, and returning to the foreground resets audio. **Still to do:** confirm on an iPhone by locking and unlocking mid-game, then tapping the speaker. FB-5 (pitch and voice mismatch) is not code: 16 long words and 2 tricky sentences have no MP3s and fall back to the device voice; generating them is SF-17 Part C.
 
+### 2026-10-02 (Windows — FB-5 audio clips, brief SF-17 Part C)
+
+- **CR-78, FB-5 (voice mismatch on some words):** the 36 missing clips are now in the library: the 16 long words in both voices, and the CONSCIENTIOUS and QUESTIONNAIRE sentences in both voices. The developer generated them with the script's own settings, and no existing MP3 was changed. The two sentences had been skipped because their lines in `trickySentences.jsx` had no space after the colon, which the generator's pattern needs; that space is added. Every game word and every tricky sentence now has a clip in both voices, in the same format as the rest of the library. **Still to do:** in Audio Challenge, play a few of the 16 words and the two sentences on a device and confirm they use Hannah / Neil.
+- **Flaky test, second time:** the first `npm test` for CR-78 failed 2 of 114 tests, both in `src/leaderboardRoute.test.jsx`; its first test ran for 70 s. The rerun passed 114 of 114, and CR-78 changes no code that file tests. This is the second time that file has failed and then passed on a rerun (the first was 1 Oct). It's worth looking at its setup time before it blocks a commit.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

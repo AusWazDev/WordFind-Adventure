@@ -336,9 +336,22 @@ function recoverAudioAfterInterruption() {
   withTimeout(_audioCtx.resume(), RESUME_TIMEOUT_MS);
 }
 
+// Going to the background (CR-79): stop what is playing and suspend the context
+// ourselves, before iOS acts. Left alone, an idle context gets WebKit's
+// "override interruption" and then iOS's lock stopper, which refuses the
+// restart (-16980); a playing one is interrupted and left 'interrupted' with
+// its clock frozen. A script-suspended context is resumed by the next tap's
+// ensureAudioRunning(). The iOS AppDelegate also suspends all media playback.
+function suspendAudioForBackground() {
+  stopAllAudio();
+  if (!_audioCtx) return;
+  try { Promise.resolve(_audioCtx.suspend()).catch(() => {}); } catch { /* closed */ }
+}
+
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') recoverAudioAfterInterruption();
+    if (document.visibilityState === 'hidden') suspendAudioForBackground();
+    else if (document.visibilityState === 'visible') recoverAudioAfterInterruption();
   });
 }
 if (typeof window !== 'undefined') {

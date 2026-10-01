@@ -90,7 +90,7 @@ App described as v1.0.1 with iOS submission "in progress". Both are out of date.
 | CR-35 | Settings — removed Game Preferences; added About & Legal card (privacy policy + support links) | `b32691f` |
 | CR-34 | PageNotFound — replaced hard reload with `useNavigate()` for Capacitor compatibility | `31985db` |
 | CR-33 | PWA icons + manifest — icon-192/512 generated; vite.config.js updated for PWABuilder | `a12686c` |
-| CR-32 | Interstitial ad frequency 6 → 3 completed games | `6cb4621` |
+| CR-32 | Interstitial ad frequency 6 → 3 completed games. ⚠️ **No longer current (S4, 30 Sep 2026):** the interstitial is every **6** completed games; DEF-35's commit reverted CR-32's 3 | `6cb4621` |
 | CR-30 | Audit fixes — dead imports/file deleted, `alert()` → `toast.info()`, iOS PWA meta tags | `6d674a7` |
 | CR-29 | HowToPlay modal — responsive sizing, decluttered ~35%, consistent violet/indigo gradient | `79f75d8` |
 | CR-28 | WelcomeScreen redesign (minimal + one-liner pill) | `aefc0d1` |
@@ -107,9 +107,9 @@ App described as v1.0.1 with iOS submission "in progress". Both are out of date.
 - `voiceUtils.jsx` uses Web Audio API (`AudioContext`) for gapless playback — NOT HTML5 `<audio>`
 - `unlockAudio()` must be called on every user gesture to keep iOS AudioContext alive
 - Audio library layout:
-  - `public/audio/{female|male}/{WORD}.mp3` — 1,714 words × 2 genders
+  - `public/audio/{female|male}/{WORD}.mp3` — 1,728 words × 2 genders (every game word; the folders also hold RED and TAN, which are not in the current word list and are kept as they are)
   - `public/audio/phrases/{gender}_{key}.mp3` — 4 phrase keys × 2 genders
-  - `public/audio/sentences/{gender}_{WORD}.mp3` — 313 tricky-word sentences × 2 genders
+  - `public/audio/sentences/{gender}_{WORD}.mp3` — 315 tricky-word sentences × 2 genders
 - Phrase keys: `great_you_found`, `all_words_found`, `hidden_word_was`, `game_complete`
 - To add new words/phrases: edit `scripts/generate-audio.mjs` PHRASES map, then run:
   `$env:ELEVENLABS_API_KEY="sk_..."; node scripts/generate-audio.mjs`

@@ -23,16 +23,22 @@ class MockAudioContext {
     return Promise.resolve();
   }
   close() { this.closed = true; this.state = 'closed'; return Promise.resolve(); }
+  suspend() {
+    this.suspendCalls = (this.suspendCalls ?? 0) + 1;
+    if (this.state === 'running') this.state = 'suspended';
+    return Promise.resolve();
+  }
   createBufferSource() {
     const ctx = this;
     return {
-      buffer: null, onended: null, connect() {}, disconnect() {}, stop() {},
+      buffer: null, onended: null, connect() {}, disconnect() {}, stop() { stops.push(ctx); },
       start() { ctx.started.push({ state: ctx.state }); },
     };
   }
   decodeAudioData(ab) { decodes.push(ab.url); return Promise.resolve({ duration: 0.2, url: ab.url }); }
 }
 const decodes = [];
+const stops = [];
 
 class MockXHR {
   open(_m, url) { this.url = url; }
@@ -104,5 +110,25 @@ describe('audio after an interruption (FB-10)', () => {
     setVisibility('hidden');
     setVisibility('visible');
     expect(speech.cancel).toHaveBeenCalled();
+  });
+
+  // CR-79: suspend before iOS acts, so neither stuck path (idle: "override
+  // interruption" then the lock stopper; playing: left 'interrupted') is reached.
+  it('going to the background stops audio and suspends the context; the next play is on a running context', async () => {
+    voice.speakWordAudio('CAT');                 // cached, so sources start almost at once
+    for (let i = 0; i < 6; i++) await settle();
+    const ctx = current();
+    expect(ctx.state).toBe('running');           // control: playing before the lock
+    const stopsBefore = stops.length;
+    setVisibility('hidden');                     // screen locked
+    expect(ctx.suspendCalls ?? 0).toBe(1);
+    expect(ctx.state).toBe('suspended');
+    expect(stops.length).toBeGreaterThan(stopsBefore); // what was playing was stopped
+    setVisibility('visible');                    // unlocked
+    const before = new Map(contexts.map(c => [c, c.started.length]));
+    await playWord('DOG');
+    const startedNow = contexts.flatMap(c => c.started.slice(before.get(c) ?? 0));
+    expect(startedNow.length).toBe(2);
+    expect(startedNow.every(s => s.state === 'running')).toBe(true);
   });
 });

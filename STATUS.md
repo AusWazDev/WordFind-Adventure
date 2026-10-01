@@ -442,6 +442,25 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - Proof: 4 tests through Workbox's own route classes, with a fault control; the generated `sw.js` checked; and in headless Chrome the new build cached `RAIN.mp3` while the live site (old pattern) cached nothing.
 - Recorded, not changed: asset and audio paths are root-absolute, which matters only for a sub-path host such as itch.io (deferred by S8).
 
+### 2026-10-01 (Windows — release prep: 1.1.1, CR-69 to CR-71; decisions S20, S21)
+
+- **Release plan (S20, mobile first): iOS 1.1.1 (build 5) and Android 1.1.1 (versionCode 3).** The chat half's call; the developer may override. Context from public listings the chat half read on 1 Oct 2026: the App Store shows 1.1.0, released 9 June; Google Play has no production listing.
+- **CR-69:** version bump. Xcode `MARKETING_VERSION` 1.1.1 and `CURRENT_PROJECT_VERSION` 5 (App target, Debug and Release); `build.gradle` versionCode 3, versionName "1.1.1"; `package.json` 1.1.1.
+- **CR-70 (CR-55 item 1, K1):** `build:android` = `vite build --mode capacitor`, like `build:ios`. A plain `npm run build` ships `sw.js`; `build:android` and `build:ios` do not. Test: `src/buildModes.test.js`. ⛔ **Build native only with `build:ios` / `build:android`.** `CLAUDE.md`'s "Build → App Store" section still says `npm run build` and needs correcting.
+- **CR-71 (K8, S21):** AD_ID removed from the Android merged manifest (`tools:node="remove"`). Also: the committed Android project had not been synced since CR-36, so it carried neither AdMob nor RevenueCat; `npx cap sync android` fixed that. A debug APK built on Windows shows no AD_ID, versionCode 3 / 1.1.1, and no `sw.js`.
+- **Open, not decided:** the three Privacy Sandbox permissions (`ACCESS_ADSERVICES_AD_ID`, `_ATTRIBUTION`, `_TOPICS`) still come from `play-services-ads-api` 24.9.0. `play-services-location` 19.0.0 is in the tree (from Play Billing 8.3.0, through RevenueCat), but the merged manifest requests no location permission.
+- **Flaky test, seen once:** `src/leaderboardRoute.test.jsx` timed out at 60 s in one full-suite run; it passed alone twice and in the next three full runs. No code changed in between.
+
+**Remaining, Mac (CLI or developer on the Mac):**
+1. `git pull`, `npm ci`, `npm run build:ios`, `npx cap sync ios`; confirm the build log has no `VITE_SENTRY_DSN` warning and the synced bundle has no `sw.js`.
+2. Archive 1.1.1 (5) in Xcode, upload to TestFlight.
+3. On a device: the seven SF-9 audio scenarios and the first-tap check (DEF-38); hint packs, Remove Ads and restore in sandbox; ads serving.
+
+**Remaining, developer (consoles):**
+1. App Store Connect: App Privacy answers (S5: Tracking NO; GMA data types; RevenueCat Purchase History; whether Sentry "Performance Data" still applies after CR-59); submit 1.1.1.
+2. Settle SF-8's gate 2 (whether the privacy policy must publish the same day).
+3. Android: RevenueCat Android app and key (the key in `purchases.js` is still empty, so purchases are off on Android); confirm the AdMob Android app and units; the upload key and Play App Signing; build and sign the release AAB with `npm run build:android && npx cap sync android`; closed testing (12 testers for 14 days); Data safety and Families declarations; decide the `ACCESS_ADSERVICES_*` question.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

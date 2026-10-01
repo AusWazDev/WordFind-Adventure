@@ -1,7 +1,7 @@
 {
   "name": "soundfind",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "SoundFind: a word-search game. Hear it. Find it.",
   "author": "Unique Interactive Games",
   "type": "module",

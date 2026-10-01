@@ -20,13 +20,9 @@ export async function unlockAudio() {
     window.speechSynthesis.speak(utterance);
   }
   // Unlock Web Audio API — Android/iOS suspend AudioContext until first user gesture.
-  // Await the resume so the context is guaranteed running before any audio is scheduled.
-  if (typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)) {
-    const ctx = getAudioContext();
-    if (ctx.state === 'suspended') {
-      await ctx.resume();
-    }
-  }
+  // Await it so the context is running before any audio is scheduled. Any state
+  // that is not 'running' is handled, including iOS's 'interrupted' (FB-10, CR-77).
+  await ensureAudioRunning();
 }
 
 // ─── Voice loader — patient version for iOS ───────────────────────────────────
@@ -281,12 +277,72 @@ export async function speakText(text, settings = {}) {
 
 let _audioCtx = null;
 
+function createAudioContext() {
+  return new (window.AudioContext || window.webkitAudioContext)();
+}
+
 function getAudioContext() {
-  if (!_audioCtx) {
-    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  if (!_audioCtx) _audioCtx = createAudioContext();
   return _audioCtx;
+}
+
+// ─── Interruptions (FB-10, CR-77) ─────────────────────────────────────────────
+// On iOS a screen lock, a call or backgrounding leaves the context 'interrupted'
+// (WebKit-only), 'suspended', or occasionally 'running' but silent. Before this,
+// only 'suspended' was ever resumed, so after a lock every play was silent until
+// a force-quit. Now every play awaits ensureAudioRunning(), and returning to the
+// foreground rebuilds the context. AudioBuffers are not tied to a context, so
+// the decoded cache below survives a rebuild.
+
+const RESUME_TIMEOUT_MS = 400;
+
+function withTimeout(promise, ms) {
+  return Promise.race([Promise.resolve(promise).catch(() => {}), new Promise(r => setTimeout(r, ms))]);
+}
+
+function rebuildAudioContext() {
+  const old = _audioCtx;
+  _audioCtx = createAudioContext();
+  if (old) { try { old.close(); } catch { /* already closed */ } } // not awaited: close can hang when interrupted
+  return _audioCtx;
+}
+
+// Returns a context that is running, or the best one available. resume() is
+// called synchronously at the top, so when this runs inside a tap handler the
+// call is still inside the user gesture iOS requires.
+export async function ensureAudioRunning() {
+  if (typeof window === 'undefined' || !(window.AudioContext || window.webkitAudioContext)) return null;
+  let ctx = getAudioContext();
+  if (ctx.state === 'running') return ctx;
+  await withTimeout(ctx.resume(), RESUME_TIMEOUT_MS);
+  if (ctx.state === 'running') return ctx;
+  // Still not running: WebKit can leave a context stuck after an interruption.
+  ctx = rebuildAudioContext();
+  if (ctx.state !== 'running') await withTimeout(ctx.resume(), RESUME_TIMEOUT_MS);
+  return ctx;
+}
+
+// Back in the foreground: stop whatever was playing, clear any speech stuck in
+// the queue, and replace the context so a 'running but silent' one cannot linger.
+function recoverAudioAfterInterruption() {
+  stopAllAudio();
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try { window.speechSynthesis.cancel(); } catch { /* not available */ }
+  }
+  if (!_audioCtx) return; // nothing has played yet
+  rebuildAudioContext();
+  // Outside a gesture the new context may stay suspended; the next play's
+  // ensureAudioRunning() resumes it inside the tap.
+  withTimeout(_audioCtx.resume(), RESUME_TIMEOUT_MS);
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') recoverAudioAfterInterruption();
+  });
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('pageshow', event => { if (event.persisted) recoverAudioAfterInterruption(); });
 }
 
 // In-memory cache of decoded AudioBuffers — keyed by URL.
@@ -368,7 +424,8 @@ function scheduleBuffers(buffers, startTime) {
 async function playSeamless(generation, ...urls) {
   const buffers = await Promise.all(urls.map(fetchBuffer));
   if (!isCurrent(generation)) return;
-  const ctx     = getAudioContext();
+  const ctx = await ensureAudioRunning();
+  if (!isCurrent(generation)) return;
   const endTime = scheduleBuffers(buffers, ctx.currentTime + 0.05);
   return new Promise(r => setTimeout(r, (endTime - ctx.currentTime) * 1000 + 50));
 }
@@ -386,7 +443,8 @@ export async function speakWordAudio(word, settings = {}) {
   try {
     const buf = await fetchBuffer(url);
     if (!isCurrent(generation)) return;
-    const ctx = getAudioContext();
+    const ctx = await ensureAudioRunning();
+    if (!isCurrent(generation)) return;
     const t1  = ctx.currentTime + 0.05;
     const t2  = t1 + buf.duration + 0.4;   // 400ms gap — intentional for word repetition
     scheduleBuffers([buf], t1);

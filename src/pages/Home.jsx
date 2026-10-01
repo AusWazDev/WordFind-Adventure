@@ -15,7 +15,7 @@ import { showInterstitial } from '@/lib/admob';
 import HowToPlayModal from '@/components/game/HowToPlayModal';
 import WelcomeScreen, { hasSeenWelcome } from '@/components/game/WelcomeScreen';
 import { createPageUrl } from '@/utils';
-import { loadProgress } from '@/components/game/offlineStorage';
+import { loadProgress, getLocalProgress } from '@/components/game/offlineStorage';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
@@ -26,7 +26,10 @@ export default function Home() {
   const [step, setStep] = useState('mode');
   const [selectedMode, setSelectedMode] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [progress, setProgress] = useState(null);
+  // The saved progress on the first render, so the header chip is there from the
+  // first frame (FB-2, CR-75); the effect below still seeds it when there is none.
+  const [progress, setProgress] = useState(() => getLocalProgress()
+    ?? { current_level: 1, total_score: 0, hints_remaining: 12, games_played: 0, words_found: 0 });
   const [showAd, setShowAd] = useState(false);
   const [showRemoveAds, setShowRemoveAds] = useState(false);
   const [pendingGameUrl, setPendingGameUrl] = useState(null);
@@ -108,8 +111,6 @@ export default function Home() {
           {/* Header */}
           <motion.div
             className="flex items-center justify-between mb-4"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center gap-3">
               <img
@@ -160,9 +161,6 @@ export default function Home() {
           {/* Main card */}
           <motion.div
             className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-4 md:p-6 border border-transparent dark:border-slate-700"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
           >
             {step !== 'mode' && (
               <Button

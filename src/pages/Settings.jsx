@@ -108,8 +108,6 @@ export default function Settings() {
         {/* Header */}
         <motion.div
           className="flex items-center gap-3 mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
         >
           <Button
             variant="ghost"
@@ -131,9 +129,6 @@ export default function Settings() {
           {/* Audio Settings */}
           <motion.div
             className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 border border-transparent dark:border-slate-700"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-amber-100 rounded-lg">
@@ -231,9 +226,6 @@ export default function Settings() {
           {/* Appearance */}
           <motion.div
             className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 border border-transparent dark:border-slate-700"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.22 }}
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
@@ -267,9 +259,6 @@ export default function Settings() {
           {/* Daily Challenge Reminders */}
           <motion.div
             className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 border border-transparent dark:border-slate-700"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-violet-100 rounded-lg">
@@ -283,9 +272,6 @@ export default function Settings() {
           {/* About & Legal */}
           <motion.div
             className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 border border-transparent dark:border-slate-700"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
           >
             <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4">About</h2>
             <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
@@ -337,9 +323,6 @@ export default function Settings() {
           {/* Go Ad-Free — native only, hidden once purchased */}
           {isNative() && !adsRemoved && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.32 }}
             >
               <button
                 onClick={() => setShowRemoveAds(true)}
@@ -359,9 +342,6 @@ export default function Settings() {
           {/* Restore Purchases — native only (App Store requirement) */}
           {isNative() && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.32 }}
             >
               <Button
                 variant="outline"
@@ -392,9 +372,6 @@ export default function Settings() {
 
           {/* Reset Game Data */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35 }}
           >
             <AlertDialog>
               <AlertDialogTrigger asChild>

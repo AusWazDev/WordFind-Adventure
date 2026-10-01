@@ -474,6 +474,7 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 ### 2026-10-01, evening (Windows — FB-1 and FB-2, brief SF-16)
 
 - **CR-74, FB-1 (store prices):** every price shown is now the store's own `priceString`, or no figure until it loads. The hard-coded *"from $0.99"* and the `US$` fallbacks are gone, and a shop opened before the store answers updates when the prices arrive. On web and Windows no figure appears, since no store price exists there; "Coming soon" is unchanged.
+- **CR-75, FB-2 (page-load flicker):** the tab-page slide (which left a blank frame on every tab change) and 14 page-level entry animations are removed; the nav bar and page padding change together, instantly; Stats and Home show their data on the first frame; boards are sized before paint. Modal and victory animations are unchanged. **Still to do:** confirm on a device by screen-recording tab switches and stepping through frames.
 
 ## Next Steps (Priority Order)
 

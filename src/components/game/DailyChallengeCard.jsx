@@ -47,9 +47,6 @@ export default function DailyChallengeCard() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15 }}
       className="mb-4"
     >
       <div className={`relative overflow-hidden rounded-2xl border ${completed ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800' : 'border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800'}`}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { getLocalProgress, getAllDailyRecords } from '@/components/game/offlineStorage';
@@ -26,8 +26,6 @@ const CATEGORY_COLORS = {
 function StatCard({ icon: Icon, iconColor, label, value, sub }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
       className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4"
     >
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${iconColor}`}>
@@ -55,18 +53,14 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function Stats() {
-  const [progress, setProgress] = useState(null);
-  const [challengeProgress, setChallengeProgress] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadStats();
-  }, []);
+  // Local data on the first render: no loading frame before the real content
+  // (FB-2, CR-75). loadStats stays for pull-to-refresh.
+  const [progress, setProgress] = useState(() => getLocalProgress());
+  const [challengeProgress, setChallengeProgress] = useState(() => getAllDailyRecords());
 
   const loadStats = () => {
     setProgress(getLocalProgress());
     setChallengeProgress(getAllDailyRecords());
-    setLoading(false);
   };
 
   // Derive category chart data from daily challenge history
@@ -109,30 +103,16 @@ export default function Stats() {
           <p className="text-xs text-slate-500 dark:text-slate-400">Your game history at a glance</p>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full"
-            />
-          </div>
-        ) : (
           <>
             {/* Stat Cards Grid */}
             <div className="grid grid-cols-1 gap-3">
               {statCards.map((card, i) => (
-                <motion.div key={card.label} transition={{ delay: i * 0.06 }}>
-                  <StatCard {...card} />
-                </motion.div>
+                <StatCard key={card.label} {...card} />
               ))}
             </div>
 
             {/* Category Chart */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
               className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700"
             >
               <div className="flex items-center gap-2 mb-4">
@@ -173,7 +153,6 @@ export default function Stats() {
               )}
             </motion.div>
           </>
-        )}
       </div>
     </div>
     </PullToRefresh>

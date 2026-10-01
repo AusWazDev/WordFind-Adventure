@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import GameBoard from '@/components/game/GameBoard';
@@ -143,7 +143,7 @@ export default function Game() {
   const containerH = useViewportHeight();
 
 
-  useEffect(() => {
+  useLayoutEffect(() => { // measure before paint, so the board is sized on the first frame (FB-2, CR-75)
     function measure() {
       if (!boardAreaRef.current) return;
       const rect = boardAreaRef.current.getBoundingClientRect();

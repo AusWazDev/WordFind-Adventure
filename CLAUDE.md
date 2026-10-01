@@ -208,6 +208,12 @@ npx cap open ios
 # In Xcode: Product → Archive → Distribute App → App Store Connect
 ```
 
+> ⚠️ **SUPERSEDED 1 Oct 2026 (CR-55, CR-70); the steps above are kept as written — do not follow step 1.** `npm run build` is the **web** build. It includes the Workbox service worker (`sw.js`), which intercepts `capacitor://` audio fetches on device so audio silently falls back to speech (CR-53, CR-55). Build native targets with the capacitor-mode scripts instead:
+> - **iOS:** `npm run build:ios`, then `npx cap sync ios`, then archive in Xcode as above.
+> - **Android:** `npm run build:android`, then `npx cap sync android`, then build the release bundle in Android Studio.
+>
+> Both scripts run `vite build --mode capacitor`, which leaves the service worker out; `src/buildModes.test.js` checks it.
+
 ---
 
 ## Next Steps

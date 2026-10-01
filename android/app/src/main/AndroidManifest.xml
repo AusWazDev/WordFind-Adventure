@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -36,4 +37,14 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- K8 / S21: every player is treated as a possible child (S1), so the Play
+         target audience includes children. Google Play's Families data-practices
+         page: apps that solely target children must "ensure that your app or a
+         library included in your app does not declare the new AAID permission, or
+         that AAID is disabled"; for mixed audiences, "by default, app code and SDKs
+         do not transmit AAID". play-services-ads and RevenueCat (through
+         play-services-ads-identifier) declare AD_ID; this removes it from the
+         merged manifest, so on API 33+ the advertising ID reads as zeros. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 </manifest>

@@ -522,6 +522,10 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - **Not done here:** SOUNDFIND-6 stays open in Sentry until the fix ships.
   - **Still to do:** confirm a fresh Electron run sends no new SOUNDFIND-6 events, and that audio on an upgraded iPhone is unaffected.
 
+### 2026-10-02, evening (Mac — build 8, brief SF-MAC-O)
+
+- **CR-87, build numbers for this build:** iOS **1.1.1 (8)**, for the TestFlight build that carries CR-84, CR-85 and CR-86. Android unchanged at **1.1.1 (versionCode 3)**. `npm test` was green on the first run (28 files, 161 tests).
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

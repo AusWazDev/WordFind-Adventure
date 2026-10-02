@@ -132,6 +132,8 @@ export default function Game() {
   const scoreRef = useRef(0);
   const hintsRemainingRef = useRef(12);
   useEffect(() => { hintWordRef.current = hintWord; }, [hintWord]);
+  const hintCellsRef = useRef([]); // read by handleWordFound, whose closure is stale (FB-22)
+  useEffect(() => { hintCellsRef.current = hintCells; }, [hintCells]);
   useEffect(() => { progressRef.current = progress; }, [progress]);
   useEffect(() => { scoreRef.current = score; }, [score]);
   useEffect(() => { hintsRemainingRef.current = hintsRemaining; }, [hintsRemaining]);
@@ -220,8 +222,12 @@ export default function Game() {
       const newFoundWords = [...currentFound, foundWord];
       setFoundWords(newFoundWords);
 
-      // DEF-28: clear persistent hint flash when the hinted word is found
-      if (foundWord === hintWordRef.current) {
+      // DEF-28: clear persistent hint flash when the hinted word is found.
+      // FB-22 (CR-85): also clear it when a DIFFERENT word is found that covers the
+      // hint cell, which would otherwise stay lit inside a word already found.
+      const coversHintCell = !!hintWordRef.current && (storedPositions || []).some(p =>
+        hintCellsRef.current.some(h => h.row === p.row && h.col === p.col));
+      if (foundWord === hintWordRef.current || coversHintCell) {
         clearTimeout(hintTimerRef.current);
         setHintCells([]);
         setHintWord(null);

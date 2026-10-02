@@ -85,7 +85,7 @@ export default function GameHeader({
         <motion.button
           onClick={onUseHint}
           disabled={hintActive}
-          className={`flex items-center gap-1 bg-gradient-to-r from-violet-50 to-indigo-50 px-2 py-1 rounded-lg transition-all shrink-0 ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100'}`}
+          className={`flex items-center gap-1 bg-gradient-to-r from-violet-50 to-indigo-50 px-2 py-1 rounded-lg transition-colors shrink-0 ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100'}`}
           whileTap={hintActive ? {} : { scale: 0.95 }}
         >
           <Lightbulb className="w-3.5 h-3.5 text-violet-600" />
@@ -147,7 +147,7 @@ export default function GameHeader({
         <motion.button
           onClick={onUseHint}
           disabled={hintActive}
-          className={`flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 px-4 py-2 rounded-xl transition-all ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100'}`}
+          className={`flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 px-4 py-2 rounded-xl transition-colors ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100'}`}
           whileHover={hintActive ? {} : { scale: 1.02 }}
           whileTap={hintActive ? {} : { scale: 0.98 }}
         >

@@ -502,6 +502,16 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - **Still to do, on an iPhone and the Android tablet:** play a timed Daily, finish one twice, and play Sound Check.
   - ⚠️ S27 and S28 are not yet rows in the CURRENT DECISIONS block (`C:\dev\CLAUDE.md` and its copies); adding them is a separate, byte-identical edit.
 
+### 2026-10-02, evening (Windows — Daily floor and hint fixes, brief SF-32)
+
+- **CR-85 (S27 floor, FB-21, FB-22):**
+  - **Daily time floor (S27):** a timed Daily now never gets less time than before CR-84. Each timed template keeps its old limit as a floor (`min_seconds`), and a game gets whichever is longer, the word-count limit or the floor. So Tech Hunt is 3:00 at every word count, and Galaxy Brain at 9 words is back to 2:30.
+  - **Found word over a hint (FB-22):** a letter that is both the hint and part of a found word now sits flat, in the found colour. It no longer stays enlarged.
+  - **Stale hint (FB-22):** if you find a different word that runs through the hint letter, the hint now goes away, in normal games and in the Daily. Finding the hinted word itself clears it, as before.
+  - **Hint pill (FB-21, a trial):** the two hint buttons in the game header only animate their colour through CSS now; framer still does their tap and hover scale. The cause of FB-21 isn't proven; this is a trial pending a device check.
+  - **Still to do, on an iPhone and the Android tablet:** tap the hint pill, use a hint whose letter sits inside another word and then find that word, and play a timed Daily.
+  - ⚠️ S27 and S28 are queued with the MER session for the CURRENT DECISIONS block. That session holds the pen for those files; this one doesn't edit them.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

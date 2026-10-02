@@ -197,8 +197,12 @@ export default function GameBoard({
                   ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 ring-1 ring-amber-400 dark:ring-amber-600'
                   : 'bg-muted text-foreground hover:bg-muted/70'
               )}
-              animate={
-                isSelected(rowIndex, colIndex) || isHint(rowIndex, colIndex)
+              animate={ // same order as the colour above (FB-22, CR-85): a found cell is never enlarged
+                isSelected(rowIndex, colIndex)
+                  ? { scale: 1.08 }
+                  : isFound(rowIndex, colIndex)
+                  ? { scale: 1 }
+                  : isHint(rowIndex, colIndex)
                   ? { scale: 1.08 }
                   : isBonusLetter(rowIndex, colIndex) && bonusHuntActive
                   ? { scale: 1.06 }

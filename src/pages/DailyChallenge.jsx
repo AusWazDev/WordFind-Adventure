@@ -122,6 +122,8 @@ export default function DailyChallenge() {
   const hintWordRef  = useRef(null);
   const hintTimerRef = useRef(null);
   useEffect(() => { hintWordRef.current = hintWord; }, [hintWord]);
+  const hintCellsRef = useRef([]); // read by handleWordFound, whose closure is stale (FB-22)
+  useEffect(() => { hintCellsRef.current = hintCells; }, [hintCells]);
 
   // Board sizing — measured in JS for exact pixel values (same approach as Game.jsx)
   const boardAreaRef = useRef(null);
@@ -222,8 +224,11 @@ export default function DailyChallenge() {
       foundWordsRef.current = newFoundWords;
       setFoundWords(newFoundWords);
 
-      // Clear the hint flash when the hinted word is found (DEF-28 behaviour).
-      if (foundWord === hintWordRef.current) {
+      // Clear the hint flash when the hinted word is found (DEF-28 behaviour), or
+      // when a DIFFERENT word is found that covers the hint cell (FB-22, CR-85).
+      const coversHintCell = !!hintWordRef.current && (storedPositions || []).some(p =>
+        hintCellsRef.current.some(h => h.row === p.row && h.col === p.col));
+      if (foundWord === hintWordRef.current || coversHintCell) {
         clearTimeout(hintTimerRef.current);
         setHintCells([]);
         setHintWord(null);

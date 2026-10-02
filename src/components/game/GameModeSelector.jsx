@@ -56,7 +56,10 @@ export default function GameModeSelector({ onSelectMode }) {
       {!isOnline && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs">
           <WifiOff className="w-4 h-4 shrink-0" />
-          <span>You're offline. Audio Challenge is limited — all other modes work normally.</span>
+          {/* Native and Electron bundle all audio, so every mode works offline (CR-90). */}
+          <span>{sentencesNeedNetwork
+            ? "You're offline. Audio Challenge is limited — all other modes work normally."
+            : "You're offline. Every mode still works — ads and purchases need a connection."}</span>
         </div>
       )}
 
@@ -88,7 +91,7 @@ export default function GameModeSelector({ onSelectMode }) {
                   <span className="flex items-center gap-1 px-2 py-0.5 bg-white/25 text-white text-[10px] font-bold rounded-full">
                     <Sparkles className="w-2.5 h-2.5" /> Featured
                   </span>
-                  {audioOffline && (
+                  {audioOffline && sentencesNeedNetwork && (
                     <span className="flex items-center gap-1 px-2 py-0.5 bg-black/20 text-white/80 text-[10px] font-medium rounded-full">
                       <WifiOff className="w-2.5 h-2.5" /> Limited offline
                     </span>

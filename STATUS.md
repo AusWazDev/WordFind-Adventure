@@ -535,6 +535,12 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - **Still to do, on the tablet:** see SF-37's hand checks.
 - **A new test flake:** the first full `npm test` for CR-88 failed three `voiceUtils` test files, each with *"Hook timed out in 10000ms"* while importing `voiceUtils` in `beforeAll`, on a slow run. CR-88 doesn't touch those files. Two reruns were green (167 of 167). It's the same pattern as the `leaderboardRoute` flake: slow module setup under parallel load.
 
+### 2026-10-02, late night (Windows — FB-28 and offline text, brief SF-38)
+
+- **FB-28, the flicker on the tablet when a word is found:** measured on the tablet in a Daily and in a normal game, and it comes from the tablet, not the code. Nothing re-mounts or jumps, and only what changed repaints. Turning off the toast, every animation, and the Daily's progress bar animation didn't reduce the slow frames. Android's own figures show even an idle timer tick takes 23 ms to draw on this tablet, longer than a 60 Hz frame. No code change (CR-89 not raised; the measurements are in the register's FB-28 row). **Still to do:** try a find on another Android device, which settles device versus code.
+- **CR-90, offline wording on iPhone, Android and Windows:** offline, the banner above the modes now says *"You're offline. Every mode still works — ads and purchases need a connection."*, and the Audio Challenge tile no longer has a "Limited offline" badge. The web keeps its old wording and badge. The in-game amber "Offline" badge is unchanged.
+- **The voiceUtils flake again:** the first full `npm test` failed the same three files with the same hook timeout. They passed on a rerun, and two more full runs were green (172 of 172).
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

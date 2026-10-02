@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Search, Volume2, ChevronRight, Shuffle, Brain, WifiOff, Sparkles, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { isNative } from '@/lib/platform';
+import { isElectronPage } from '@/lib/staleServiceWorkers';
 
 const REQUIRES_ONLINE  = new Set(); // No modes currently require online — reserved for future use
 const DEGRADED_OFFLINE = new Set(['audio']);
@@ -40,6 +42,9 @@ const OTHER_MODES = [
 export default function GameModeSelector({ onSelectMode }) {
   const isOnline = useOnlineStatus();
   const audioOffline = !isOnline;
+  // Sentence clips come from the network only on the web. iOS and Android bundle
+  // them, and Electron serves its bundled dist/ under app:// (CR-88).
+  const sentencesNeedNetwork = !isNative() && !isElectronPage();
 
   return (
     <div className="space-y-3">
@@ -90,7 +95,7 @@ export default function GameModeSelector({ onSelectMode }) {
                   )}
                 </div>
                 <p className="text-white/90 text-xs mt-1 leading-snug">
-                  {audioOffline
+                  {audioOffline && sentencesNeedNetwork
                     ? 'Words spoken only — example sentences need internet'
                     : 'Hear the word, find its spelling. Great for tricky words like KNIGHT, YACHT and RECEIPT'}
                 </p>

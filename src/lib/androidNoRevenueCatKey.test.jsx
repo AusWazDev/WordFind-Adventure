@@ -78,10 +78,14 @@ afterEach(async () => {
   container.remove();
 });
 
+// ⚠️ CR-88 (2 Oct 2026): Android now has its RevenueCat key, so initPurchases DOES
+// configure (the first test below). The rest still holds while the Play products do
+// not exist yet: every store call fails, and each purchase point fails politely.
 describe('native Android with no RevenueCat key: current behaviour', () => {
-  it('initPurchases returns early: RevenueCat is never configured', async () => {
+  it('initPurchases configures RevenueCat (CR-88; before it, it returned early)', async () => {
     await initPurchases();
-    expect(Purchases.configure).not.toHaveBeenCalled();
+    expect(Purchases.configure).toHaveBeenCalledTimes(1);
+    expect(Purchases.configure.mock.calls[0][0].apiKey.startsWith('goog_')).toBe(true);
   });
 
   it('opening the hint shop shows the packs with no price figure, and no error', async () => {

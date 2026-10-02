@@ -5,7 +5,7 @@ import { getPlatform } from './platform';
 
 const API_KEYS = {
   ios:     'appl_uaNkxxIRCiSXwfwQkJvoCSyQuSF',
-  android: '', // TODO: add once Google Play goes to production
+  android: 'goog_OEJqYzZnWDfnJvQbFsRyVhFXqVo', // RevenueCat public SDK key (public by design), CR-88
 };
 
 // Store prices from RevenueCat (FB-1, CR-74). Each entry is the store's own

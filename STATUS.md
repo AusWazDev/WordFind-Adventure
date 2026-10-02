@@ -526,6 +526,15 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 
 - **CR-87, build numbers for this build:** iOS **1.1.1 (8)**, for the TestFlight build that carries CR-84, CR-85 and CR-86. Android unchanged at **1.1.1 (versionCode 3)**. `npm test` was green on the first run (28 files, 161 tests).
 
+### 2026-10-02, night (Windows — Android versionCode 4, brief SF-37)
+
+- **CR-88, Android 1.1.1 (versionCode 4):**
+  - **Purchases on Android:** the app now has its RevenueCat Android key, so it connects to RevenueCat on Android as it does on iPhone. Until the products exist in Google Play (expected Saturday), the hint shop shows no prices and a purchase fails politely.
+  - **Offline text:** offline, the Audio Challenge tile no longer says *"example sentences need internet"* on iPhone, Android or Windows, which all have the sentence clips built in. It still says so on the web, where they come from the network. The "Limited offline" badge and the offline banner above the modes are unchanged and still show; they're outside this brief.
+  - **Version:** Android versionCode 4, versionName 1.1.1. iOS is untouched (build 8 is in App Review).
+  - **Still to do, on the tablet:** see SF-37's hand checks.
+- **A new test flake:** the first full `npm test` for CR-88 failed three `voiceUtils` test files, each with *"Hook timed out in 10000ms"* while importing `voiceUtils` in `beforeAll`, on a slow run. CR-88 doesn't touch those files. Two reruns were green (167 of 167). It's the same pattern as the `leaderboardRoute` flake: slow module setup under parallel load.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

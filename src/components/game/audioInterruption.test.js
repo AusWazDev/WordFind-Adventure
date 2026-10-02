@@ -11,13 +11,15 @@ const contexts = [];
 class MockAudioContext {
   constructor() {
     this.state = 'running';
-    this.currentTime = 0;
+    this.t0 = performance.now(); // the clock runs while 'running', as a real context's does, so
+                                 // CR-82's stall check sees healthy plays (stalls: audioStall.test.js)
     this.destination = {};
     this.started = [];       // { state } at the moment each source started
     this.resumeWorks = true; // false = WebKit's stuck-after-interruption case
     this.closed = false;
     contexts.push(this);
   }
+  get currentTime() { return this.state === 'running' ? (performance.now() - this.t0) / 1000 : 0; }
   resume() {
     if (this.resumeWorks && !this.closed) this.state = 'running';
     return Promise.resolve();
@@ -74,10 +76,12 @@ beforeEach(() => {
   speech.speak.mockClear();
 });
 
-// Let any poll started during the tests reach its first tick, and so stop,
-// before the environment is torn down.
+// Before the environment is torn down: stop audio, so any pending CR-82 stall
+// check returns without touching `window`, and let any voice poll started
+// during the tests reach its first tick, and so stop.
 const VOICE_POLL_MS = 200;
-afterAll(() => new Promise(r => setTimeout(r, VOICE_POLL_MS + 50)));
+const STALL_CHECK_MS = 300;
+afterAll(() => { voice.stopAllAudio(); return new Promise(r => setTimeout(r, Math.max(VOICE_POLL_MS, STALL_CHECK_MS) + 100)); });
 
 describe('audio after an interruption (FB-10)', () => {
   it('control: a normal play starts sources on a running context', async () => {

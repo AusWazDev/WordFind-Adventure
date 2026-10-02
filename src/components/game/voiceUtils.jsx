@@ -7,6 +7,7 @@
  *   - Neural/enhanced voice prioritisation
  *   - Chrome long-utterance keep-alive fix
  */
+import * as Sentry from '@sentry/react';
 
 // ─── iOS audio unlock ─────────────────────────────────────────────────────────
 let iosUnlocked = false;
@@ -45,6 +46,7 @@ export function getVoices() {
     // Always wait for voiceschanged (or the poll) so the full voice list is cached.
 
     let resolved = false;
+    let poll = null;
 
     const onChanged = () => {
       if (resolved) return;
@@ -52,6 +54,7 @@ export function getVoices() {
       if (v.length > 0) {
         resolved = true;
         cachedVoices = v;
+        clearInterval(poll); // the voices came by the event, so stop polling too (CR-82)
         window.speechSynthesis.onvoiceschanged = null;
         resolve(v);
       }
@@ -66,7 +69,8 @@ export function getVoices() {
     // (Karen, Siri, Daniel etc.) often appear 1-3s after page load.
     // On Chrome, voiceschanged fires before the first poll tick so this is a no-op.
     let elapsed = 0;
-    const poll = setInterval(() => {
+    poll = setInterval(() => {
+      if (resolved) { clearInterval(poll); return; } // resolved by the event before this started
       elapsed += 200;
       const v = window.speechSynthesis.getVoices();
       if (v.length > 0 && !resolved) {
@@ -416,8 +420,9 @@ export function preloadGameAudio(words, settings = {}) {
 
 // Schedule one or more pre-decoded AudioBuffers to play back-to-back with
 // zero gap. Buffers are passed in playback order.
-// Every source is tracked so stopAllAudio() can stop it (CR-63).
-function scheduleBuffers(buffers, startTime) {
+// Every source is tracked so stopAllAudio() can stop it (CR-63). When `sources`
+// is given, the sources started are also collected into it.
+function scheduleBuffers(buffers, startTime, sources) {
   const ctx = getAudioContext();
   let t = startTime;
   for (const buf of buffers) {
@@ -427,9 +432,61 @@ function scheduleBuffers(buffers, startTime) {
     _activeSources.add(src);
     src.onended = () => { _activeSources.delete(src); };
     src.start(t);
+    sources?.push(src);
     t += buf.duration;
   }
   return t; // returns the time when the last buffer ends
+}
+
+// ─── Stalled playback (FB-10, CR-82) ──────────────────────────────────────────
+// On iOS 26 the first play after returning to the foreground can stall: the
+// context reports 'running' but currentTime never moves, so nothing is heard.
+// Measured on device (SF-MAC-M): 11 of 11 foregrounds stalled, and closing and
+// rebuilding the context, then replaying, recovered 11 of 11 within ~0.3 s.
+// So each play is checked once, STALL_CHECK_MS after it is scheduled. If the
+// clock has not moved, the play's sources are stopped, the context is rebuilt
+// (the decoded _bufferCache is kept) and the sound is replayed, once. A play that
+// was stopped or replaced in the meantime (CR-63) is left alone.
+const STALL_CHECK_MS = 300;
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function stopSources(sources) {
+  for (const src of sources) {
+    src.onended = null;
+    try { src.stop(); } catch { /* already stopped */ }
+    try { src.disconnect(); } catch { /* already disconnected */ }
+    _activeSources.delete(src);
+  }
+}
+
+// `schedule(ctx, sources)` schedules the sound on ctx and returns its end time.
+async function playWatched(generation, schedule) {
+  let ctx = await ensureAudioRunning();
+  if (!isCurrent(generation)) return;
+  let sources = [];
+  let startedAt = ctx.currentTime;
+  let endTime = schedule(ctx, sources);
+  await wait(STALL_CHECK_MS);
+  if (!isCurrent(generation)) return;            // stopped or replaced: no retry
+
+  if (ctx.currentTime <= startedAt) {
+    stopSources(sources);
+    rebuildAudioContext();
+    ctx = await ensureAudioRunning();
+    if (!isCurrent(generation)) return;
+    Sentry.addBreadcrumb({ category: 'audio', message: 'playback stalled; rebuilt the context and replayed', level: 'warning' });
+    sources = [];
+    startedAt = ctx.currentTime;
+    endTime = schedule(ctx, sources);             // the one and only replay
+    await wait(STALL_CHECK_MS);
+    if (!isCurrent(generation)) return;
+    if (ctx.currentTime <= startedAt) {
+      Sentry.addBreadcrumb({ category: 'audio', message: 'playback still stalled after the replay; not retried', level: 'warning' });
+      return;
+    }
+  }
+  await wait(Math.max(0, (endTime - ctx.currentTime) * 1000 + 50));
 }
 
 // Fetch all urls in parallel, then play them gaplessly in sequence — unless a
@@ -437,10 +494,7 @@ function scheduleBuffers(buffers, startTime) {
 async function playSeamless(generation, ...urls) {
   const buffers = await Promise.all(urls.map(fetchBuffer));
   if (!isCurrent(generation)) return;
-  const ctx = await ensureAudioRunning();
-  if (!isCurrent(generation)) return;
-  const endTime = scheduleBuffers(buffers, ctx.currentTime + 0.05);
-  return new Promise(r => setTimeout(r, (endTime - ctx.currentTime) * 1000 + 50));
+  await playWatched(generation, (ctx, sources) => scheduleBuffers(buffers, ctx.currentTime + 0.05, sources));
 }
 
 /**
@@ -456,13 +510,12 @@ export async function speakWordAudio(word, settings = {}) {
   try {
     const buf = await fetchBuffer(url);
     if (!isCurrent(generation)) return;
-    const ctx = await ensureAudioRunning();
-    if (!isCurrent(generation)) return;
-    const t1  = ctx.currentTime + 0.05;
-    const t2  = t1 + buf.duration + 0.4;   // 400ms gap — intentional for word repetition
-    scheduleBuffers([buf], t1);
-    scheduleBuffers([buf], t2);
-    await new Promise(r => setTimeout(r, (t2 + buf.duration - ctx.currentTime) * 1000 + 50));
+    await playWatched(generation, (ctx, sources) => {
+      const t1 = ctx.currentTime + 0.05;
+      const t2 = t1 + buf.duration + 0.4;   // 400ms gap — intentional for word repetition
+      scheduleBuffers([buf], t1, sources);
+      return scheduleBuffers([buf], t2, sources);
+    });
   } catch {
     if (!isCurrent(generation)) return;
     const spoken = word.toLowerCase();

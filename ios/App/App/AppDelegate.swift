@@ -1,23 +1,10 @@
 import UIKit
-import WebKit
 import Capacitor
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
-    // FB-10 (CR-79): suspend all of the web view's media, Web Audio included,
-    // when the app goes to the background, and resume it when it is active
-    // again, so iOS never interrupts the audio itself after a lock. WebKit
-    // asks for these calls in pairs, and applicationDidBecomeActive also fires
-    // with no background in between (Control Center, a notification), so the
-    // resume runs only after a suspend.
-    private var mediaPlaybackSuspended = false
-
-    private var webView: WKWebView? {
-        (window?.rootViewController as? CAPBridgeViewController)?.webView
-    }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -32,9 +19,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-        guard !mediaPlaybackSuspended, let webView = webView else { return }
-        mediaPlaybackSuspended = true
-        webView.setAllMediaPlaybackSuspended(true, completionHandler: nil)
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -43,9 +27,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-        guard mediaPlaybackSuspended else { return }
-        mediaPlaybackSuspended = false
-        webView?.setAllMediaPlaybackSuspended(false, completionHandler: nil)
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

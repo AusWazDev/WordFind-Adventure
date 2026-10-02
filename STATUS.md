@@ -490,6 +490,10 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-82, FB-10 (first play after a lock is silent on iOS 26, brief SF-26):** the Mac's diagnostic build (SF-MAC-M) showed that after every return to the foreground, the first play's audio clock stayed at 0, and that rebuilding the audio context and replaying fixed it every time. Every play now checks itself 300 ms after it starts. If the clock hasn't moved, the play rebuilds the context and replays that sound once, never more. A sound that was stopped, or replaced by a newer one, is not retried. CR-79's native calls are removed, because WebKit ignores them; its JS part and CR-77 stay. The voice poll now also stops when the voices arrive by the browser's event. The audio session, the silent switch, the one-sound-at-a-time rule and the audio cache are unchanged. ⚠️ **The iOS change (removing the native calls) is compiled only on the Mac.** **Still to do, on an iPhone build:** lock and unlock several times, tap the speaker each time, and check the first play is heard.
 - **The `leaderboardRoute` flake, a third time:** in CR-82's first full `npm test`, `src/leaderboardRoute.test.jsx`'s first test timed out (*"Test timed out in 60000ms"*, after 71.6 s) and its second test failed after it. 2 of 131 failed; CR-82 changes nothing that file tests. The next 5 runs in a row were green (exit 0, 131 of 131), and CR-82 was committed on those. It has now failed on 1 Oct, in CR-78 (2 Oct) and here, always in that first test's setup. It's worth fixing before it blocks a release commit.
 
+### 2026-10-02, afternoon (Mac — build 7, brief SF-MAC-N)
+
+- **CR-83, build numbers for this build:** iOS **1.1.1 (7)**, for the TestFlight build that carries CR-80, CR-81 and CR-82. Android unchanged at **1.1.1 (versionCode 3)**. `npm test` was green on the first run (23 files, 131 tests).
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

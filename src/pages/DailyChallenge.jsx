@@ -2,16 +2,16 @@ import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { loadProgress, updateProgress, getDailyRecord, saveDailyRecord } from '@/components/game/offlineStorage';
+import { loadProgress, updateProgress, getDailyRecord, saveDailyRecord, loadSettings } from '@/components/game/offlineStorage';
 import GameBoard from '@/components/game/GameBoard';
 import WordList from '@/components/game/WordList';
 import AnagramWordList from '@/components/game/AnagramWordList';
 import AssociationWordList from '@/components/game/AssociationWordList';
 import HintModal from '@/components/game/HintModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
-import { getDailyChallengeConfig, previousLocalDateKey, formatCountdown } from '@/components/game/DailyChallengeUtils';
+import { getDailyChallengeConfig, previousLocalDateKey, formatCountdown, dailyTimeLimit } from '@/components/game/DailyChallengeUtils';
 import { toast } from 'sonner';
-import { stopAllAudio } from '@/components/game/voiceUtils';
+import { stopAllAudio, unlockAudio, speakPhraseAndWord, speakFixedPhrase } from '@/components/game/voiceUtils';
 import { Clock, Trophy, Star, Home, Gift, Flame } from 'lucide-react';
 
 // ─── Orientation hook ──────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ function WordListSwitch({ mode, gameData, foundWords, hintWord, revealedWords, o
 export default function DailyChallenge() {
   const navigate = useNavigate();
   const challenge = getDailyChallengeConfig();
-  const { mode, category, level, time_limit, bonus_multiplier, reward_hints, title, date } = challenge;
+  const { mode, category, level, bonus_multiplier, reward_hints, title, date } = challenge;
 
   const [gameData, setGameData]           = useState(null);
   const [foundWords, setFoundWords]       = useState([]);
@@ -82,11 +82,14 @@ export default function DailyChallenge() {
   const [hintWord, setHintWord]           = useState(null);
   const [showHintModal, setShowHintModal] = useState(false);
   const [progress, setProgress]           = useState(null);
-  const [timeLeft, setTimeLeft]           = useState(time_limit || null);
+  // Seconds for this game: set in initGame from its word count (S27); 0 = untimed.
+  const [timeLimit, setTimeLimit]         = useState(0);
+  const [timeLeft, setTimeLeft]           = useState(null);
   const [timerActive, setTimerActive]     = useState(false);
   const [gameOver, setGameOver]           = useState(false);
   const [victory, setVictory]             = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
+  const [rewardEarned, setRewardEarned]   = useState(false); // this completion paid the day's reward (S28)
   const timerRef = useRef(null);
 
   // Track words where the header hint was used — for score penalty (−25%)
@@ -108,7 +111,8 @@ export default function DailyChallenge() {
   const progressRef       = useRef(null);
   const scoreRef          = useRef(0);
   const hintsRemainingRef = useRef(12);
-  const timeLeftRef       = useRef(time_limit || null);
+  const timeLeftRef       = useRef(null);
+  const timeLimitRef      = useRef(0);
   useEffect(() => { progressRef.current = progress; },             [progress]);
   useEffect(() => { hintsRemainingRef.current = hintsRemaining; }, [hintsRemaining]);
   useEffect(() => { timeLeftRef.current = timeLeft; },             [timeLeft]);
@@ -149,11 +153,11 @@ export default function DailyChallenge() {
 
   // Countdown timer
   useEffect(() => {
-    if (!timerActive || !time_limit) return;
+    if (!timerActive || !timeLimit) return;
     const interval = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
     timerRef.current = interval;
     return () => clearInterval(interval);
-  }, [timerActive, time_limit]);
+  }, [timerActive, timeLimit]);
 
   // Game-over detection
   useEffect(() => {
@@ -185,8 +189,13 @@ export default function DailyChallenge() {
     scoreRef.current = 0;
     setVictory(false);
     setGameOver(false);
-    if (time_limit) {
-      setTimeLeft(time_limit);
+    setRewardEarned(false);
+    const limit = dailyTimeLimit(challenge, game.words.length); // S27
+    setTimeLimit(limit);
+    timeLimitRef.current = limit;
+    if (limit) {
+      setTimeLeft(limit);
+      timeLeftRef.current = limit;
       setTimerActive(true);
     }
   };
@@ -229,6 +238,21 @@ export default function DailyChallenge() {
       scoreRef.current += wordScore;
       setScore(scoreRef.current);
 
+      // Found-word audio, as in normal play's Audio Challenge (FB-19, CR-84; Game.jsx).
+      // Normal play gates this on an in-game toggle that starts on and is not saved;
+      // the Daily has no toggle, so an audio-mode Daily always speaks. Other modes
+      // stay toast-only, as in normal play. The Daily has no bonus hunt.
+      if (mode === 'audio') {
+        const isLastWord = newFoundWords.length === currentGame.words.length;
+        unlockAudio().then(() => loadSettings()).then(settings => {
+          if (isLastWord) {
+            speakFixedPhrase('game_complete', 'Incredible! You found all the words!', settings);
+          } else {
+            speakPhraseAndWord('great_you_found', foundWord, `Great! You found ${foundWord}!`, settings);
+          }
+        });
+      }
+
       const bonusNote = bonus_multiplier > 1 ? ` (${bonus_multiplier}× bonus)` : '';
       toast.success(`+${wordScore} pts!${bonusNote}`, { description: `Found: ${foundWord.toUpperCase()}` });
 
@@ -249,11 +273,27 @@ export default function DailyChallenge() {
     const currentScore    = scoreRef.current;
     const currentHints    = hintsRemainingRef.current;
 
+    // S28 (developer, 2 Oct 2026): the reward is once per day. Read from storage
+    // now, not from state, so a stale closure cannot miss it. A repeat completion
+    // counts as a game but pays no hints and leaves the day's record and streak.
+    if (getDailyRecord(date)?.completed) {
+      if (currentProgress) {
+        const updated = await updateProgress(null, currentProgress, {
+          total_score:  (currentProgress.total_score || 0) + currentScore,
+          games_played: (currentProgress.games_played || 0) + 1,
+          words_found:  (currentProgress.words_found || 0) + wordsFoundCount,
+        });
+        setProgress(updated);
+      }
+      return;
+    }
+
     // Compute streak before saving so it can be included in the progress update.
     // Yesterday is the previous LOCAL date, matching the record key.
     const prevDay    = getDailyRecord(previousLocalDateKey());
     const prevStreak = prevDay?.completed ? (prevDay.streak || 1) : 0;
     const newStreak  = prevStreak + 1;
+    setRewardEarned(true);
 
     if (currentProgress) {
       // The reward adds to the CURRENT balance, including hints spent this game.
@@ -272,7 +312,7 @@ export default function DailyChallenge() {
     saveDailyRecord(date, {
       completed: true, score: currentScore, words_found: wordsFoundCount,
       total_words:  gameDataRef.current?.words.length,
-      time_taken:   time_limit ? time_limit - (timeLeftRef.current ?? 0) : 0,
+      time_taken:   timeLimitRef.current ? timeLimitRef.current - (timeLeftRef.current ?? 0) : 0,
       streak:       newStreak,
       category,
     });
@@ -343,7 +383,7 @@ export default function DailyChallenge() {
   const PAD       = 12;
   const GAP       = 8;
   const SIDEBAR_W = 260;
-  const timerUrgent = time_limit && timeLeft !== null && timeLeft <= 30;
+  const timerUrgent = timeLimit > 0 && timeLeft !== null && timeLeft <= 30;
 
   const wordListProps = { mode, gameData, foundWords, hintWord, revealedWords, onRevealWord: handleRevealWord, hintsRemaining };
 
@@ -399,7 +439,7 @@ export default function DailyChallenge() {
           {Math.round((foundWords.length / gameData.words.length) * 100)}%
         </span>
       </div>
-      {time_limit > 0 && (
+      {timeLimit > 0 && (
         <div style={{
           background:   timerUrgent ? 'rgba(239,68,68,0.1)' : 'var(--card)',
           border:       timerUrgent ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(245,158,11,0.25)',
@@ -408,7 +448,7 @@ export default function DailyChallenge() {
         }}>
           <Clock style={{ width: 14, height: 14, color: timerUrgent ? '#ef4444' : '#f59e0b' }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: timerUrgent ? '#ef4444' : 'var(--foreground)', fontVariantNumeric: 'tabular-nums' }}>
-            {formatCountdown(timeLeft ?? time_limit)}
+            {formatCountdown(timeLeft ?? timeLimit)}
           </span>
         </div>
       )}
@@ -508,7 +548,9 @@ export default function DailyChallenge() {
             <div className="flex items-center justify-center gap-2 bg-violet-100 dark:bg-violet-900/30 rounded-2xl p-3 mb-6">
               <Gift className="w-5 h-5 text-violet-500" />
               <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">
-                +{reward_hints} hints added to your account!
+                {rewardEarned
+                  ? `+${reward_hints} hints added to your account!`
+                  : "Today's hints were already claimed — come back tomorrow!"}
               </span>
             </div>
             <button

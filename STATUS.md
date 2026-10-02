@@ -512,6 +512,16 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - **Still to do, on an iPhone and the Android tablet:** tap the hint pill, use a hint whose letter sits inside another word and then find that word, and play a timed Daily.
   - ⚠️ S27 and S28 are queued with the MER session for the CURRENT DECISIONS block. That session holds the pen for those files; this one doesn't edit them.
 
+### 2026-10-02, evening (Windows — Sentry SOUNDFIND-6, brief SF-33)
+
+- **CR-86 (FB-24, Sentry SOUNDFIND-6):**
+  - **What it was:** the app's start-up clean-up of old service workers (CR-53) failed in the Windows (Electron) app every time it started. Electron's `app://` page can't use service workers, and the failure wasn't caught, so it reached Sentry as an error: 17 events from local test runs on 30 Sep and 1 Oct.
+  - **What changed:** the clean-up now skips Electron, which never had a service worker, and it can't fail out loud anywhere. On iPhone and Android it still runs, because it removes the old worker that early builds shipped, which would otherwise silence audio (CR-53, CR-55); that was the developer's choice during SF-33. The web is unchanged.
+  - **The "1.1.0" in Sentry is correct:** the release comes from `package.json`, and those events came from an Electron build made on 30 Sep, before the bump to 1.1.1. Builds 5 to 8 report 1.1.1. iOS and Android both report environment `capacitor`.
+  - ⚠️ **Open:** the clean-up also runs on the web build, where it removes the game's own offline service worker on each load before it registers again. From the code only; not checked in a browser.
+  - **Not done here:** SOUNDFIND-6 stays open in Sentry until the fix ships.
+  - **Still to do:** confirm a fresh Electron run sends no new SOUNDFIND-6 events, and that audio on an upgraded iPhone is unaffected.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

@@ -4,6 +4,11 @@
 // order of fetch completion can be controlled.
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 
+// SF-59: voiceUtils imports @sentry/react only for addBreadcrumb. Loading the real
+// package was about 90% of the beforeAll import below (0.3 s alone, 1.5 s in a full
+// parallel run), which under load overran the 10 s hook budget.
+vi.mock('@sentry/react', () => ({ addBreadcrumb: vi.fn(), captureException: vi.fn() }));
+
 // ── Mocks ────────────────────────────────────────────────────────────────────
 const sources = [];        // every AudioBufferSourceNode created, in order
 const pending = new Map(); // url -> XHR awaiting release

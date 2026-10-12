@@ -1,29 +1,35 @@
 # SoundFind — Architecture
 
-**Generated from code at commit `4b80d21`, audited 20 August 2026,
-`package.json` version 1.1.0.**
+**Generated from code at commit `6d412f5`, 13 October 2026, `package.json` version
+1.1.1 (Android versionCode 5, iOS build 8).** SF-59, which regenerated this file,
+changed tests and test configuration only, so the app code described here is the
+code at `6d412f5`.
 
-Derived by reading the repository, not written from the website, the store
-listing, or memory.
+Derived by reading the repository, not written from the website, the store listing,
+or memory. **Every "nothing", "no" and "none" below is a claim about the code as at
+13 Oct 2026**, from a sweep of the 52 app source files under `src/` (tests and test
+utilities excluded) unless it names a narrower scope.
 
 > **Regenerate at every version bump.** A stale architecture document is worse
 > than none, because it reads as authoritative. If the commit above is not an
 > ancestor of your HEAD, treat everything here as a claim to verify. Prefer
-> citing files and symbol names over line numbers — the line numbers here were
-> correct at `4b80d21` and rot on the next edit.
+> citing files and symbol names over line numbers.
+>
+> The previous generation (commit `4b80d21`, 20 Aug 2026, version 1.1.0) and the
+> annotations added to it between then and 13 Oct 2026 are in git history.
 
 ---
 
 ## 1. What the app is
 
-A word-search game with five modes, including an audio mode where words are
-spoken aloud and the player finds the spelling in the grid.
+A word-search game with five modes, including an audio mode where words are spoken
+aloud and the player finds the spelling in the grid.
 
-Repo is `WordFind-Adventure`; the app is SoundFind. **The repo name predates the
-rebrand — do not rename it.** Brand: Unique Interactive Games
-(uniquegames.com.au).
+The repo is `WordFind-Adventure`; the app is SoundFind. **The repo name predates the
+rebrand — do not rename it.** Brand: Unique Interactive Games (uniquegames.com.au).
 
-No backend, no accounts. All state is in `localStorage`.
+No backend and no accounts: as at 13 Oct 2026 the app's own state is all in
+`localStorage` (§5).
 
 ---
 
@@ -31,290 +37,278 @@ No backend, no accounts. All state is in `localStorage`.
 
 | Layer | What |
 |---|---|
-| App | React 18 + Vite 6, Tailwind, shadcn/ui, Framer Motion |
-| Routing | **`HashRouter`** (`src/App.jsx`) — required for Capacitor and Electron, where there is no server to handle deep paths |
-| Mobile | Capacitor 8.3.0 — `@capacitor/core`, `/cli`, `/ios`, `/android` |
-| Desktop | Electron 41 + electron-builder, packaged as an `appx` for Microsoft Store |
-| Ads | `@capacitor-community/admob` ^8.0.0 |
-| IAP | `@revenuecat/purchases-capacitor` ^13.1.5 |
+| App | React ^18.2.0, Vite ^6.1.0, Tailwind ^3.4.17, shadcn/ui, Framer Motion ^11.16.4, lucide-react ^0.475.0 icons |
+| Routing | **`HashRouter`** (`src/App.jsx`), react-router-dom ^6.26.0. Required for Capacitor and Electron, where there is no server for deep paths |
+| Mobile | Capacitor ^8.3.0 (`@capacitor/core`, `/cli`, `/ios`, `/android`); `capacitor.config.json` has `appId: au.com.uniquegames.soundfind` |
+| Desktop | Electron ^41.3.0 and electron-builder ^26.8.1, packaged as an `appx` for the Microsoft Store |
+| Ads | `@capacitor-community/admob` ^8.0.0 (`src/lib/admob.js`, `src/lib/adCadence.js`) |
+| In-app purchases | `@revenuecat/purchases-capacitor` ^13.1.5 (`src/lib/purchases.js`, `src/lib/hintLedger.js`) |
 | Errors | `@sentry/react` ^10.50.0 |
-| PWA | `vite-plugin-pwa` |
+| PWA | `vite-plugin-pwa` ^1.2.0, web build only |
+| Effects | `canvas-confetti` ^1.9.0 (`VictoryModal.jsx`) |
 | Web deploy | Vercel (`vercel.json` holds the SPA rewrites) |
 
-**Capacitor integration is real, not scaffolding** — `capacitor.config.json`
-exists with `appId: au.com.uniquegames.soundfind`, `webDir: dist`, both `ios/`
-and `android/` projects are present, and the app calls Capacitor APIs at runtime
-(`src/lib/platform.js` wraps `Capacitor.isNativePlatform()`, and AdMob and
-RevenueCat are Capacitor plugins). This answers the long-standing "verify
-Capacitor integration" question in the affirmative.
+Pages (`src/pages.config.js`, `PAGES`): `DailyChallenge`, `Game`, `Home`, `Settings`,
+`Stats`; `mainPage` is `Home`. There is no Leaderboard page (removed in CR-66,
+decision S3); an old `#/Leaderboard` link shows Page Not Found. The bottom nav is
+Home, Stats, Settings.
 
-There are **no Base44 references anywhere in `src/` or `package.json`.** Base44
-is origin history only, not a live dependency.
-
-### Build scripts
+### Build scripts (`package.json`)
 
 ```
 dev                  vite
-build                vite build
-build:ios            vite build --mode capacitor
+build                vite build                      (web, with the service worker)
+build:ios            vite build --mode capacitor     (no service worker)
+build:android        vite build --mode capacitor     (no service worker)
 electron:build-web   vite build --mode electron
-electron:dist        build web, electron-builder --win appx, patch appx assets
+electron:dist        electron:build-web, electron-builder --win appx, scripts/patch-appx-assets.mjs
+test                 vitest run
 ```
 
-Three distinct build modes. A web build is **not** what ships to a store.
+**A web build is not what ships to a store.** `vite.config.js` leaves `VitePWA` out in
+the `capacitor` and `electron` modes, because a service worker intercepts the native
+schemes' audio fetches (CR-53, CR-55, CR-70). Native release order: `npm run
+build:android` (or `build:ios`), then `npx cap sync <platform>`, then the signed build
+in Android Studio or Xcode.
+
+### Tests
+
+Vitest ^3.2.7 with jsdom ^26.1.0, 38 test files. Each file that needs a DOM declares
+`// @vitest-environment jsdom`. **Verification reads a run's exit code and its whole
+summary, including any `Errors` line, never a filtered summary** (SF-55d, SF-59; see
+the repo `CLAUDE.md`).
+
+- **`vitest.config.js` (SF-59)** is test-only. It merges `vite.config.js` unchanged and
+  adds one setting: `deps.optimizer.web` pre-bundles `lucide-react`, whose ESM entry
+  re-exports 3,522 per-icon files. Loaded one by one, that was 2.9 s alone and 11 s in
+  a full parallel run, most of the budget `leaderboardRoute.test.jsx` kept missing.
+  `vite build` does not read this file.
+- **canvas-confetti is mocked** (`vi.mock('canvas-confetti', ...)`) in the two test files
+  that render the real victory screen, `src/adCadence.test.jsx` and
+  `src/components/game/overlaysNoBlur.test.jsx` (CR-102). jsdom has no canvas, so the
+  library's first animation frame threw an unhandled error and `npm test` exited 1
+  with every test passing. Any new test that renders the real `VictoryModal` needs
+  the same mock.
+- **`@sentry/react` is mocked** in the three files that import `voiceUtils`
+  (`voiceUtils.test.js`, `audioInterruption.test.js`, `voicePoll.test.js`; SF-59).
+  Loading the real package was about 90% of their `beforeAll` import, which overran
+  the 10 s hook budget under load.
+- **The ad plugin double** `src/lib/admobPluginMock.testutil.js` copies the real
+  plugin's behaviour (CR-101): `showInterstitial()` resolves while the ad is on screen,
+  and only the Dismissed event says it closed.
 
 ---
 
 ## 3. Game modes — five
 
-Defined in `src/components/game/GameModeSelector.jsx` (`OTHER_MODES`) and
-labelled in `DailyChallengeCard.jsx` (`MODE_LABELS`). Internal id on the left,
-player-facing label on the right — **they differ, and the labels are what store
-copy should use**:
+Defined in `src/components/game/GameModeSelector.jsx`. Internal id on the left, the
+label players see on the right (the same in `GameHeader.jsx` `modeLabels`, decision
+S2):
 
-| id | Label | Notes |
+| id | Label | Offline |
 |---|---|---|
-| `standard` | Word Find | Classic search with a visible word list |
-| `audio` | Audio | Words spoken aloud. **Degrades offline** (`DEGRADED_OFFLINE`) |
-| `anagram` | Anagram | |
-| `association` | Clue Hunt | Hand-crafted clues, works fully offline |
-| `mystery_word` | Mystery Word | |
+| `standard` | Standard | Works |
+| `audio` | Audio Challenge | In `DEGRADED_OFFLINE`; on the web its sentences need the network |
+| `anagram` | Anagram Hunt | Works |
+| `association` | Word Association | Works (hand-crafted clues) |
+| `mystery_word` | Mystery Word | Works |
 
-`REQUIRES_ONLINE` is currently an empty set — **no mode requires a connection.**
-Only `audio` is marked as degraded offline, where it falls back to the Web
-Speech API.
+As at 13 Oct 2026, `REQUIRES_ONLINE` is an empty set: no mode requires a connection.
+Offline on native and Electron (`sentencesNeedNetwork` false), the mode picker's banner
+reads *"You're offline. Every mode still works — ads and purchases need a
+connection."*; on the web it says Audio Challenge is limited (CR-90).
 
-> ⚠️ **ANNOTATED 30 Sep 2026 (CR-65, brief SF-4); the table above is kept as
-> written.** Its "Label" column is **not** what the game shows. Census of every
-> mode-label site in `src/` (49 files scanned, tests excluded; `label_census`
-> sweep for `id: 'label'` pairs and every quoted label of either set):
->
-> | Site | standard | audio | anagram | association | mystery_word |
-> |---|---|---|---|---|---|
-> | `GameModeSelector.jsx` (the mode picker) | Standard | Audio Challenge | Anagram Hunt | Word Association | Mystery Word |
-> | `GameHeader.jsx` `modeLabels` (in-game header) | Standard | Audio Challenge | Anagram Hunt | Word Association | Mystery Word |
-> | `HowToPlayModal.jsx` | Standard | Audio Challenge | Anagram Hunt | Word Association | Mystery Word |
-> | `GameLoadingScreen.jsx` `MODE_LABELS` | **Standard Mode** | Audio Challenge | Anagram Hunt | Word Association | **(missing → "Loading Game")**; also a stale `spelling: 'Spelling Bee'` entry for the mode removed in CR-01 |
-> | `DailyChallengeCard.jsx` `MODE_LABELS` | **Word Find** | **Audio** | **Anagram** | **Clue Hunt** | Mystery Word |
->
-> So the long set (Standard / Audio Challenge / Anagram Hunt / Word Association /
-> Mystery Word) is the player-facing set everywhere except the Daily card and the
-> loading screen's two deviations. The short set in the table above exists
-> **only** in `DailyChallengeCard.MODE_LABELS`. Decision S2 (30 Sep 2026) adopts
-> the long set everywhere; the change is applied in SF-6. Store copy should use
-> the long set.
-
-Pages: `Home`, `Game`, `DailyChallenge`, `Leaderboard`, `Stats`, `Settings`.
-
-> ⚠️ **ANNOTATED 30 Sep 2026 (CR-66, decision S3); the line above is kept as
-> written.** `Leaderboard` was removed: no route, no tab, file deleted. The bottom
-> nav is Home, Stats, Settings. The long mode names (S2) now apply everywhere,
-> including `DailyChallengeCard.MODE_LABELS` (which the card does not render) and
-> the loading screen ("Standard"; Mystery Word no longer shows "Loading Game").
+The Daily Challenge has a time limit that scales with the word count (decision S27)
+and awards its reward hints once a day (S28).
 
 ---
 
-## 4. Monetisation — both paths are wired
+## 4. Monetisation
 
-Contrary to older notes in `CLAUDE.md`, RevenueCat is **not** stubbed.
+### Products (`src/lib/purchases.js`)
 
-`src/lib/purchases.js` is the single IAP surface: `initPurchases`,
-`purchaseProduct`, `restorePurchases`, `getPrice`. Products:
+| Product ID | What |
+|---|---|
+| `au.com.uniquegames.soundfind.remove_ads` | Remove ads, one-time (`REMOVE_ADS_PRODUCT_ID`; entitlement `remove_ads`) |
+| `au.com.uniquegames.soundfind.hints_3` | 3 hints ("Starter") |
+| `au.com.uniquegames.soundfind.hints_10` | 10 hints ("Best Value") |
+| `au.com.uniquegames.soundfind.hints_25` | 25 hints ("Power Pack") |
 
-| Product ID | What | Listed price in code |
-|---|---|---|
-| `au.com.uniquegames.soundfind.remove_ads` | Remove ads, one-time | from store |
-| `au.com.uniquegames.soundfind.hints_3` | 3 hints | US$0.99 |
-| `au.com.uniquegames.soundfind.hints_10` | 10 hints | US$1.99 |
-| `au.com.uniquegames.soundfind.hints_25` | 25 hints | US$3.99 |
+**Prices come only from the store** (FB-1, CR-74): `getPrice`, `getLowestPrice` and
+the `usePrice` hook return RevenueCat's own `priceString`, or null until the store
+answers, and the screens then show no figure. As at 13 Oct 2026 the code holds no
+price figure of its own.
 
-Prices in `PURCHASE_OPTIONS` are **fallback display strings only** — `getPrice`
-prefers the real store price. Do not quote them as live pricing; check the
-console.
+### Hints and the hint shop
 
-**The "Coming soon" toast is not a stub.** `HintModal.jsx` shows it only when
-`!isNative()` — i.e. on web and Electron, where IAP does not exist. On iOS and
-Android the same handler calls `purchaseProduct`. `RemoveAdsModal.jsx` calls it
-unconditionally.
+A new player starts with 12 hints (`offlineStorage.jsx` `loadProgress`; decision S6).
+The hint shop (`HintModal.jsx`) opens when a hint is asked for at a balance of 0. It
+offers "Watch an Ad" (a rewarded ad for 1 hint, `showRewarded` in `admob.js`) and the
+three packs. Off native (`!isNative()`: web and Electron) the packs show a "Coming
+soon" toast and the ad is a placeholder; as at 13 Oct 2026 the Windows model of
+decision S25 (Store packs, non-ad free hints, no ads) is **not built**. The purchase
+view tells the player that hints are kept on the device, not in an account (SF-46).
 
-Ads: `src/lib/admob.js` — `initAdMob()` from `App.jsx` at startup, `showRewarded()`
-from `HintModal`. AdMob and RevenueCat failures are both reported to Sentry with
-context tags rather than swallowed.
+### Hint-pack ledger (`src/lib/hintLedger.js`; CR-98, CR-100; decision S40-C)
 
-### The interstitial flow and its cadence, as of 13 Oct 2026 (CR-101, SF-57, DEF-54, S41)
+Two fields inside `wf_progress` keep a paid pack from being lost or credited twice:
 
-- **Cadence (`src/lib/adCadence.js`):** every completed game counts, normal and Daily
-  (`recordCompletedGame`, `games_completed_count`). An interstitial is due when
-  `games_completed_count − last_ad_completed_at ≥ 6` (`AD_FREQUENCY`), taking
-  `last_ad_completed_at` as 0 before any ad. It is recorded only when an ad is actually
-  on screen (the plugin's Showed event), so a failed ad stays due for the next start; a
-  long gap gives one ad, and the next is 6 completions after it. Gates: native, online,
-  ads not removed. (Before CR-101 the rule was "a new multiple of 6", which allowed ads
-  one game apart, and the ad was recorded when due rather than when shown.)
-- **When it shows:** before the NEXT game, on every start path: Home's level picker,
-  Next Level, Replay, the Daily card, the Daily's Try Again. Each awaits
-  `showInterstitialBeforeGame()`, which resolves only when the ad is **dismissed**, or
-  at once if it fails to load or show (`admob.js` `showInterstitialUntilClosed`, on the
-  plugin's Dismissed, FailedToShow and rejected-show signals). The plugin's own
-  `AdMob.showInterstitial()` resolves while the ad is still on screen, so it is never
-  awaited on its own. Off native, only Home shows the placeholder `AdModal`.
-- **Ad units:** debug builds (Capacitor's `window.Capacitor.DEBUG`, set by the native
-  shell from the installed app: Android `FLAG_DEBUGGABLE`, iOS `isDevEnvironment`) use
-  Google's published test units; release builds use the production units only.
-  ⚠️ On iOS, `DEBUG` reads true only if the Debug configuration defines
-  `CAPACITOR_DEBUG = true` (`Info.plist` reads `$(CAPACITOR_DEBUG)`; no configuration in
-  this repo defines it), so an iOS debug build currently still gets production units.
+| Field | Meaning |
+|---|---|
+| `credited_txn_ids` | **RevenueCat's** transaction IDs (the ones `customerInfo.nonSubscriptionTransactions` lists, shaped `o1_…`) whose packs have been credited, plus claim markers `pending:<product>:<ms>` and `matched:<product>:<ms>` |
+| `reconcile_since` | ISO time; only hint-pack transactions on or after it are ever reconciled. Set when missing (a new install, or the first launch of the version that added it) |
+
+- **At purchase** (`creditPurchaseNow`, called by `Game.jsx` and `DailyChallenge.jsx`):
+  adds the pack and records, in the same write, the listed transaction from the
+  customerInfo the purchase call returned: same product, not yet recorded, within
+  `MATCH_WINDOW_MS` (2,000 ms) of the store's purchase time (`findListedEntry`). If it is
+  not listed yet, it records a `pending:` claim instead. The store's own order ID
+  (`GPA.…` on Google Play) is not kept: it never matches RevenueCat's ID, which is how
+  CR-98 credited normal purchases twice (DEF-53).
+- **At launch** (`initPurchases`): `ensureReconcileBaseline` sets the baseline before any
+  purchase is possible; once RevenueCat answers, `reconcileHintPurchases` credits any
+  listed hint-pack transaction after the baseline that is neither recorded nor
+  matched by a claim, and shows *"Added N hints from an earlier purchase"*. A matched
+  claim becomes `matched:` and credits nothing.
+- **Measured on the tablet (SF-55, SF-55b, SF-55c):** a pack whose purchase was killed
+  before crediting is added once, on the second launch after the kill; a normal
+  purchase is added once and not again on relaunch.
+- `saveLocalProgress` never moves the ledger backwards (union of IDs; the baseline is
+  kept), Settings Reset keeps both fields with `hints_remaining`, and Android's
+  backup (§5) restores them with the balance.
+
+### Ads (`src/lib/admob.js`, `src/lib/adCadence.js`)
+
+- **Child-directed on every request (decision S1):** `initialize` carries
+  `tagForChildDirectedTreatment: true` and `maxAdContentRating` General; the consent
+  request carries `tagForUnderAgeOfConsent: true`; every request sets `npa: true`.
+  Android's merged manifest has no `AD_ID` and no `ACCESS_ADSERVICES_*` permissions
+  (S21, CR-71, CR-73).
+- **Interstitial cadence (CR-101, decision S41):** every completed game counts, normal
+  and Daily (`recordCompletedGame`, key `games_completed_count`). An interstitial is
+  due when `games_completed_count − last_ad_completed_at ≥ 6` (`AD_FREQUENCY`), with
+  `last_ad_completed_at` taken as 0 before any ad (`interstitialDue`). The ad is
+  recorded only on the plugin's Showed event (`markInterstitialShown`), so an ad that
+  fails stays due; ads are never fewer than 6 completed games apart. Gates: native,
+  online, ads not removed.
+- **Wait for dismissal (CR-101, DEF-54):** the interstitial shows before the NEXT game,
+  on every start path: Home's level picker, Next Level, Replay, the Daily card and
+  the Daily's Try Again. Each awaits `showInterstitialBeforeGame`, which resolves when
+  the ad is **dismissed**, or at once if it fails to load or show
+  (`showInterstitialUntilClosed`, on the plugin's Dismissed, FailedToShow and
+  rejected-show signals; one in-flight show at a time). The plugin's own
+  `showInterstitial()` resolves while the ad is still on screen, so as at 13 Oct 2026
+  nothing awaits it on its own. Off native, only Home shows the placeholder
+  `AdModal`.
+- **Measured on the tablet (SF-55c, debug build):** the ad appeared exactly when
+  predicted on Next Level, Replay and the Daily card; nothing moved behind it; the
+  next level, the restarted board and the Daily (its timer from full) started only
+  after the ad closed, by Back or by X.
+- **Debug builds use Google's test units (CR-101):** `isDebugBuild` reads
+  `window.Capacitor.DEBUG`, which the native shell sets from the installed app
+  (Android `FLAG_DEBUGGABLE`; iOS `isDevEnvironment`). `adUnitsFor(platform, debug)`
+  returns Google's published test units when it is true and the production units
+  otherwise. A release bundle therefore contains both sets; which one runs depends on
+  the installed build. ⚠️ On iOS, `DEBUG` reads true only if the Debug configuration
+  defines `CAPACITOR_DEBUG = true`: `Info.plist` reads `$(CAPACITOR_DEBUG)`, and as at
+  13 Oct 2026 no configuration in this repo defines it, so an iOS debug build still
+  requests production units.
 
 ---
 
 ## 5. Persistence
 
-`localStorage` only. No backend, no accounts, no sync. Keys in use:
+`localStorage` only; the app has no server and syncs nothing itself. Every key, from a
+sweep of every `localStorage.getItem`, `setItem` and `removeItem` call in app code, as
+at 13 Oct 2026 (no other storage API is used):
 
-| Key | Purpose |
-|---|---|
-| `wf_progress` | Game progress |
-| `ads_removed` | Remove-ads entitlement |
-| `games_completed_count` | Games finished |
-| `last_ad_completed_at` | Rewarded-ad throttle |
-| `wordfind_reminder_timer` | Reminder scheduling |
+| Key | Where | Purpose | Settings Reset |
+|---|---|---|---|
+| `wf_progress` | `offlineStorage.jsx` `PROGRESS_KEY` | Level, score, hints, games played, words found, best streak, and the hint ledger (§4) | Cleared, keeping `hints_remaining`, `credited_txn_ids` and `reconcile_since` |
+| `wf_settings` | `offlineStorage.jsx` `SETTINGS_KEY` | Voice, backup-voice rate and pitch, theme | Cleared |
+| `wf_daily` | `offlineStorage.jsx` `DAILY_KEY` | Daily Challenge records by local date | Cleared |
+| `wf_welcome_seen` | `WelcomeScreen.jsx` `WELCOME_KEY` | First-run welcome shown | Cleared |
+| `games_completed_count` | `adCadence.js` `COUNT_KEY` | Completed games, for the interstitial cadence | Cleared |
+| `last_ad_completed_at` | `adCadence.js` `LAST_AD_KEY` | Completion count at the last interstitial shown | Cleared |
+| `ads_removed` | `purchases.js`, `Home.jsx`, `Settings.jsx`, `adCadence.js` | Remove Ads entitlement | Kept |
+| `wordfind_reminder_timer` | `ReminderSettings.jsx` | Reminder schedule | Not touched |
+| `wordfind_reminder` | `ReminderSettings.jsx` `STORAGE_KEY` | Reminder settings | Not touched |
 
-Note the inconsistent prefixes — `wf_`, `wordfind_`, and bare. Legacy naming from
-before the rebrand; renaming any of them orphans existing players' data.
+Note the three prefixes (`wf_`, `wordfind_` and bare): legacy naming from before the
+rebrand. Renaming any key orphans existing players' data. (`sf_free_hint_refill_at`,
+from the withdrawn CR-64 refill, may remain in old browsers; as at 13 Oct 2026 nothing
+reads or writes it.)
 
-> ⚠️ **ANNOTATED 30 Sep 2026 (CR-65, brief SF-4); the table above is kept as
-> written.** It lists 5 of the **10** keys the app uses, and `last_ad_completed_at`
-> is the *interstitial* throttle (Home.jsx), not a rewarded-ad one. Every key,
-> from a sweep of every `localStorage.getItem/setItem/removeItem` call in `src/`
-> with key constants resolved:
->
-> | Key | Where | Purpose | Settings Reset |
-> |---|---|---|---|
-> | `wf_progress` | `offlineStorage.jsx` `PROGRESS_KEY` | Level, score, hints, games played, words found, best streak | Cleared, but `hints_remaining` preserved (DEF-23) |
-> | `wf_settings` | `offlineStorage.jsx` `SETTINGS_KEY` | Voice, backup-voice rate and pitch, theme, `sound_effects_volume` (stored, unused) | Cleared |
-> | `wf_daily` | `offlineStorage.jsx` `DAILY_KEY` | Daily Challenge records by date (local date since CR-61) | Cleared |
-> | `wf_welcome_seen` | `WelcomeScreen.jsx` `WELCOME_KEY` | First-run welcome shown | Cleared |
-> | `games_completed_count` | `Game.jsx`, `Home.jsx` | Completed games, for interstitial gating | Cleared |
-> | `last_ad_completed_at` | `Home.jsx` | Completion count at the last interstitial | Cleared |
-> | `ads_removed` | `purchases.js`, `Home.jsx`, `Settings.jsx` | Remove Ads entitlement | Preserved |
-> | `wordfind_reminder_timer` | `ReminderSettings.jsx` | Reminder schedule | Not touched |
-> | `wordfind_reminder` | `ReminderSettings.jsx` `STORAGE_KEY` | Reminder settings (a second reminder key) | Not touched |
-> | `sf_free_hint_refill_at` | `src/lib/freeHintRefill.js` (CR-64) | Last daily free refill on Windows and web | Not touched (so Reset cannot re-grant it) |
->
-> ⚠️ *Annotated 30 Sep 2026 (CR-67, decision S6): the refill was withdrawn and
-> `freeHintRefill.js` deleted. `sf_free_hint_refill_at` may still exist in
-> browsers that used the CR-64 build, but **nothing reads or writes it**, so the
-> app uses 9 keys. The row above is kept as written.*
+### Platform backup on Android, the SF-48 pin (CR-94, decision S40-B)
 
-### Platform backup (Android), added 12 Oct 2026 (CR-94, SF-47, SF-48, decision S40-B)
+The app copies nothing anywhere, **but Android's Auto Backup does**: the manifest sets
+`android:allowBackup="true"` and none of `fullBackupContent`, `dataExtractionRules` or
+`backupAgent`, and `res/` has no backup rules file. **As measured 12 Oct 2026 on one
+Android tablet (SF-47):** after a backup, an uninstall and reinstall restored both the
+WebView's localStorage (so `wf_progress` and its hints) and RevenueCat's
+SharedPreferences (so the same anonymous app user ID). With backup off, neither came
+back. A restore brings back the last backup (about daily), nothing when the player has
+backup off, and, inferred rather than tested, nothing on iOS after deleting the app.
 
-"No sync" above still holds: the app itself copies nothing anywhere. **But Android's
-Auto Backup does**, because the manifest sets only `android:allowBackup="true"` and
-no rules (`fullBackupContent`, `dataExtractionRules`, `backupAgent`: none).
-
-**As measured 12 Oct 2026 on one Android tablet (SF-47); normal backups run about
-daily:** after a forced backup, an uninstall and reinstall restored, at install and
-before first launch, both the WebView's localStorage (`app_webview/Default/Local
-Storage/leveldb`, so `wf_progress` came back with its hint balance) and RevenueCat's
-SharedPreferences (`com_revenuecat_purchases_preferences`, so the same anonymous app
-user ID). With Backup Manager disabled, neither came back: the balance was the
-`loadProgress` seed of 12 and RevenueCat made a new ID.
-
-What this does **not** give: the latest balance (a restore brings back the last
-backup, which Android takes about daily), anything when the player has backup turned
-off, or anything on iOS after deleting the app (only a whole-device restore brings
-iCloud data back; inferred, not tested).
-
-**Pinned by `src/androidBackupConfig.test.js`:** `allowBackup="true"`, none of the
-three rule attributes, and no `<full-backup-content>` or `<data-extraction-rules>`
-file in `res/xml*`. Any rules file or backup agent must keep `wf_progress` and
-RevenueCat's preferences together, or restored hints and any future purchase
-reconciliation (SF-45 C) break. The test reads the source manifest only; the merged
-manifest is checked by hand (see CR-94).
-
-### Hint-pack ledger in `wf_progress`, added 13 Oct 2026 (CR-98, SF-50, decision S40-C)
-
-Two new fields inside `wf_progress`; the key and every existing field keep their
-meaning:
-
-| Field | Type | Meaning |
-|---|---|---|
-| `credited_txn_ids` | array of strings | Store transaction IDs whose hint packs have been credited, by the purchase path or by a reconcile |
-| `reconcile_since` | ISO time string | Only hint-pack transactions dated on or after this are ever reconciled. Set when missing: on a new install, or on the first launch of the version that added it |
-
-**Who writes them:** `src/lib/hintLedger.js`. The purchase path (`creditPurchaseNow`)
-records the ID with the balance in one write; `initPurchases` sets the baseline before
-any purchase is possible and, once RevenueCat answers, reconciles
-`customerInfo.nonSubscriptionTransactions`. `saveLocalProgress` never moves them
-backwards (the ID list is merged as a union; the baseline, once set, is kept), and
-Settings Reset keeps both with `hints_remaining`. Since they live in `wf_progress`,
-Android's Auto Backup (above) restores them together with the balance.
-
-> ⚠️ **Corrected 13 Oct 2026 (CR-100, SF-56, DEF-53); the table above is kept as
-> written.** `credited_txn_ids` holds **RevenueCat's** transaction IDs (the ones
-> `customerInfo.nonSubscriptionTransactions` lists, shaped `o1_…`), not the store's.
-> The purchase result's ID is the store's (a Google Play order ID, `GPA.…`; a StoreKit
-> ID on iOS) and never matches the listed one, which is how CR-98 credited normal
-> purchases twice. The purchase path now records the listed entry from the
-> customerInfo the purchase call returns (same product, not yet recorded, within
-> 2 s of the store's purchase time). When that entry is not listed yet, it records a
-> claim, `pending:<product>:<ms>`, which a later reconcile matches to the listed entry
-> and marks `matched:<product>:<ms>`, crediting nothing. The store's order ID is not
-> kept.
+**Pinned by `src/androidBackupConfig.test.js`:** `allowBackup="true"`, none of the three
+rule attributes, and no `<full-backup-content>` or `<data-extraction-rules>` file in
+`res/xml*`. Any future rules file or backup agent must keep `wf_progress` and
+RevenueCat's preferences together, or restored hints and the ledger's reconcile break.
+The test reads the source manifest; the merged release manifest was checked by hand
+for the 1.1.1 (5) bundle (SF-55d).
 
 ---
 
 ## 6. Outbound network
 
-The app is close to fully local, but **not** entirely:
+As at 13 Oct 2026, apart from the SDKs below, the app's only outbound URLs are:
 
-- Four static `uniquegames.com.au` links (site, contact, SoundFind privacy, terms)
-- **Three hardcoded `images.unsplash.com` photo URLs.** These are third-party
-  requests made at runtime, so Unsplash sees player IP addresses. Worth
-  confirming this is reflected in the privacy policy and the store privacy
-  declarations, since the rest of the app makes no third-party calls.
-- AdMob and RevenueCat SDK traffic on native builds
-- Sentry
+- Four `uniquegames.com.au` links in `Settings.jsx` (site, contact, SoundFind privacy,
+  SoundFind terms).
+- **Three Unsplash photos, from four hardcoded `images.unsplash.com` URLs** in
+  `AdModal.jsx` (three) and `HintModal.jsx` (one, repeating one of AdModal's). These are
+  third-party requests at runtime, so Unsplash sees player IP addresses; they appear
+  only in the placeholder ad and the off-native hint shop.
+- AdMob and RevenueCat SDK traffic on native builds; Sentry.
+
+Audio is served from the app's own `public/audio/` files.
 
 ---
 
 ## 7. Platform differences that matter
 
-- **`HashRouter`, not `BrowserRouter`.** Reading or writing `window.location`
-  directly has broken this app twice. Use the router's hooks.
-- **`isNative()`** (`src/lib/platform.js`) gates every IAP path. Web and Electron
-  take the non-native branch.
-- **Microsoft Store ships Electron**, not a PWA wrapper. `electron:dist` runs
-  `electron-builder --win appx` then patches appx assets via
-  `scripts/patch-appx-assets.mjs`.
-- **Audio degrades offline** to the Web Speech API, silently — if an MP3 is
-  missing, no error is shown to the player.
+- **`HashRouter`, not `BrowserRouter`.** Reading or writing `window.location` directly
+  has broken this app twice. Use the router's hooks.
+- **`isNative()`** (`src/lib/platform.js`) gates every purchase path and the real ads.
+  Web and Electron take the non-native branch (placeholders).
+- **The Microsoft Store ships Electron**, not a PWA wrapper (`electron:dist`).
+- **Audio degrades silently:** if an MP3 is missing, playback falls back to the Web
+  Speech API with no error shown.
 
 ---
 
 ## 8. Store presence
 
-| Store | Status | ID |
-|---|---|---|
-| Apple App Store | Live | 6769255354 |
-| Microsoft Store | Live | — |
-| Google Play | Closed Testing only, not publicly listed | — |
+Not derivable from the code; check the consoles. What the repo records:
 
-Bundle / app id across platforms: `au.com.uniquegames.soundfind`.
+| Store | Recorded |
+|---|---|
+| Apple App Store | Live (ID 6769255354). The iOS project is at 1.1.1, build 8 |
+| Google Play | Closed testing only, not publicly listed. **The signed 1.1.1 (versionCode 5) bundle for closed testing was built from `561e34e` on 13 Oct 2026 (SF-55d)**; its upload is the developer's |
+| Microsoft Store | Live (Electron `appx`); kept, decision S22 |
 
-Google Play closed testing runs through the Google Group
-`soundfind-testers@googlegroups.com` and needs 12 opted-in testers for 14
-consecutive days before production is unlocked.
+Bundle and app id on every platform: `au.com.uniquegames.soundfind`. Google Play
+production needs 12 opted-in testers for 14 consecutive days
+(`soundfind-testers@googlegroups.com`).
 
 ---
 
-## 9. Unverified and out of scope for this audit
+## 9. Unverified and out of scope
 
-- **Everything in the store consoles.** Live pricing, category, keywords, current
-  ratings, AdMob serving status. Not in the repo — check the consoles.
-- **iOS and Android runtime behaviour.** This audit read source on Windows. IAP,
-  ads, audio playback and the native shells were not executed.
-- **Whether `dist/` and `electron-dist/` in the working tree match current
-  source.** They are build outputs, not evidence.
-- **`.env.local` exists and is correctly gitignored and untracked** — its
-  contents were deliberately not read.
+- **Everything in the store consoles:** live pricing, current versions and review
+  states, ratings, AdMob serving status.
+- **iOS runtime behaviour.** The Android debug build was exercised on one tablet
+  (SF-55 to SF-55d); nothing here was executed on iOS.
+- **Whether `dist/` and `electron-dist/` in the working tree match current source.**
+  They are build outputs, not evidence.
+- **`.env.local`** exists and is gitignored; its contents were deliberately not read.

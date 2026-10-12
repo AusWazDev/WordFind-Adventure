@@ -69,17 +69,37 @@ Always do a follow-up docs commit if the hook fires warnings.
 ### Change Register
 Every code change needs a CR or DEF entry in `docs/Change Register.md` with the commit hash filled in after pushing.
 
+### Verifying a test run (SF-55d, SF-59)
+A test run's result is its **exit code plus its full summary, including any `Errors`
+line**. Never judge a run from a filtered summary. Capture the output to a file,
+record `$?`, then read the `Test Files`, `Tests` and `Errors` lines from that file.
+
+Why: from CR-96 to SF-55d, every full run was read through
+`grep -E "FAIL|Test Files|Tests "`. That filter shows neither the exit code nor the
+`Errors` line, so `npm test` exited 1 with two unhandled errors (canvas-confetti in
+jsdom) for a whole run of commits while every summary read "224 passed". Passing
+counts are not a passing run.
+
 ---
 
-## Current State (as of 20 August 2026)
+## Current State (as of 13 October 2026, SF-59)
 
-`package.json` version is **1.1.0**. Store presence: Apple App Store LIVE
-(ID 6769255354), Microsoft Store LIVE, Google Play **Closed Testing only** and
-not publicly listed — that needs 12 opted-in testers for 14 consecutive days
-via `soundfind-testers@googlegroups.com` before production unlocks.
+`package.json` version is **1.1.1**: Android versionCode **5**, iOS build 8. A signed
+Android 1.1.1 (5) bundle for Google Play **closed testing** was built from `561e34e`
+on 13 Oct 2026 after the SF-55 tablet gate (SF-55d); uploading it is the
+developer's. Google Play is closed testing only and not publicly listed; production
+needs 12 opted-in testers for 14 consecutive days via
+`soundfind-testers@googlegroups.com`. Apple App Store (ID 6769255354) and the
+Microsoft Store are live. For what 1.1.1 contains, read `docs/ARCHITECTURE.md`
+(regenerated for 1.1.1).
 
 Never assert the shipped version from this file — check `package.json`, and the
 consoles for what is actually live.
+
+### Superseded (was recorded here as of 20 August 2026)
+*"`package.json` version is **1.1.0**. Store presence: Apple App Store LIVE (ID
+6769255354), Microsoft Store LIVE, Google Play **Closed Testing only** and not
+publicly listed"*. Replaced 13 Oct 2026 (SF-59): the version is 1.1.1.
 
 ### Superseded (was recorded here as of 14 May 2026)
 App described as v1.0.1 with iOS submission "in progress". Both are out of date.

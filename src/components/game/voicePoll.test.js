@@ -5,6 +5,10 @@
 // required the result not to have arrived yet. (Found in SF-25, fixed in CR-82.)
 import { it, expect, vi, beforeAll, afterAll } from 'vitest';
 
+// SF-59: voiceUtils imports @sentry/react only for addBreadcrumb; the real package
+// was most of the beforeAll import, which under load overran the 10 s hook budget.
+vi.mock('@sentry/react', () => ({ addBreadcrumb: vi.fn(), captureException: vi.fn() }));
+
 let voices = [];
 const getVoicesCalls = vi.fn(() => voices);
 const wait = ms => new Promise(r => setTimeout(r, ms));

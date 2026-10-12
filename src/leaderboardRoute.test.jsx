@@ -9,21 +9,25 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 vi.mock('@/lib/platform', () => ({ isNative: () => false, getPlatform: () => 'web' }));
 vi.mock('./lib/platform', () => ({ isNative: () => false, getPlatform: () => 'web' }));
 
-let container;
-let root;
+// Every mount is tracked and unmounted after its test, and each test reads only the
+// container renderAt returned to it. SF-59: these were shared module variables, so a
+// test that timed out kept rendering into them and broke the next test as well.
+const mounts = [];
 
 async function renderAt(hash) {
   window.location.hash = hash;
   const { default: App } = await import('./App');
-  container = document.createElement('div');
+  const container = document.createElement('div');
   container.id = 'root';
   document.body.appendChild(container);
-  root = createRoot(container);
+  const root = createRoot(container);
+  mounts.push({ container, root });
   await act(async () => { root.render(<App />); });
   await act(async () => { await new Promise(r => setTimeout(r, 50)); });
+  return container;
 }
 
-const navLabels = () => [...container.querySelectorAll('nav.bottom-nav button')].map(b => b.textContent.trim());
+const navLabels = container => [...container.querySelectorAll('nav.bottom-nav button')].map(b => b.textContent.trim());
 
 beforeEach(() => {
   localStorage.clear();
@@ -35,8 +39,10 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  await act(async () => root?.unmount());
-  container?.remove();
+  for (const { container, root } of mounts.splice(0)) {
+    await act(async () => root.unmount());
+    container.remove();
+  }
 });
 
 // The first test pays for importing the whole app.
@@ -44,22 +50,22 @@ const SLOW = { timeout: 60000 };
 
 describe('bottom navigation', () => {
   it('has exactly three tabs: Home, Stats, Settings', SLOW, async () => {
-    await renderAt('#/Home');
-    expect(navLabels().length).toBeGreaterThan(0); // control: the nav rendered at all
-    expect(navLabels()).toEqual(['Home', 'Stats', 'Settings']);
+    const container = await renderAt('#/Home');
+    expect(navLabels(container).length).toBeGreaterThan(0); // control: the nav rendered at all
+    expect(navLabels(container)).toEqual(['Home', 'Stats', 'Settings']);
   });
 });
 
 describe('an old #/Leaderboard link', () => {
   it('renders the Page Not Found screen, not a Leaderboard page', async () => {
-    await renderAt('#/Leaderboard');
+    const container = await renderAt('#/Leaderboard');
     expect(container.textContent).toContain('Page Not Found');
     expect(container.textContent).toContain('"Leaderboard"');
     expect(container.textContent).not.toContain('Global Leaderboard Coming Soon');
   });
 
   it('"Go Home" navigates in the router (CR-34), with no page reload', async () => {
-    await renderAt('#/Leaderboard');
+    const container = await renderAt('#/Leaderboard');
     const hrefBefore = window.location.href.split('#')[0];
     const goHome = [...container.querySelectorAll('button')].find(b => b.textContent.includes('Go Home'));
     await act(async () => { goHome.click(); });

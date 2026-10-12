@@ -182,6 +182,32 @@ before the rebrand; renaming any of them orphans existing players' data.
 > browsers that used the CR-64 build, but **nothing reads or writes it**, so the
 > app uses 9 keys. The row above is kept as written.*
 
+### Platform backup (Android), added 12 Oct 2026 (CR-94, SF-47, SF-48, decision S40-B)
+
+"No sync" above still holds: the app itself copies nothing anywhere. **But Android's
+Auto Backup does**, because the manifest sets only `android:allowBackup="true"` and
+no rules (`fullBackupContent`, `dataExtractionRules`, `backupAgent`: none).
+
+**As measured 12 Oct 2026 on one Android tablet (SF-47); normal backups run about
+daily:** after a forced backup, an uninstall and reinstall restored, at install and
+before first launch, both the WebView's localStorage (`app_webview/Default/Local
+Storage/leveldb`, so `wf_progress` came back with its hint balance) and RevenueCat's
+SharedPreferences (`com_revenuecat_purchases_preferences`, so the same anonymous app
+user ID). With Backup Manager disabled, neither came back: the balance was the
+`loadProgress` seed of 12 and RevenueCat made a new ID.
+
+What this does **not** give: the latest balance (a restore brings back the last
+backup, which Android takes about daily), anything when the player has backup turned
+off, or anything on iOS after deleting the app (only a whole-device restore brings
+iCloud data back; inferred, not tested).
+
+**Pinned by `src/androidBackupConfig.test.js`:** `allowBackup="true"`, none of the
+three rule attributes, and no `<full-backup-content>` or `<data-extraction-rules>`
+file in `res/xml*`. Any rules file or backup agent must keep `wf_progress` and
+RevenueCat's preferences together, or restored hints and any future purchase
+reconciliation (SF-45 C) break. The test reads the source manifest only; the merged
+manifest is checked by hand (see CR-94).
+
 ---
 
 ## 6. Outbound network

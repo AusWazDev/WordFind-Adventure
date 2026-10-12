@@ -544,6 +544,8 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 ### 2026-10-12, night (Windows — hint on a found cell, brief SF-44)
 
 - **CR-92, a hint is now visible on a found cell (D-C):** when a hint lands on a letter that already belongs to a found word, that letter now turns gold and grows, as any hint does, instead of staying green. Which letter is hinted, and when hints clear, are unchanged.
+- **SF-47, tablet session (debug build):** a real license-tester purchase of 3 hints worked from the debug build and credited correctly; the flicker (D-B) and the pack-change flash (D-A) did not happen this time. The hint shop's background blur makes changing packs about ten times slower to draw (49 to 50 slow frames per four taps with it, 5 without). A hint on an already-found letter now shows gold on the device (CR-92). **Android backup works for hints, as measured 12 Oct 2026 on one Android tablet (normal backups run about daily):** after a backup, an uninstall and reinstall brought back 7 hints and the same RevenueCat ID; with backup turned off, it came back with 12 and a new ID. The tablet was left on the debug build, 12 hints, backup on.
+- **CR-94, the backup setting is pinned (S40-B):** a test now fails if the Android backup setting changes from the defaults that were measured to bring hints back.
 - **CR-93, where hints are kept (S40):** the screen that sells hint packs now says, under the packs, *"Hints are saved on this device and aren't linked to an account. Unused hints can be lost if you delete the app."*
 - **Still open from SF-43:** the flicker after buying hints (D-B, it doesn't stop by itself) and the flash when changing packs (D-A) need measuring on the tablet; nothing was changed for them.
 

@@ -194,6 +194,8 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
     onClose();
   };
 
+  // The overlay dims but does not blur: a full-screen backdrop blur made every
+  // repaint inside the shop slow on a low-end Android GPU (SF-49, D-A).
   return (
     <AnimatePresence>
       {isOpen && (
@@ -201,7 +203,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
           onClick={handleClose}
         >
           <motion.div

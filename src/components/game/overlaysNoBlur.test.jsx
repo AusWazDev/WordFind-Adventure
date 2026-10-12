@@ -15,6 +15,9 @@ vi.mock('@/lib/purchases', () => ({
   REMOVE_ADS_PRODUCT_ID: 'au.com.uniquegames.soundfind.remove_ads', PURCHASE_OPTIONS: [],
 }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
+// SF-55d: VictoryModal fires canvas-confetti, whose first animation frame draws on a
+// 2D context jsdom does not have, so it threw an unhandled error (npm test exit 1).
+vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
 
 const { default: VictoryModal } = await import('./VictoryModal');
 const { default: RemoveAdsModal } = await import('./RemoveAdsModal');

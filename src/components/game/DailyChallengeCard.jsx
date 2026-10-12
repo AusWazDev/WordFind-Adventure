@@ -5,6 +5,7 @@ import { getDailyRecord } from '@/components/game/offlineStorage';
 import { getDailyChallengeConfig } from '@/components/game/DailyChallengeUtils';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
+import { showInterstitialBeforeGame } from '@/lib/adCadence';
 
 // CR-66 (decision S2): the long set, as everywhere else. Note: this map is not
 // currently rendered by the card; it is kept consistent so a future use of it
@@ -33,7 +34,10 @@ export default function DailyChallengeCard() {
     setLoading(false);
   }, []);
 
-  const handleStart = () => {
+  // S41 (SF-52): a due interstitial shows before the Daily opens, so its timer
+  // (started when the Daily page mounts) never runs during the ad.
+  const handleStart = async () => {
+    await showInterstitialBeforeGame();
     const params = new URLSearchParams({
       mode: challenge.mode,
       category: challenge.category,

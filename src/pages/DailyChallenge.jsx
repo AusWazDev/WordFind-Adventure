@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { loadProgress, updateProgress, getDailyRecord, saveDailyRecord, loadSettings } from '@/components/game/offlineStorage';
+import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
 import GameBoard from '@/components/game/GameBoard';
 import WordList from '@/components/game/WordList';
 import AnagramWordList from '@/components/game/AnagramWordList';
@@ -267,10 +268,19 @@ export default function DailyChallenge() {
     }
   }, [level, mode, bonus_multiplier, gameOver, victory]);
 
+  // S41 (SF-52): a due interstitial shows before the new board and its timer start.
+  const handleTryAgain = async () => {
+    await showInterstitialBeforeGame();
+    initGame();
+  };
+
   const triggerVictory = async (wordsFoundCount) => {
     setTimerActive(false);
     clearInterval(timerRef.current);
     setVictory(true);
+    // S41 (SF-52): a Daily completion counts toward the interstitial cadence, as a
+    // normal game's does, including a repeat "for fun" completion.
+    recordCompletedGame();
 
     // Read everything through refs (CR-61): this function is reached from the
     // first render's handleWordFound closure, where progress and score are stale.
@@ -584,7 +594,7 @@ export default function DailyChallenge() {
               <p className="text-xs text-muted-foreground">Points Earned</p>
             </div>
             <div className="flex gap-3">
-              <button onClick={initGame}
+              <button onClick={handleTryAgain}
                 className="flex-1 bg-gradient-to-r from-violet-500 to-indigo-600 text-white font-bold py-3 rounded-2xl min-h-[44px]">
                 Try Again
               </button>

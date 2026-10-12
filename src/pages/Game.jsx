@@ -12,6 +12,7 @@ import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
 import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio, stopAllAudio } from '@/components/game/voiceUtils';
 import { loadProgress, updateProgress, loadSettings } from '@/components/game/offlineStorage';
+import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
 import { toast } from 'sonner';
 
 // ─── Orientation hook ─────────────────────────────────────────────────────────
@@ -288,10 +289,9 @@ export default function Game() {
     const currentScore = scoreRef.current;
     const currentHints = hintsRemainingRef.current;
     if (!currentProgress) return;
-    // CR-15: track completed games in localStorage so Home.jsx can gate ads
-    // on completions rather than starts.
-    const completed = parseInt(localStorage.getItem('games_completed_count') || '0') + 1;
-    localStorage.setItem('games_completed_count', String(completed));
+    // CR-15: track completed games so ads are gated on completions rather than
+    // starts. Shared with the Daily since S41 (src/lib/adCadence.js).
+    recordCompletedGame();
 
     const updated = await updateProgress(null, currentProgress, {
       total_score: (currentProgress.total_score || 0) + currentScore,
@@ -411,7 +411,10 @@ export default function Game() {
     }
   };
 
-  const handleNextLevel = () => {
+  // S41 (SF-52): an interstitial that is due shows before the next game starts, on
+  // every start path; the next board appears only after it closes.
+  const handleNextLevel = async () => {
+    await showInterstitialBeforeGame();
     const nextLevel = Math.min(level + 1, 5);
     // Use React Router navigate() for client-side navigation — avoids a hard reload
     // which would 404 on Vercel (no server-side route for /Game exists).
@@ -419,7 +422,10 @@ export default function Game() {
     navigate(`${createPageUrl('Game')}?mode=${mode}&category=${category}&level=${nextLevel}`);
   };
 
-  const handleReplay = () => initGame();
+  const handleReplay = async () => {
+    await showInterstitialBeforeGame();
+    initGame();
+  };
   const handleHome = () => navigate(createPageUrl('Home'));
 
   if (!gameData) return <GameLoadingScreen mode={mode} level={level} />;

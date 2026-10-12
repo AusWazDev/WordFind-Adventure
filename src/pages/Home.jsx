@@ -11,15 +11,13 @@ import DailyChallengeCard from '@/components/game/DailyChallengeCard';
 import AdModal from '@/components/game/AdModal';
 import RemoveAdsModal from '@/components/game/RemoveAdsModal';
 import { isNative } from '@/lib/platform';
-import { showInterstitial } from '@/lib/admob';
+import { showInterstitialBeforeGame, interstitialDue, markInterstitialShown } from '@/lib/adCadence';
 import HowToPlayModal from '@/components/game/HowToPlayModal';
 import WelcomeScreen, { hasSeenWelcome } from '@/components/game/WelcomeScreen';
 import { createPageUrl } from '@/utils';
 import { loadProgress, getLocalProgress } from '@/components/game/offlineStorage';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
-
-const AD_FREQUENCY = 6; // show interstitial after every 6th completed game (not start)
 
 export default function Home() {
   const navigate = useNavigate();
@@ -68,21 +66,15 @@ export default function Home() {
   const handleSelectLevel = async (level) => {
     const url = createPageUrl('Game') + `?mode=${selectedMode}&category=${selectedCategory}&level=${level}`;
     if (adsRemoved || !isOnline) { navigate(url); return; } // skip ad if offline or ads removed
-    // CR-15: Gate ads on completed games (written by Game.jsx on victory),
-    // not game starts. Show ad when the player has crossed a new multiple of
-    // AD_FREQUENCY completions since the last ad was shown.
-    const completedCount = parseInt(localStorage.getItem('games_completed_count') || '0');
-    const lastAdAt = parseInt(localStorage.getItem('last_ad_completed_at') || '0');
-    if (completedCount >= AD_FREQUENCY &&
-        Math.floor(completedCount / AD_FREQUENCY) > Math.floor(lastAdAt / AD_FREQUENCY)) {
-      localStorage.setItem('last_ad_completed_at', String(completedCount));
-      if (isNative()) {
-        await showInterstitial(); // native full-screen interstitial; resolves on dismiss
-        navigate(url);
-      } else {
-        setPendingGameUrl(url);
-        setShowAd(true); // web / Electron fallback: React AdModal
-      }
+    // CR-15: Gate ads on completed games, not game starts. The cadence lives in
+    // src/lib/adCadence.js (S41, SF-52), shared with every other start path.
+    if (isNative()) {
+      await showInterstitialBeforeGame({ adsRemoved, isOnline }); // resolves on dismiss, or at once if none is due
+      navigate(url);
+    } else if (interstitialDue({ adsRemoved, isOnline })) {
+      markInterstitialShown();
+      setPendingGameUrl(url);
+      setShowAd(true); // web / Electron fallback: React AdModal
     } else {
       navigate(url);
     }

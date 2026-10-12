@@ -136,6 +136,11 @@ function PurchaseView({ onPurchase }) {
         </motion.button>
       ))}
 
+      {/* Where hints are kept (S40, SF-46) */}
+      <p className="text-xs text-center text-slate-400 dark:text-slate-500 px-2">
+        Hints are saved on this device and aren't linked to an account. Unused hints can be lost if you delete the app.
+      </p>
+
       <div className="flex items-center justify-center gap-2 py-1">
         <Shield className="w-4 h-4 text-slate-400" />
         <p className="text-xs text-slate-400 dark:text-slate-500">Prices are indicative · Billed through the App Store / Google Play</p>

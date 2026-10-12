@@ -544,6 +544,7 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 ### 2026-10-12, night (Windows — hint on a found cell, brief SF-44)
 
 - **CR-92, a hint is now visible on a found cell (D-C):** when a hint lands on a letter that already belongs to a found word, that letter now turns gold and grows, as any hint does, instead of staying green. Which letter is hinted, and when hints clear, are unchanged.
+- **CR-93, where hints are kept (S40):** the screen that sells hint packs now says, under the packs, *"Hints are saved on this device and aren't linked to an account. Unused hints can be lost if you delete the app."*
 - **Still open from SF-43:** the flicker after buying hints (D-B, it doesn't stop by itself) and the flash when changing packs (D-A) need measuring on the tablet; nothing was changed for them.
 
 ## Next Steps (Priority Order)

@@ -541,6 +541,11 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-90, offline wording on iPhone, Android and Windows:** offline, the banner above the modes now says *"You're offline. Every mode still works — ads and purchases need a connection."*, and the Audio Challenge tile no longer has a "Limited offline" badge. The web keeps its old wording and badge. The in-game amber "Offline" badge is unchanged.
 - **The voiceUtils flake again:** the first full `npm test` failed the same three files with the same hook timeout. They passed on a rerun, and two more full runs were green (172 of 172).
 
+### 2026-10-12, night (Windows — hint on a found cell, brief SF-44)
+
+- **CR-92, a hint is now visible on a found cell (D-C):** when a hint lands on a letter that already belongs to a found word, that letter now turns gold and grows, as any hint does, instead of staying green. Which letter is hinted, and when hints clear, are unchanged.
+- **Still open from SF-43:** the flicker after buying hints (D-B, it doesn't stop by itself) and the flash when changing packs (D-A) need measuring on the tablet; nothing was changed for them.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

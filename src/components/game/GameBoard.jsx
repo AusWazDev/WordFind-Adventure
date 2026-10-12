@@ -187,23 +187,23 @@ export default function GameBoard({
                 getCellFontSize(),
                 isSelected(rowIndex, colIndex)
                   ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md z-10'
+                  : isHint(rowIndex, colIndex) // before found, so a hint on a found cell shows (SF-44, D-C)
+                  ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md z-10 ring-2 ring-amber-300'
                   : isFound(rowIndex, colIndex)
                   ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white'
-                  : isHint(rowIndex, colIndex)
-                  ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md z-10 ring-2 ring-amber-300'
                   : isBonusLetter(rowIndex, colIndex) && bonusHuntActive
                   ? 'bg-amber-400 dark:bg-amber-500 text-white ring-2 ring-white/50 shadow-md font-extrabold'
                   : isBonusLetter(rowIndex, colIndex)
                   ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 ring-1 ring-amber-400 dark:ring-amber-600'
                   : 'bg-muted text-foreground hover:bg-muted/70'
               )}
-              animate={ // same order as the colour above (FB-22, CR-85): a found cell is never enlarged
+              animate={ // same order as the colour above (FB-22, CR-85; SF-44): selected, hint, found
                 isSelected(rowIndex, colIndex)
+                  ? { scale: 1.08 }
+                  : isHint(rowIndex, colIndex)
                   ? { scale: 1.08 }
                   : isFound(rowIndex, colIndex)
                   ? { scale: 1 }
-                  : isHint(rowIndex, colIndex)
-                  ? { scale: 1.08 }
                   : isBonusLetter(rowIndex, colIndex) && bonusHuntActive
                   ? { scale: 1.06 }
                   : isBonusLetter(rowIndex, colIndex)

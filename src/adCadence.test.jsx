@@ -12,9 +12,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ native: true }));
 vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
-const ad = vi.hoisted(() => ({ resolve: null }));
-const showInterstitial = vi.hoisted(() => vi.fn(() => new Promise(r => { ad.resolve = r; })));
-vi.mock('@/lib/admob', () => ({ showInterstitial, showRewarded: vi.fn(async () => false), prepareInterstitial: vi.fn() }));
+// SF-57 (DEF-54): the ad SDK is the plugin as it really behaves (see
+// admobPluginMock.testutil.js): showInterstitial() resolves while the ad is still on
+// screen, and only the Dismissed event says it has closed. CR-96's original mock
+// resolved on dismissal, which the real plugin never does, so it hid DEF-54.
+vi.mock('@capacitor-community/admob', async () => (await import('@/lib/admobPluginMock.testutil')).admobModule);
+vi.mock('@sentry/react', () => ({ captureException: vi.fn(), addBreadcrumb: vi.fn() }));
+const { plugin } = await import('@/lib/admobPluginMock.testutil');
+const showInterstitial = plugin.AdMob.showInterstitial;
+const ad = { resolve: () => plugin.dismiss() };
 vi.mock('@/lib/purchases', () => ({ purchaseProduct: vi.fn(), usePrice: () => null, useLowestPrice: () => null, PURCHASE_OPTIONS: [] }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 vi.mock('@/components/game/voiceUtils', () => ({
@@ -82,12 +88,11 @@ afterEach(() => { Element.prototype.getBoundingClientRect = realRect; });
 beforeEach(() => {
   localStorage.clear();
   localStorage.setItem('wf_welcome_seen', 'true');
-  showInterstitial.mockClear();
-  ad.resolve = null;
+  plugin.reset();
   platform.native = true;
   window.matchMedia = window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
 });
-afterEach(async () => { ad.resolve?.(); await act(async () => root?.unmount()); container?.remove(); });
+afterEach(async () => { plugin.dismiss(); await act(async () => root?.unmount()); container?.remove(); });
 
 // Five games already completed and no ad yet: the next completion is the 6th.
 const fiveDone = () => { localStorage.setItem('games_completed_count', '5'); localStorage.setItem('last_ad_completed_at', '0'); };

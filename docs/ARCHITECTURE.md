@@ -141,6 +141,30 @@ Ads: `src/lib/admob.js` — `initAdMob()` from `App.jsx` at startup, `showReward
 from `HintModal`. AdMob and RevenueCat failures are both reported to Sentry with
 context tags rather than swallowed.
 
+### The interstitial flow and its cadence, as of 13 Oct 2026 (CR-101, SF-57, DEF-54, S41)
+
+- **Cadence (`src/lib/adCadence.js`):** every completed game counts, normal and Daily
+  (`recordCompletedGame`, `games_completed_count`). An interstitial is due when
+  `games_completed_count − last_ad_completed_at ≥ 6` (`AD_FREQUENCY`), taking
+  `last_ad_completed_at` as 0 before any ad. It is recorded only when an ad is actually
+  on screen (the plugin's Showed event), so a failed ad stays due for the next start; a
+  long gap gives one ad, and the next is 6 completions after it. Gates: native, online,
+  ads not removed. (Before CR-101 the rule was "a new multiple of 6", which allowed ads
+  one game apart, and the ad was recorded when due rather than when shown.)
+- **When it shows:** before the NEXT game, on every start path: Home's level picker,
+  Next Level, Replay, the Daily card, the Daily's Try Again. Each awaits
+  `showInterstitialBeforeGame()`, which resolves only when the ad is **dismissed**, or
+  at once if it fails to load or show (`admob.js` `showInterstitialUntilClosed`, on the
+  plugin's Dismissed, FailedToShow and rejected-show signals). The plugin's own
+  `AdMob.showInterstitial()` resolves while the ad is still on screen, so it is never
+  awaited on its own. Off native, only Home shows the placeholder `AdModal`.
+- **Ad units:** debug builds (Capacitor's `window.Capacitor.DEBUG`, set by the native
+  shell from the installed app: Android `FLAG_DEBUGGABLE`, iOS `isDevEnvironment`) use
+  Google's published test units; release builds use the production units only.
+  ⚠️ On iOS, `DEBUG` reads true only if the Debug configuration defines
+  `CAPACITOR_DEBUG = true` (`Info.plist` reads `$(CAPACITOR_DEBUG)`; no configuration in
+  this repo defines it), so an iOS debug build currently still gets production units.
+
 ---
 
 ## 5. Persistence

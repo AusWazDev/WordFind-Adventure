@@ -1,4 +1,4 @@
-import { AdMob, MaxAdContentRating } from '@capacitor-community/admob';
+import { AdMob, MaxAdContentRating, InterstitialAdPluginEvents } from '@capacitor-community/admob';
 import * as Sentry from '@sentry/react';
 import { getPlatform } from './platform';
 
@@ -36,8 +36,37 @@ const AD_UNITS = {
   },
 };
 
+// Google's published test ad units (SF-57): every non-release build uses these, so a
+// developer's device never requests live ads. Interstitial and rewarded, from
+// developers.google.com/admob/android/test-ads and .../ios/test-ads.
+export const TEST_AD_UNITS = {
+  android: {
+    interstitial: 'ca-app-pub-3940256099942544/1033173712',
+    rewarded:     'ca-app-pub-3940256099942544/5224354917',
+  },
+  ios: {
+    interstitial: 'ca-app-pub-3940256099942544/4411468910',
+    rewarded:     'ca-app-pub-3940256099942544/1712485313',
+  },
+};
+export const PRODUCTION_AD_UNITS = AD_UNITS;
+
+// Which build this is, from the native shell rather than the JS bundle (the bundle is
+// identical in a debug APK and a release AAB). Capacitor sets window.Capacitor.DEBUG
+// from the app itself: on Android, the FLAG_DEBUGGABLE of the installed app (Bridge
+// isDevMode); on iOS, isDevEnvironment (#if DEBUG, or Info.plist CAPACITOR_DEBUG).
+// A release AAB is not debuggable (Play refuses debuggable uploads), so it reads false
+// and gets production IDs; only a debug build reads true.
+export function isDebugBuild(win = typeof window === 'undefined' ? undefined : window) {
+  return win?.Capacitor?.DEBUG === true;
+}
+
+export function adUnitsFor(platform, debugBuild) {
+  return (debugBuild ? TEST_AD_UNITS : PRODUCTION_AD_UNITS)[platform] ?? null;
+}
+
 function getAdUnits() {
-  return AD_UNITS[getPlatform()] ?? null;
+  return adUnitsFor(getPlatform(), isDebugBuild());
 }
 
 export async function initAdMob() {
@@ -71,15 +100,38 @@ export async function prepareInterstitial() {
   }
 }
 
-// Show preloaded interstitial. Resolves when dismissed (or immediately on error).
-export async function showInterstitial() {
-  try {
-    await AdMob.showInterstitial();
-  } catch (e) {
-    console.warn('[AdMob] showInterstitial failed:', e);
-    Sentry.addBreadcrumb({ category: 'admob', message: 'showInterstitial failed', data: { error: String(e) }, level: 'warning' });
-  }
-  prepareInterstitial(); // fire-and-forget pre-load for next time
+// Show the preloaded interstitial and resolve only when it is GONE (DEF-54, SF-57).
+// The plugin's own AdMob.showInterstitial() resolves straight after show()/present()
+// (@capacitor-community/admob 8.0.0: Android AdInterstitialExecutor.java:69-70, iOS
+// AdInterstitialExecutor.swift:39-40), while the ad is still on screen. So this waits
+// for the plugin's events instead: Dismissed (the close control, or Back once the ad
+// allows it) resolves true; FailedToShow, or a rejected show (not loaded: Android
+// :57-62, iOS :43), resolves false at once. onShowed runs on the Showed event, when
+// the ad is actually on screen. Resolves exactly once; every listener is removed.
+// No timeout: an ad left open (or the app backgrounded) keeps the next game waiting.
+export function showInterstitialUntilClosed({ onShowed } = {}) {
+  return new Promise(resolve => {
+    let settled = false;
+    const handles = [];
+    const finish = (dismissed, error) => {
+      if (settled) return;
+      settled = true;
+      if (error) {
+        console.warn('[AdMob] interstitial did not show:', error);
+        Sentry.addBreadcrumb({ category: 'admob', message: 'interstitial did not show', data: { error: String(error) }, level: 'warning' });
+      }
+      Promise.all(handles).then(hs => hs.forEach(h => h?.remove?.())).catch(() => {});
+      resolve(dismissed);
+      prepareInterstitial(); // fire-and-forget pre-load for next time
+    };
+    const listen = (event, fn) => handles.push(Promise.resolve(AdMob.addListener(event, fn)));
+    listen(InterstitialAdPluginEvents.Showed, () => { if (!settled) onShowed?.(); });
+    listen(InterstitialAdPluginEvents.Dismissed, () => finish(true));
+    listen(InterstitialAdPluginEvents.FailedToShow, e => finish(false, e?.message || 'failed to show'));
+    Promise.all(handles)
+      .then(() => AdMob.showInterstitial())
+      .catch(e => finish(false, e?.message || e));
+  });
 }
 
 // Show rewarded video. Returns true if reward was granted, false if skipped or error.

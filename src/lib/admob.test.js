@@ -19,8 +19,25 @@ vi.mock('@capacitor-community/admob', async () => {
     'requestTrackingAuthorization', 'trackingAuthorizationStatus', 'resetConsentInfo',
     'prepareInterstitial', 'showInterstitial', 'prepareRewardVideoAd', 'showRewardVideoAd',
   ];
-  return { MaxAdContentRating, AdMob: Object.fromEntries(names.map(n => [n, record(n)])) };
+  const { InterstitialAdPluginEvents } = await vi.importActual('@capacitor-community/admob/dist/esm/interstitial/interstitial-ad-plugin-events.enum.js');
+  // SF-57: the plugin's listeners, so a test can close the ad with the Dismissed event,
+  // as the real plugin does (showInterstitial itself resolves while the ad is on screen).
+  const AdMob = Object.fromEntries(names.map(n => [n, record(n)]));
+  AdMob.addListener = vi.fn(async (event, fn) => {
+    (listeners[event] ||= new Set()).add(fn);
+    return { remove: async () => listeners[event].delete(fn) };
+  });
+  return { MaxAdContentRating, InterstitialAdPluginEvents, AdMob };
 });
+const listeners = {};
+const emit = event => [...(listeners[event] || [])].forEach(fn => fn());
+// Show an interstitial and close it, the way the real plugin reports it (SF-57).
+const showAndClose = async () => {
+  const closed = admob.showInterstitialUntilClosed();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  emit('interstitialAdDismissed');
+  return closed;
+};
 vi.mock('@sentry/react', () => ({ captureException: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('./platform', () => ({ getPlatform: () => platform.value, isNative: () => platform.value !== 'web' }));
 
@@ -69,7 +86,7 @@ describe.each(['ios', 'android'])('initAdMob on %s', plat => {
 
   it('never shows a consent or privacy-options form and never requests ATT', async () => {
     await admob.initAdMob();
-    await admob.showInterstitial();
+    await showAndClose();
     await admob.showRewarded();
     await flush();
     for (const name of FORBIDDEN) expect(named(name)).toHaveLength(0);
@@ -77,7 +94,7 @@ describe.each(['ios', 'android'])('initAdMob on %s', plat => {
 
   it('asks for non-personalised ads on every interstitial and rewarded request', async () => {
     await admob.initAdMob();
-    await admob.showInterstitial();
+    await showAndClose();
     await admob.showRewarded();
     await flush();
     const requests = [...named('prepareInterstitial'), ...named('prepareRewardVideoAd')];

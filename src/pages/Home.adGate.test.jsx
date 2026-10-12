@@ -12,7 +12,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const platform = { native: false };
 const showInterstitial = vi.fn(async () => {});
 vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'ios' : 'web') }));
-vi.mock('@/lib/admob', () => ({ showInterstitial: (...a) => showInterstitial(...a), showRewarded: vi.fn(), initAdMob: vi.fn() }));
+// SF-57: Home's native path now waits on showInterstitialUntilClosed (resolves when the
+// ad is closed); this spy stands for it and closes at once.
+vi.mock('@/lib/admob', () => ({ showInterstitialUntilClosed: (...a) => showInterstitial(...a), showRewarded: vi.fn(), initAdMob: vi.fn() }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 
 const { default: Home } = await import('./Home');

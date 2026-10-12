@@ -96,7 +96,7 @@ function PurchaseView({ onPurchase }) {
     setPurchasing(true);
     try {
       const result = await purchaseProduct(selected);
-      if (result.hints) onPurchase(result.hints, result.txnId);
+      if (result.hints) onPurchase(result.hints, result.purchase);
     } catch (e) {
       if (!e?.message?.includes('cancel')) {
         toast.error('Purchase failed', { description: 'Please try again.' });
@@ -184,9 +184,9 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
     onWatchAd();
   };
 
-  const handlePurchaseDone = (amount, txnId) => {
+  const handlePurchaseDone = (amount, purchase) => {
     setView('options');
-    onPurchase(amount, txnId);
+    onPurchase(amount, purchase);
   };
 
   const handleClose = () => {

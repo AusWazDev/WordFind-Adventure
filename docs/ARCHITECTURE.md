@@ -226,6 +226,18 @@ backwards (the ID list is merged as a union; the baseline, once set, is kept), a
 Settings Reset keeps both with `hints_remaining`. Since they live in `wf_progress`,
 Android's Auto Backup (above) restores them together with the balance.
 
+> ⚠️ **Corrected 13 Oct 2026 (CR-100, SF-56, DEF-53); the table above is kept as
+> written.** `credited_txn_ids` holds **RevenueCat's** transaction IDs (the ones
+> `customerInfo.nonSubscriptionTransactions` lists, shaped `o1_…`), not the store's.
+> The purchase result's ID is the store's (a Google Play order ID, `GPA.…`; a StoreKit
+> ID on iOS) and never matches the listed one, which is how CR-98 credited normal
+> purchases twice. The purchase path now records the listed entry from the
+> customerInfo the purchase call returns (same product, not yet recorded, within
+> 2 s of the store's purchase time). When that entry is not listed yet, it records a
+> claim, `pending:<product>:<ms>`, which a later reconcile matches to the listed entry
+> and marks `matched:<product>:<ms>`, crediting nothing. The store's order ID is not
+> kept.
+
 ---
 
 ## 6. Outbound network

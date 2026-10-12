@@ -110,8 +110,11 @@ async function syncAdFreeStatus() {
   }
 }
 
-// Returns { hints: number, txnId } for hint packs or { removeAds: true } for remove_ads.
-// txnId is the store's transaction ID, recorded with the credit (S40-C, SF-50).
+// Returns { hints: number, purchase } for hint packs or { removeAds: true } for remove_ads.
+// `purchase` is what the hint ledger needs to record this purchase under RevenueCat's
+// own ID (DEF-53, SF-56): the product, the store's purchase time, and the
+// nonSubscriptionTransactions of the customerInfo this call returns. The store's
+// transaction ID itself is not kept: it never matches the listed ID.
 // Throws on user cancel or store error.
 export async function purchaseProduct(productId) {
   const { products } = await Purchases.getProducts({
@@ -127,7 +130,16 @@ export async function purchaseProduct(productId) {
     return { removeAds: true };
   }
   const hints = HINT_PACK_MAP[productId];
-  if (hints) return { hints, txnId: result?.transaction?.transactionIdentifier ?? null };
+  if (hints) {
+    return {
+      hints,
+      purchase: {
+        productId,
+        purchaseDate: result?.transaction?.purchaseDate ?? null,
+        listed: result?.customerInfo?.nonSubscriptionTransactions ?? [],
+      },
+    };
+  }
   throw new Error(`Unknown product: ${productId}`);
 }
 

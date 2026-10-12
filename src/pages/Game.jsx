@@ -372,8 +372,8 @@ export default function Game() {
 
   // S40-C (SF-50): the credit and its transaction ID are written together, from the
   // stored progress; a transaction already credited adds nothing.
-  const handlePurchase = (amount, txnId) => {
-    const { progress: updated, creditedHints } = creditPurchaseNow(txnId, amount);
+  const handlePurchase = (amount, purchase) => {
+    const { progress: updated, creditedHints } = creditPurchaseNow(purchase, amount);
     setProgress(updated);
     setHintsRemaining(updated.hints_remaining);
     setShowHintModal(false);

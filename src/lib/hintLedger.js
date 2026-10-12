@@ -3,7 +3,8 @@
 // on a later launch, exactly once.
 //
 // Two NEW fields inside wf_progress (the key and its other fields are unchanged):
-//   credited_txn_ids  store transaction IDs already credited, by either path
+//   credited_txn_ids  RevenueCat transaction IDs already credited, by either path,
+//                     plus purchase-path claims (see "What the ledger records")
 //   reconcile_since   ISO time; only transactions on or after it are reconciled
 //
 // Why a baseline: a reinstall with device backup off starts with an empty ledger,
@@ -32,23 +33,70 @@ export function withBaseline(progress, now) {
   return { ...progress, reconcile_since: new Date(now).toISOString() };
 }
 
-// Pure. The purchase path: credit `amount` for transaction `txnId` unless it is
-// already recorded. Balance and ID change together. With no ID (the SDK always
-// returns one; this is a fallback) the hints are credited and nothing is recorded.
-export function creditPurchase(progress, txnId, amount) {
-  if (txnId && ids(progress).includes(txnId)) return { progress, creditedHints: 0 };
+// What the ledger records (DEF-53, SF-56). The purchase result's transaction ID is
+// the STORE's ID (a Google Play order ID; a StoreKit ID on iOS), while
+// customerInfo.nonSubscriptionTransactions lists RevenueCat's OWN ID for the same
+// purchase, and no field carries the same value on both sides (SF-56 A1). So the
+// ledger records RevenueCat's ID, taken from the customerInfo the purchase call
+// returns, which already lists the new entry (SF-56 A2). When that entry cannot be
+// found, the purchase path records a claim instead, "pending:<product>:<ms>", and a
+// later reconcile treats the first listed entry for that product within
+// MATCH_WINDOW_MS of the claim as already credited, recording its ID and
+// "matched:<product>:<ms>" so the claim is used once. Claims live in
+// credited_txn_ids, which only ever grows (offlineStorage), as IDs do.
+export const MATCH_WINDOW_MS = 2000; // the store's time and RevenueCat's differed by 893 ms (SF-55)
+
+const pendingClaim = (productId, ms) => `pending:${productId}:${ms}`;
+const matchedClaim = (productId, ms) => `matched:${productId}:${ms}`;
+
+// Pure. Add `amount` and record `recordId` together; nothing if already recorded.
+function recordAndCredit(progress, recordId, amount) {
+  if (recordId && ids(progress).includes(recordId)) return { progress, creditedHints: 0 };
   return {
     progress: {
       ...progress,
       hints_remaining: hints(progress) + amount,
-      ...(txnId ? { credited_txn_ids: [...ids(progress), txnId] } : {}),
+      ...(recordId ? { credited_txn_ids: [...ids(progress), recordId] } : {}),
     },
     creditedHints: amount,
   };
 }
 
+// Pure. The listed entry for this purchase: same product, not yet recorded, within
+// MATCH_WINDOW_MS of the store's purchase time, latest purchaseDate first.
+export function findListedEntry(progress, purchase) {
+  const at = Date.parse(purchase?.purchaseDate);
+  const recorded = ids(progress);
+  return (purchase?.listed || [])
+    .filter(e => e?.productIdentifier === purchase.productId && e.transactionIdentifier && !recorded.includes(e.transactionIdentifier))
+    .filter(e => Number.isFinite(Date.parse(e.purchaseDate)) && Number.isFinite(at) && Math.abs(Date.parse(e.purchaseDate) - at) <= MATCH_WINDOW_MS)
+    .sort((a, b) => Date.parse(b.purchaseDate) - Date.parse(a.purchaseDate))[0] || null;
+}
+
+// Pure. The purchase path. `purchase` is { productId, purchaseDate, listed } from
+// purchaseProduct. Always credits once; records RevenueCat's ID for the purchase, or
+// a pending claim when the entry is not listed, so a reconcile never credits it again.
+export function creditPurchase(progress, purchase, amount, now = Date.now()) {
+  const entry = findListedEntry(progress, purchase);
+  if (entry) return recordAndCredit(progress, entry.transactionIdentifier, amount);
+  const at = Date.parse(purchase?.purchaseDate);
+  return recordAndCredit(progress, pendingClaim(purchase?.productId, Number.isFinite(at) ? at : now), amount);
+}
+
+// Pure. The pending claim (if any) that a listed entry answers.
+function claimFor(recorded, t) {
+  const at = Date.parse(t.purchaseDate);
+  return recorded.find(r => {
+    const m = /^pending:(.+):(\d+)$/.exec(r);
+    return m && m[1] === t.productIdentifier && Math.abs(Number(m[2]) - at) <= MATCH_WINDOW_MS
+      && !recorded.includes(matchedClaim(m[1], m[2]));
+  });
+}
+
 // Pure. Credit every hint-pack transaction on or after the baseline that is not yet
-// recorded. Without a baseline nothing is credited (the caller sets one first).
+// recorded. Without a baseline nothing is credited (the caller sets one first). An
+// entry that answers a pending claim is recorded but not credited: the purchase path
+// already credited it.
 export function reconcile(progress, transactions, now) {
   const since = Date.parse(progress?.reconcile_since);
   if (!Number.isFinite(since)) return { progress: withBaseline(progress, now), creditedHints: 0 };
@@ -59,7 +107,13 @@ export function reconcile(progress, transactions, now) {
     if (!amount || !t.transactionIdentifier) continue;
     if (!(Date.parse(t.purchaseDate) >= since)) continue;
     if (ids(next).includes(t.transactionIdentifier)) continue;
-    next = creditPurchase(next, t.transactionIdentifier, amount).progress;
+    const claim = claimFor(ids(next), t);
+    if (claim) {
+      const [, product, ms] = /^pending:(.+):(\d+)$/.exec(claim);
+      next = { ...next, credited_txn_ids: [...ids(next), t.transactionIdentifier, matchedClaim(product, ms)] };
+      continue;
+    }
+    next = recordAndCredit(next, t.transactionIdentifier, amount).progress;
     creditedHints += amount;
   }
   return { progress: next, creditedHints };
@@ -93,9 +147,10 @@ export function reconcileHintPurchases(customerInfo, now = Date.now()) {
 }
 
 // Wiring. The pages' purchase path: credit from the stored progress, in one write.
-export function creditPurchaseNow(txnId, amount) {
+// `purchase` is purchaseProduct's { productId, purchaseDate, listed }.
+export function creditPurchaseNow(purchase, amount) {
   const current = getLocalProgress() || {};
-  const { progress, creditedHints } = creditPurchase(current, txnId, amount);
+  const { progress, creditedHints } = creditPurchase(current, purchase, amount);
   if (creditedHints > 0) {
     saveLocalProgress({
       hints_remaining: progress.hints_remaining,

@@ -70,6 +70,8 @@ export async function updateProgress(_ignored, progress, data) {
 const DEFAULT_SETTINGS = {
   id: 'local',
   audio_voice: 'female',
+  // SF-60: audio_rate and audio_pitch are no longer read (the Backup Voice has a
+  // fixed rate and pitch). They stay so existing saved settings are untouched.
   audio_rate: 0.9,
   audio_pitch: 1,
   sound_effects_volume: 0.8,

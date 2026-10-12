@@ -121,6 +121,36 @@ connection."*; on the web it says Audio Challenge is limited (CR-90).
 The Daily Challenge has a time limit that scales with the word count (decision S27)
 and awards its reward hints once a day (S28).
 
+### Voice paths, as of 13 Oct 2026 (SF-58, SF-60; `src/components/game/voiceUtils.jsx`)
+
+Only Audio Challenge speaks (normal games and the Daily), plus Settings' Test Voice.
+
+- **Recordings first.** `speakWordAudio` (the word, played twice with a 400 ms gap),
+  `speakSentenceAudio` (tricky words), `speakPhraseAndWord` and `speakFixedPhrase`
+  play the MP3s in `public/audio/` through Web Audio. The only setting that applies is
+  Voice Type (`audio_voice`: female or male folder). Nothing sets a playback rate or
+  pitch on a recording. As at 13 Oct 2026 every word Audio Challenge can draw (1,608)
+  has a recording in both voices, and all 315 sentence words have both sentence files
+  (SF-58 count).
+- **Decoding (SF-60):** `fetchBuffer` decodes on the context that is current when the
+  file has loaded, not one taken before the fetch. Decoded buffers stay cached across
+  context rebuilds (CR-77, CR-79, CR-82 unchanged).
+- **One retry (SF-60):** a failure because the context was closed or replaced
+  (`closed-context`: a decode rejected with InvalidStateError, or a context that is no
+  longer current) is retried once on the current context (`withContextRetry`).
+  Chromium rejects a decode still running when its context closes ("Audio context is
+  going away"), and the app closes contexts in `rebuildAudioContext`.
+- **The Backup Voice** (`speakText`, the device's speech synthesis) is used only when a
+  recording fails: `fetch` (load error, including offline on the web before the file
+  is cached), `decode`, `closed-context` (after its one retry), `play` (playback could
+  not start), or `other`. It uses a **fixed rate 0.9 and pitch 1.0** (SF-60) and picks
+  the device voice by gender as before. As at 13 Oct 2026 nothing reads the stored
+  `audio_rate` or `audio_pitch`; the Settings sliders for them were removed.
+- **Reported (SF-60):** each fallback sends a Sentry warning, *"Backup Voice used:
+  recorded audio failed"*, tagged `voice_fallback_reason`, `platform` (android, ios,
+  web or electron) and `online` (`navigator.onLine`), with the word; at most one per
+  reason per app session.
+
 ---
 
 ## 4. Monetisation
@@ -225,7 +255,7 @@ at 13 Oct 2026 (no other storage API is used):
 | Key | Where | Purpose | Settings Reset |
 |---|---|---|---|
 | `wf_progress` | `offlineStorage.jsx` `PROGRESS_KEY` | Level, score, hints, games played, words found, best streak, and the hint ledger (§4) | Cleared, keeping `hints_remaining`, `credited_txn_ids` and `reconcile_since` |
-| `wf_settings` | `offlineStorage.jsx` `SETTINGS_KEY` | Voice, backup-voice rate and pitch, theme | Cleared |
+| `wf_settings` | `offlineStorage.jsx` `SETTINGS_KEY` | Voice and theme; also `audio_rate` and `audio_pitch`, kept but unread since SF-60 | Cleared |
 | `wf_daily` | `offlineStorage.jsx` `DAILY_KEY` | Daily Challenge records by local date | Cleared |
 | `wf_welcome_seen` | `WelcomeScreen.jsx` `WELCOME_KEY` | First-run welcome shown | Cleared |
 | `games_completed_count` | `adCadence.js` `COUNT_KEY` | Completed games, for the interstitial cadence | Cleared |
@@ -282,8 +312,9 @@ Audio is served from the app's own `public/audio/` files.
 - **`isNative()`** (`src/lib/platform.js`) gates every purchase path and the real ads.
   Web and Electron take the non-native branch (placeholders).
 - **The Microsoft Store ships Electron**, not a PWA wrapper (`electron:dist`).
-- **Audio degrades silently:** if an MP3 is missing, playback falls back to the Web
-  Speech API with no error shown.
+- **Audio degrades without telling the player:** if a recording fails, the Backup Voice
+  (Web Speech API) speaks instead, with no error shown; since SF-60 each fallback is
+  reported to Sentry (§3, Voice paths).
 
 ---
 

@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach, afterAll } from 'vites
 
 // SF-59: voiceUtils imports @sentry/react only for addBreadcrumb; the real package
 // was most of the beforeAll import, which under load overran the 10 s hook budget.
-vi.mock('@sentry/react', () => ({ addBreadcrumb: vi.fn(), captureException: vi.fn() }));
+vi.mock('@sentry/react', () => ({ addBreadcrumb: vi.fn(), captureException: vi.fn(), captureMessage: vi.fn() }));
 
 const contexts = [];
 class MockAudioContext {

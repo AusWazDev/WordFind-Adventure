@@ -166,49 +166,9 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Speech Rate — CR-65: applies to the Web Speech fallback only
-                  (voiceUtils speakText); the recorded voices ignore it. */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Backup Voice Speed: {settings?.audio_rate?.toFixed(1)}x
-                </label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 -mt-1 mb-2">
-                  Used only when a recorded voice isn&apos;t available.
-                </p>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2"
-                  step="0.1"
-                  value={settings?.audio_rate || 0.9}
-                  onChange={(e) => handleUpdate('audio_rate', parseFloat(e.target.value))}
-                  className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                />
-                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  <span>Slow</span>
-                  <span>Fast</span>
-                </div>
-              </div>
-
-              {/* Voice Pitch — CR-65: Web Speech fallback only, as above. */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Backup Voice Pitch: {settings?.audio_pitch?.toFixed(1)}
-                </label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2"
-                  step="0.1"
-                  value={settings?.audio_pitch || 1}
-                  onChange={(e) => handleUpdate('audio_pitch', parseFloat(e.target.value))}
-                  className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                />
-                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  <span>Low</span>
-                  <span>High</span>
-                </div>
-              </div>
+              {/* SF-60: the Backup Voice Speed and Pitch sliders were removed; the
+                  Backup Voice now has a fixed rate and pitch (voiceUtils speakText).
+                  The stored audio_rate and audio_pitch stay in wf_settings, unread. */}
 
               {/* CR-65: the Sound Effects Volume slider was removed; nothing
                   read sound_effects_volume. The stored field is kept (offlineStorage

@@ -8,6 +8,8 @@
  *   - Chrome long-utterance keep-alive fix
  */
 import * as Sentry from '@sentry/react';
+import { getPlatform } from '@/lib/platform';
+import { isElectronPage } from '@/lib/staleServiceWorkers';
 
 // ─── iOS audio unlock ─────────────────────────────────────────────────────────
 let iosUnlocked = false;
@@ -223,6 +225,9 @@ function beginPlay() {
 const isCurrent = generation => generation === _generation;
 
 // ─── Main speak function ──────────────────────────────────────────────────────
+export const BACKUP_VOICE_RATE = 0.9;
+export const BACKUP_VOICE_PITCH = 1.0;
+
 export async function speakText(text, settings = {}) {
   if (!('speechSynthesis' in window)) return;
   const generation = beginPlay();
@@ -236,23 +241,17 @@ export async function speakText(text, settings = {}) {
   const utterance = new SpeechSynthesisUtterance(text);
   const genderPref = settings.audio_voice || 'female';
 
-  utterance.rate   = settings.audio_rate  ?? 0.78;  // deliberate pace — clearer for spelling
+  // SF-60: a fixed, natural rate and pitch. The stored audio_rate and audio_pitch
+  // (wf_settings) are no longer read; their sliders were removed.
+  utterance.rate   = BACKUP_VOICE_RATE;
   utterance.volume = 1;
-  utterance.pitch  = settings.audio_pitch ?? 1.0;
+  utterance.pitch  = BACKUP_VOICE_PITCH;
 
   // Select best voice
   const voices = await getVoices();
   if (!isCurrent(generation)) return;
   const voice = getPreferredVoice(voices, genderPref);
-  if (voice) {
-    utterance.voice = voice;
-    // On iOS, enhanced voices sound best at pitch 1.0 — avoid tweaking
-    if (!voice.name.toLowerCase().includes('enhanced')) {
-      utterance.pitch = genderPref === 'female'
-        ? Math.min((settings.audio_pitch ?? 1.0) * 1.05, 1.4)
-        : Math.max((settings.audio_pitch ?? 1.0) * 0.92, 0.7);
-    }
-  }
+  if (voice) utterance.voice = voice;
 
   // Chrome keep-alive fix for long utterances
   const keepAlive = setInterval(() => {
@@ -387,11 +386,42 @@ function fetchArrayBuffer(url) {
   });
 }
 
+// ─── Why a recording failed (SF-60) ───────────────────────────────────────────
+// Every failure on the recorded path carries a reason: 'fetch', 'decode',
+// 'closed-context', 'play', or (unlabelled) 'other'. A 'closed-context' failure
+// is retried once on the current context; any other goes to the Backup Voice.
+function audioPathError(reason, cause) {
+  const err = new Error(`recorded audio failed: ${reason}`);
+  err.audioReason = reason;
+  err.cause = cause;
+  return err;
+}
+const reasonOf = err => err?.audioReason || 'other';
+
+// The context a step used has gone: closed, or replaced by rebuildAudioContext().
+// Chromium rejects a decode still running when its context closes with
+// InvalidStateError ("Audio context is going away"); see SF-60 in the Change Register.
+function contextGone(ctx, err) {
+  return ctx !== _audioCtx || ctx?.state === 'closed' || err?.name === 'InvalidStateError';
+}
+
 async function fetchBuffer(url) {
   if (_bufferCache.has(url)) return _bufferCache.get(url);
+  let arrayBuffer;
+  try {
+    arrayBuffer = await fetchArrayBuffer(url);
+  } catch (e) {
+    throw audioPathError('fetch', e);
+  }
+  // SF-60: decode on the context that is current NOW, not one captured before the
+  // fetch was awaited (a rebuild during the fetch closes the old one).
   const ctx = getAudioContext();
-  const arrayBuffer = await fetchArrayBuffer(url);
-  const buf = await ctx.decodeAudioData(arrayBuffer);
+  let buf;
+  try {
+    buf = await ctx.decodeAudioData(arrayBuffer);
+  } catch (e) {
+    throw audioPathError(contextGone(ctx, e) ? 'closed-context' : 'decode', e);
+  }
   _bufferCache.set(url, buf);
   return buf;
 }
@@ -460,13 +490,23 @@ function stopSources(sources) {
   }
 }
 
+// Runs `schedule` on ctx, labelling a failure to start playback (SF-60): a context
+// that is closed or has been replaced is 'closed-context', anything else 'play'.
+function startOn(ctx, schedule, sources) {
+  try {
+    return schedule(ctx, sources);
+  } catch (e) {
+    throw audioPathError(contextGone(ctx, e) ? 'closed-context' : 'play', e);
+  }
+}
+
 // `schedule(ctx, sources)` schedules the sound on ctx and returns its end time.
 async function playWatched(generation, schedule) {
   let ctx = await ensureAudioRunning();
   if (!isCurrent(generation)) return;
   let sources = [];
   let startedAt = ctx.currentTime;
-  let endTime = schedule(ctx, sources);
+  let endTime = startOn(ctx, schedule, sources);
   await wait(STALL_CHECK_MS);
   if (!isCurrent(generation)) return;            // stopped or replaced: no retry
 
@@ -478,7 +518,7 @@ async function playWatched(generation, schedule) {
     Sentry.addBreadcrumb({ category: 'audio', message: 'playback stalled; rebuilt the context and replayed', level: 'warning' });
     sources = [];
     startedAt = ctx.currentTime;
-    endTime = schedule(ctx, sources);             // the one and only replay
+    endTime = startOn(ctx, schedule, sources);    // the one and only replay
     await wait(STALL_CHECK_MS);
     if (!isCurrent(generation)) return;
     if (ctx.currentTime <= startedAt) {
@@ -487,6 +527,53 @@ async function playWatched(generation, schedule) {
     }
   }
   await wait(Math.max(0, (endTime - ctx.currentTime) * 1000 + 50));
+}
+
+// SF-60: a recording that failed because its context was closed or replaced is
+// tried ONCE more, on the current context. Any other failure, or a second one,
+// is thrown to the caller, which falls back to the Backup Voice.
+async function withContextRetry(generation, attempt) {
+  try {
+    return await attempt();
+  } catch (e) {
+    if (reasonOf(e) !== 'closed-context' || !isCurrent(generation)) throw e;
+    return attempt();
+  }
+}
+
+// SF-60: each Backup Voice fallback sends one Sentry warning, at most one per
+// reason per app session. Only the reason, the platform, whether the device
+// reports itself online, and the word are sent. A failure to report never stops
+// the Backup Voice from speaking.
+const _fallbackReasonsReported = new Set();
+
+function platformTag() {
+  try {
+    const p = getPlatform();
+    return p === 'web' && isElectronPage() ? 'electron' : p;
+  } catch { return 'unknown'; }
+}
+
+function reportFallback(err, word) {
+  const reason = reasonOf(err);
+  if (_fallbackReasonsReported.has(reason)) return;
+  _fallbackReasonsReported.add(reason);
+  try {
+    Sentry.captureMessage('Backup Voice used: recorded audio failed', {
+      level: 'warning',
+      tags: {
+        voice_fallback_reason: reason,
+        platform: platformTag(),
+        online: String(typeof navigator !== 'undefined' ? navigator.onLine : 'unknown'),
+      },
+      extra: word ? { word } : undefined,
+    });
+  } catch { /* reporting must never block the Backup Voice */ }
+}
+
+async function fallBackToBackupVoice(err, word, text, settings) {
+  reportFallback(err, word);
+  await speakText(text, settings);
 }
 
 // Fetch all urls in parallel, then play them gaplessly in sequence — unless a
@@ -508,18 +595,20 @@ export async function speakWordAudio(word, settings = {}) {
   const generation = beginPlay();
 
   try {
-    const buf = await fetchBuffer(url);
-    if (!isCurrent(generation)) return;
-    await playWatched(generation, (ctx, sources) => {
-      const t1 = ctx.currentTime + 0.05;
-      const t2 = t1 + buf.duration + 0.4;   // 400ms gap — intentional for word repetition
-      scheduleBuffers([buf], t1, sources);
-      return scheduleBuffers([buf], t2, sources);
+    await withContextRetry(generation, async () => {
+      const buf = await fetchBuffer(url);
+      if (!isCurrent(generation)) return;
+      await playWatched(generation, (ctx, sources) => {
+        const t1 = ctx.currentTime + 0.05;
+        const t2 = t1 + buf.duration + 0.4;   // 400ms gap — intentional for word repetition
+        scheduleBuffers([buf], t1, sources);
+        return scheduleBuffers([buf], t2, sources);
+      });
     });
-  } catch {
+  } catch (err) {
     if (!isCurrent(generation)) return;
     const spoken = word.toLowerCase();
-    await speakText(`${spoken}... ${spoken}.`, settings);
+    await fallBackToBackupVoice(err, upper, `${spoken}... ${spoken}.`, settings);
   }
 }
 
@@ -534,11 +623,11 @@ export async function speakSentenceAudio(word, sentence, settings = {}) {
   const generation = beginPlay();
 
   try {
-    await playSeamless(generation, `/audio/sentences/${gender}_${upper}.mp3`);
-  } catch {
+    await withContextRetry(generation, () => playSeamless(generation, `/audio/sentences/${gender}_${upper}.mp3`));
+  } catch (err) {
     if (!isCurrent(generation)) return;
     const spoken = word.toLowerCase();
-    await speakText(`${spoken}... ${sentence}... ${spoken}.`, settings);
+    await fallBackToBackupVoice(err, upper, `${spoken}... ${sentence}... ${spoken}.`, settings);
   }
 }
 
@@ -553,14 +642,14 @@ export async function speakPhraseAndWord(phraseKey, word, fallbackText, settings
   const generation = beginPlay();
 
   try {
-    await playSeamless(
+    await withContextRetry(generation, () => playSeamless(
       generation,
       `/audio/phrases/${gender}_${phraseKey}.mp3`,
       `/audio/${gender}/${upper}.mp3`
-    );
-  } catch {
+    ));
+  } catch (err) {
     if (!isCurrent(generation)) return;
-    await speakText(fallbackText, settings);
+    await fallBackToBackupVoice(err, upper, fallbackText, settings);
   }
 }
 
@@ -574,10 +663,10 @@ export async function speakFixedPhrase(phraseKey, fallbackText, settings = {}) {
   const generation = beginPlay();
 
   try {
-    await playSeamless(generation, `/audio/phrases/${gender}_${phraseKey}.mp3`);
-  } catch {
+    await withContextRetry(generation, () => playSeamless(generation, `/audio/phrases/${gender}_${phraseKey}.mp3`));
+  } catch (err) {
     if (!isCurrent(generation)) return;
-    await speakText(fallbackText, settings);
+    await fallBackToBackupVoice(err, undefined, fallbackText, settings);
   }
 }
 

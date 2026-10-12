@@ -70,15 +70,21 @@ Always do a follow-up docs commit if the hook fires warnings.
 Every code change needs a CR or DEF entry in `docs/Change Register.md` with the commit hash filled in after pushing.
 
 ### Verifying a test run (SF-55d, SF-59)
+> **As of 13 Oct 2026 this rule is governed by the global CLAUDE.md (Known recurring
+> pitfalls › Code); this section keeps only the incident record.**
+
 A test run's result is its **exit code plus its full summary, including any `Errors`
 line**. Never judge a run from a filtered summary. Capture the output to a file,
 record `$?`, then read the `Test Files`, `Tests` and `Errors` lines from that file.
+*⚠️ Superseded 13 Oct 2026 by the global CLAUDE.md, which now states this rule; the
+paragraph above is kept as written.*
 
 Why: from CR-96 to SF-55d, every full run was read through
 `grep -E "FAIL|Test Files|Tests "`. That filter shows neither the exit code nor the
 `Errors` line, so `npm test` exited 1 with two unhandled errors (canvas-confetti in
 jsdom) for a whole run of commits while every summary read "224 passed". Passing
-counts are not a passing run.
+counts are not a passing run. *(⚠️ That last sentence restates the rule; superseded
+13 Oct 2026 by the global CLAUDE.md, kept as written.)*
 
 ---
 

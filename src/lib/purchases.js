@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { Purchases, PRODUCT_CATEGORY } from '@revenuecat/purchases-capacitor';
 import * as Sentry from '@sentry/react';
 import { getPlatform } from './platform';
+import { ensureReconcileBaseline, reconcileHintPurchases } from './hintLedger';
 
 const API_KEYS = {
   ios:     'appl_uaNkxxIRCiSXwfwQkJvoCSyQuSF',
@@ -18,7 +19,7 @@ const _listeners = new Set();
 
 export const REMOVE_ADS_PRODUCT_ID = 'au.com.uniquegames.soundfind.remove_ads';
 
-const HINT_PACK_MAP = {
+export const HINT_PACK_MAP = {
   'au.com.uniquegames.soundfind.hints_3':  3,
   'au.com.uniquegames.soundfind.hints_10': 10,
   'au.com.uniquegames.soundfind.hints_25': 25,
@@ -85,6 +86,8 @@ export async function initPurchases() {
   const apiKey = API_KEYS[getPlatform()];
   if (!apiKey) return;
   try {
+    // S40-C (SF-50): the reconcile baseline is set before any purchase is possible.
+    await ensureReconcileBaseline();
     await Purchases.configure({ apiKey });
     await Promise.all([syncAdFreeStatus(), fetchAndCachePrices()]);
   } catch (e) {
@@ -100,12 +103,15 @@ async function syncAdFreeStatus() {
     if (customerInfo.entitlements.active['remove_ads']) {
       localStorage.setItem('ads_removed', 'true');
     }
+    // S40-C (SF-50, P1): credit hint packs that were charged but never credited.
+    reconcileHintPurchases(customerInfo);
   } catch {
     // Non-fatal — user may be offline
   }
 }
 
-// Returns { hints: number } for hint packs or { removeAds: true } for remove_ads.
+// Returns { hints: number, txnId } for hint packs or { removeAds: true } for remove_ads.
+// txnId is the store's transaction ID, recorded with the credit (S40-C, SF-50).
 // Throws on user cancel or store error.
 export async function purchaseProduct(productId) {
   const { products } = await Purchases.getProducts({
@@ -114,14 +120,14 @@ export async function purchaseProduct(productId) {
   });
   if (!products?.length) throw new Error('Product not found in store');
 
-  await Purchases.purchaseStoreProduct({ product: products[0] });
+  const result = await Purchases.purchaseStoreProduct({ product: products[0] });
 
   if (productId === REMOVE_ADS_PRODUCT_ID) {
     localStorage.setItem('ads_removed', 'true');
     return { removeAds: true };
   }
   const hints = HINT_PACK_MAP[productId];
-  if (hints) return { hints };
+  if (hints) return { hints, txnId: result?.transaction?.transactionIdentifier ?? null };
   throw new Error(`Unknown product: ${productId}`);
 }
 

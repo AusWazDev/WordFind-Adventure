@@ -2,7 +2,8 @@ import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { loadProgress, updateProgress, getDailyRecord, saveDailyRecord, loadSettings } from '@/components/game/offlineStorage';
+import { loadProgress, updateProgress, getDailyRecord, saveDailyRecord, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
+import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
 import GameBoard from '@/components/game/GameBoard';
 import WordList from '@/components/game/WordList';
@@ -375,13 +376,28 @@ export default function DailyChallenge() {
     if (progress) updateProgress(null, progress, { hints_remaining: newHints });
   };
 
-  const handlePurchase = (amount) => {
-    const newHints = hintsRemaining + amount;
-    setHintsRemaining(newHints);
+  // S40-C (SF-50): the credit and its transaction ID are written together, from the
+  // stored progress; a transaction already credited adds nothing.
+  const handlePurchase = (amount, txnId) => {
+    const { progress: updated, creditedHints } = creditPurchaseNow(txnId, amount);
+    setProgress(updated);
+    setHintsRemaining(updated.hints_remaining);
     setShowHintModal(false);
-    toast.success(`Purchased ${amount} hints!`);
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+    if (creditedHints) toast.success(`Purchased ${amount} hints!`);
   };
+
+  // H2 (SF-50): a reconcile credit made while this screen is open is re-read, so the
+  // screen's next balance write builds on it instead of overwriting it.
+  useEffect(() => {
+    const reread = () => {
+      const p = getLocalProgress();
+      if (!p) return;
+      setProgress(p);
+      setHintsRemaining(p.hints_remaining ?? 12);
+    };
+    window.addEventListener(PROGRESS_CHANGED_EVENT, reread);
+    return () => window.removeEventListener(PROGRESS_CHANGED_EVENT, reread);
+  }, []);
 
   if (!gameData) {
     return (

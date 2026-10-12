@@ -208,6 +208,24 @@ RevenueCat's preferences together, or restored hints and any future purchase
 reconciliation (SF-45 C) break. The test reads the source manifest only; the merged
 manifest is checked by hand (see CR-94).
 
+### Hint-pack ledger in `wf_progress`, added 13 Oct 2026 (CR-98, SF-50, decision S40-C)
+
+Two new fields inside `wf_progress`; the key and every existing field keep their
+meaning:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `credited_txn_ids` | array of strings | Store transaction IDs whose hint packs have been credited, by the purchase path or by a reconcile |
+| `reconcile_since` | ISO time string | Only hint-pack transactions dated on or after this are ever reconciled. Set when missing: on a new install, or on the first launch of the version that added it |
+
+**Who writes them:** `src/lib/hintLedger.js`. The purchase path (`creditPurchaseNow`)
+records the ID with the balance in one write; `initPurchases` sets the baseline before
+any purchase is possible and, once RevenueCat answers, reconciles
+`customerInfo.nonSubscriptionTransactions`. `saveLocalProgress` never moves them
+backwards (the ID list is merged as a union; the baseline, once set, is kept), and
+Settings Reset keeps both with `hints_remaining`. Since they live in `wf_progress`,
+Android's Auto Backup (above) restores them together with the balance.
+
 ---
 
 ## 6. Outbound network

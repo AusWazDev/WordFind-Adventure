@@ -82,9 +82,13 @@ export default function Settings() {
       localStorage.removeItem(key);
     });
 
-    // Restore monetisation values
+    // Restore monetisation values. The hint ledger (S40-C, SF-50) is kept with the
+    // balance, or a reconcile after Reset would credit every recorded pack again.
     if (adsRemoved) localStorage.setItem('ads_removed', adsRemoved);
-    localStorage.setItem('wf_progress', JSON.stringify({ hints_remaining: hintsRemaining }));
+    const kept = { hints_remaining: hintsRemaining };
+    if (Array.isArray(savedProgress.credited_txn_ids)) kept.credited_txn_ids = savedProgress.credited_txn_ids;
+    if (savedProgress.reconcile_since) kept.reconcile_since = savedProgress.reconcile_since;
+    localStorage.setItem('wf_progress', JSON.stringify(kept));
 
     toast.success('Game data cleared. Your hints and purchases are preserved.');
   };

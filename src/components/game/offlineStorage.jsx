@@ -17,10 +17,22 @@ export function getLocalProgress() {
   }
 }
 
+// The hint ledger's two fields (S40-C, SF-50) never move backwards, whoever writes:
+// screens write their whole progress object, which may predate a reconcile credit.
+// credited_txn_ids only grows (union); reconcile_since, once set, is kept.
+function mergeProgress(existing, data) {
+  const merged = { ...existing, ...data };
+  if (Array.isArray(existing.credited_txn_ids) || Array.isArray(data.credited_txn_ids)) {
+    merged.credited_txn_ids = [...new Set([...(existing.credited_txn_ids || []), ...(data.credited_txn_ids || [])])];
+  }
+  if (existing.reconcile_since) merged.reconcile_since = existing.reconcile_since;
+  return merged;
+}
+
 export function saveLocalProgress(data) {
   try {
     const existing = getLocalProgress() || {};
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify({ ...existing, ...data }));
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(mergeProgress(existing, data)));
   } catch (err) {
     if (err?.name === 'QuotaExceededError' || err?.code === 22) {
       // Storage full — clear old daily records to free space, then retry
@@ -28,7 +40,7 @@ export function saveLocalProgress(data) {
       try {
         localStorage.removeItem(DAILY_KEY);
         const existing = getLocalProgress() || {};
-        localStorage.setItem(PROGRESS_KEY, JSON.stringify({ ...existing, ...data }));
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(mergeProgress(existing, data)));
       } catch {
         console.error('SoundFind: could not save progress — device storage is full');
       }

@@ -11,7 +11,8 @@ import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
 import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio, stopAllAudio } from '@/components/game/voiceUtils';
-import { loadProgress, updateProgress, loadSettings } from '@/components/game/offlineStorage';
+import { loadProgress, updateProgress, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
+import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
 import { toast } from 'sonner';
 
@@ -369,13 +370,28 @@ export default function Game() {
     if (progress) updateProgress(null, progress, { hints_remaining: newHints });
   };
 
-  const handlePurchase = (amount) => {
-    const newHints = hintsRemaining + amount;
-    setHintsRemaining(newHints);
+  // S40-C (SF-50): the credit and its transaction ID are written together, from the
+  // stored progress; a transaction already credited adds nothing.
+  const handlePurchase = (amount, txnId) => {
+    const { progress: updated, creditedHints } = creditPurchaseNow(txnId, amount);
+    setProgress(updated);
+    setHintsRemaining(updated.hints_remaining);
     setShowHintModal(false);
-    toast.success(`You purchased ${amount} hints!`);
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+    if (creditedHints) toast.success(`You purchased ${amount} hints!`);
   };
+
+  // H2 (SF-50): a reconcile credit made while this screen is open is re-read, so the
+  // screen's next balance write builds on it instead of overwriting it.
+  useEffect(() => {
+    const reread = () => {
+      const p = getLocalProgress();
+      if (!p) return;
+      setProgress(p);
+      setHintsRemaining(p.hints_remaining ?? 12);
+    };
+    window.addEventListener(PROGRESS_CHANGED_EVENT, reread);
+    return () => window.removeEventListener(PROGRESS_CHANGED_EVENT, reread);
+  }, []);
 
   const handleBonusCellTap = useCallback((letter) => {
     if (!gameDataRef.current?.bonusWord) return;

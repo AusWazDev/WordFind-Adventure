@@ -16,6 +16,7 @@ import HowToPlayModal from '@/components/game/HowToPlayModal';
 import WelcomeScreen, { hasSeenWelcome } from '@/components/game/WelcomeScreen';
 import { createPageUrl } from '@/utils';
 import { loadProgress, getLocalProgress } from '@/components/game/offlineStorage';
+import { PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
@@ -40,6 +41,13 @@ export default function Home() {
 
   useEffect(() => {
     loadProgressData().catch(console.error);
+  }, []);
+
+  // A reconcile credit (S40-C, SF-50) updates the hint count shown here.
+  useEffect(() => {
+    const reread = () => { const p = getLocalProgress(); if (p) setProgress(p); };
+    window.addEventListener(PROGRESS_CHANGED_EVENT, reread);
+    return () => window.removeEventListener(PROGRESS_CHANGED_EVENT, reread);
   }, []);
 
   const loadProgressData = async () => {

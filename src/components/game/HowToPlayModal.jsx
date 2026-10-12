@@ -202,7 +202,7 @@ export default function HowToPlayModal({ isOpen, onClose }) {
         >
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50"
             onClick={handleClose}
           />
 

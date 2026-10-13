@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Coins, Sparkles, Star, Shield, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { HIT_FROM_36 } from '@/lib/touchTarget';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
@@ -225,7 +226,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                   {view === 'purchase' && 'One-time purchase, no subscription'}
                 </p>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleClose}>
+              <Button variant="ghost" size="icon" onClick={handleClose} aria-label="Close" className={HIT_FROM_36}>
                 <X className="w-5 h-5" />
               </Button>
             </div>

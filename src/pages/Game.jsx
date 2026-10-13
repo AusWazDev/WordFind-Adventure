@@ -518,6 +518,9 @@ export default function Game() {
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               onClick={() => setBonusInput(prev => prev.slice(0, -1))}
+              aria-label="Delete last letter"
+              // 44 px touch area: taller, and wider to the left (only half the 6 px gap to Submit) (SF-61)
+              className="relative after:absolute after:-inset-y-[7px] after:-left-[7px] after:-right-[3px]"
               style={{
                 flexShrink: 0, fontSize: 14, fontWeight: 600,
                 background: 'rgba(255,255,255,0.2)', border: 'none',

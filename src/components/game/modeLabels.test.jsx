@@ -47,13 +47,27 @@ function labelMaps() {
 describe('mode-label census', () => {
   const maps = labelMaps();
 
-  it('the apparatus finds the label maps (control)', () => {
-    const files = maps.map(m => m.file).sort();
-    expect(files).toEqual(expect.arrayContaining([
-      'components/game/DailyChallengeCard.jsx',
-      'components/game/GameHeader.jsx',
-      'components/game/GameLoadingScreen.jsx',
-    ]));
+  // SF-61 (U1): one shared map. The census still finds it (control), and finds no other.
+  it('there is exactly one label map, the shared one in lib/constants.js', () => {
+    expect(maps.map(m => m.file)).toEqual(['lib/constants.js']);
+  });
+
+  it('no file outside lib/constants.js spells out a mode label', () => {
+    const hits = [];
+    for (const file of sourceFiles(SRC)) {
+      const rel = relative(SRC, file).replace(/\\/g, '/');
+      if (rel === 'lib/constants.js') continue;
+      const text = readFileSync(file, 'utf8');
+      for (const label of Object.values(LONG)) {
+        if (text.includes(`'${label}'`) || text.includes(`"${label}"`) || text.includes(`>${label}<`)) hits.push(`${rel}: ${label}`);
+      }
+    }
+    expect(hits).toEqual([]);
+  });
+
+  it('the removed spelling mode has no label anywhere in src', () => {
+    const hits = sourceFiles(SRC).filter(f => readFileSync(f, 'utf8').includes('Spelling Bee'));
+    expect(hits.map(f => relative(SRC, f))).toEqual([]);
   });
 
   it('every label map uses the long set', () => {
@@ -84,9 +98,8 @@ describe('mode-label census', () => {
   });
 });
 
-// DailyChallengeCard.MODE_LABELS is never rendered (the card shows only its
-// heading, the template title and Play), so the census above is its only pin.
-// The loading screen IS player-visible: it shows the label while a game builds.
+// The loading screen is player-visible: it shows the label while a game builds.
+// (DailyChallengeCard's unread copy of the map was deleted in SF-61.)
 describe('the loading screen shows the long name for every mode', () => {
   let container;
   let root;

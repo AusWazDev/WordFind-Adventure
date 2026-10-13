@@ -7,17 +7,6 @@ import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import { showInterstitialBeforeGame } from '@/lib/adCadence';
 
-// CR-66 (decision S2): the long set, as everywhere else. Note: this map is not
-// currently rendered by the card; it is kept consistent so a future use of it
-// cannot reintroduce the old short names.
-const MODE_LABELS = {
-  standard:     'Standard',
-  audio:        'Audio Challenge',
-  anagram:      'Anagram Hunt',
-  association:  'Word Association',
-  mystery_word: 'Mystery Word',
-};
-
 export default function DailyChallengeCard() {
   const navigate = useNavigate();
   const [completed, setCompleted] = useState(false);

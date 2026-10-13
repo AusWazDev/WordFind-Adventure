@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { isNative } from '@/lib/platform';
 import { isElectronPage } from '@/lib/staleServiceWorkers';
+import { MODE_LABELS } from '@/lib/constants';
 
 const REQUIRES_ONLINE  = new Set(); // No modes currently require online — reserved for future use
 const DEGRADED_OFFLINE = new Set(['audio']);
@@ -13,7 +14,7 @@ const DEGRADED_OFFLINE = new Set(['audio']);
 const OTHER_MODES = [
   {
     id: 'standard',
-    name: 'Standard',
+    name: MODE_LABELS.standard,
     description: 'Classic word search with a visible word list',
     icon: Search,
     gradient: 'from-violet-500 to-indigo-600',
@@ -21,7 +22,7 @@ const OTHER_MODES = [
   },
   {
     id: 'association',
-    name: 'Word Association',
+    name: MODE_LABELS.association,
     description: 'Find words using hand-crafted clues — works fully offline',
     icon: Brain,
     gradient: 'from-cyan-500 to-blue-600',
@@ -30,7 +31,7 @@ const OTHER_MODES = [
   },
   {
     id: 'anagram',
-    name: 'Anagram Hunt',
+    name: MODE_LABELS.anagram,
     description: 'Words shown scrambled — unscramble then find them',
     icon: Shuffle,
     gradient: 'from-pink-500 to-rose-600',
@@ -87,7 +88,7 @@ export default function GameModeSelector({ onSelectMode }) {
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-bold text-white text-base">Audio Challenge</h4>
+                  <h4 className="font-bold text-white text-base">{MODE_LABELS.audio}</h4>
                   <span className="flex items-center gap-1 px-2 py-0.5 bg-white/25 text-white text-[10px] font-bold rounded-full">
                     <Sparkles className="w-2.5 h-2.5" /> Featured
                   </span>
@@ -135,7 +136,7 @@ export default function GameModeSelector({ onSelectMode }) {
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-bold text-white text-sm">Mystery Word</h4>
+                  <h4 className="font-bold text-white text-sm">{MODE_LABELS.mystery_word}</h4>
                   <span className="px-2 py-0.5 bg-white/25 text-white text-[10px] font-bold rounded-full">
                     ✨ New!
                   </span>

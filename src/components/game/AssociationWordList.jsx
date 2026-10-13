@@ -55,6 +55,7 @@ export default function AssociationWordList({ words, foundWords, hintWord, revea
                   <div className="flex gap-1 shrink-0">
                     <button
                       onClick={() => onRevealWord(word)}
+                      aria-label="Reveal word"
                       className="flex items-center justify-center h-11 w-11 text-muted-foreground hover:text-amber-500 transition-colors rounded-lg"
                       title="Use a hint to reveal"
                     >
@@ -67,6 +68,7 @@ export default function AssociationWordList({ words, foundWords, hintWord, revea
                         disabled={!!hintWord}
                         className={`h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 ${hintWord ? 'opacity-40 cursor-not-allowed' : ''}`}
                         onClick={() => onHintCell(word)}
+                        aria-label="Hint: show first letter"
                         title="Flash first letter on grid (uses a hint, −25% score penalty)"
                       >
                         <Lightbulb className="w-4 h-4" />

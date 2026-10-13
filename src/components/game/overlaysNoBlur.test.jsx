@@ -17,7 +17,7 @@ vi.mock('@/lib/purchases', () => ({
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 // SF-55d: VictoryModal fires canvas-confetti, whose first animation frame draws on a
 // 2D context jsdom does not have, so it threw an unhandled error (npm test exit 1).
-vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
+vi.mock('canvas-confetti', () => ({ default: Object.assign(vi.fn(), { reset: vi.fn() }) })); // reset: SF-61 cleanup
 
 const { default: VictoryModal } = await import('./VictoryModal');
 const { default: RemoveAdsModal } = await import('./RemoveAdsModal');

@@ -3,15 +3,8 @@ import { motion } from 'framer-motion';
 import { Lightbulb, Trophy, Target, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { LEVEL_NAMES, CATEGORY_LABELS } from '@/lib/constants';
-
-const modeLabels = {
-  standard: 'Standard',
-  audio: 'Audio Challenge',
-  anagram: 'Anagram Hunt',
-  association: 'Word Association',
-  mystery_word: 'Mystery Word',
-};
+import { LEVEL_NAMES, CATEGORY_LABELS, MODE_LABELS } from '@/lib/constants';
+import { HIT_FROM_32, HIT_FROM_36, HIT_PILL_FROM_24, HIT_Y_FROM_36 } from '@/lib/touchTarget';
 
 export default function GameHeader({
   score,
@@ -31,7 +24,7 @@ export default function GameHeader({
 }) {
   const progress = (wordsFound / totalWords) * 100;
   const levelLabel    = LEVEL_NAMES[level - 1] ?? `Level ${level}`;
-  const modeLabel     = modeLabels[gameMode]  ?? 'Standard';
+  const modeLabel     = MODE_LABELS[gameMode] ?? MODE_LABELS.standard;
   const categoryLabel = category ? (CATEGORY_LABELS[category] ?? category) : null;
   // Subtitle: show mode (if not standard) and/or category
   const subtitleParts = [];
@@ -44,7 +37,7 @@ export default function GameHeader({
     return (
       <div className="bg-card rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2">
         {/* Back */}
-        <Button variant="ghost" size="icon" onClick={onBack} className="text-muted-foreground hover:text-foreground h-8 w-8 shrink-0">
+        <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back" className={`text-muted-foreground hover:text-foreground h-8 w-8 shrink-0 ${HIT_FROM_32}`}>
           <ArrowLeft className="w-4 h-4" />
         </Button>
 
@@ -76,25 +69,26 @@ export default function GameHeader({
         </div>
 
         {/* Score */}
-        <div className="flex items-center gap-1 bg-gradient-to-r from-amber-50 to-orange-50 px-2 py-1 rounded-lg shrink-0">
-          <Trophy className="w-3.5 h-3.5 text-amber-600" />
-          <span className="text-xs font-bold text-amber-700">{score}</span>
+        <div className="flex items-center gap-1 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 px-2 py-1 rounded-lg shrink-0">
+          <Trophy className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+          <span className="text-xs font-bold text-amber-700 dark:text-amber-400">{score}</span>
         </div>
 
         {/* Hint button */}
         <motion.button
           onClick={onUseHint}
           disabled={hintActive}
-          className={`flex items-center gap-1 bg-gradient-to-r from-violet-50 to-indigo-50 px-2 py-1 rounded-lg transition-colors shrink-0 ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100'}`}
+          aria-label={`Hint, ${hintsRemaining} left`}
+          className={`flex items-center gap-1 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 px-2 py-1 rounded-lg transition-colors shrink-0 ${HIT_PILL_FROM_24} ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100 dark:hover:from-violet-900/40 dark:hover:to-indigo-900/40'}`}
           whileTap={hintActive ? {} : { scale: 0.95 }}
         >
-          <Lightbulb className="w-3.5 h-3.5 text-violet-600" />
-          <span className="text-xs font-bold text-violet-700">{hintsRemaining}</span>
+          <Lightbulb className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+          <span className="text-xs font-bold text-violet-700 dark:text-violet-300">{hintsRemaining}</span>
         </motion.button>
 
         {/* Audio toggle */}
         {isAudioMode && (
-          <Button variant="ghost" size="icon" onClick={onToggleAudio} className="text-muted-foreground hover:text-foreground h-8 w-8 shrink-0">
+          <Button variant="ghost" size="icon" onClick={onToggleAudio} aria-label={audioEnabled ? 'Mute sound' : 'Unmute sound'} className={`text-muted-foreground hover:text-foreground h-8 w-8 shrink-0 ${HIT_FROM_32}`}>
             {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </Button>
         )}
@@ -106,7 +100,7 @@ export default function GameHeader({
   return (
     <div className="bg-card rounded-2xl shadow-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="icon" onClick={onBack} className="text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back" className={`text-muted-foreground hover:text-foreground ${HIT_FROM_36}`}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
 
@@ -129,7 +123,7 @@ export default function GameHeader({
         </div>
 
         {isAudioMode && (
-          <Button variant="ghost" size="icon" onClick={onToggleAudio} className="text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="icon" onClick={onToggleAudio} aria-label={audioEnabled ? 'Mute sound' : 'Unmute sound'} className={`text-muted-foreground hover:text-foreground ${HIT_FROM_36}`}>
             {audioEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
           </Button>
         )}
@@ -137,22 +131,23 @@ export default function GameHeader({
 
       <div className="flex items-center justify-between gap-4">
         <motion.div
-          className="flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-2 rounded-xl"
+          className="flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 px-4 py-2 rounded-xl"
           whileHover={{ scale: 1.02 }}
         >
-          <Trophy className="w-5 h-5 text-amber-600" />
-          <span className="font-bold text-amber-700">{score}</span>
+          <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          <span className="font-bold text-amber-700 dark:text-amber-400">{score}</span>
         </motion.div>
 
         <motion.button
           onClick={onUseHint}
           disabled={hintActive}
-          className={`flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 px-4 py-2 rounded-xl transition-colors ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100'}`}
+          aria-label={`Hint, ${hintsRemaining} left`}
+          className={`flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 px-4 py-2 rounded-xl transition-colors ${HIT_Y_FROM_36} ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100 dark:hover:from-violet-900/40 dark:hover:to-indigo-900/40'}`}
           whileHover={hintActive ? {} : { scale: 1.02 }}
           whileTap={hintActive ? {} : { scale: 0.98 }}
         >
-          <Lightbulb className="w-5 h-5 text-violet-600" />
-          <span className="font-bold text-violet-700">{hintsRemaining}</span>
+          <Lightbulb className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+          <span className="font-bold text-violet-700 dark:text-violet-300">{hintsRemaining}</span>
         </motion.button>
 
         <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-xl">

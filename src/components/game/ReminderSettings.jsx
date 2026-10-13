@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BellOff, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { HIT_Y_FROM_24 } from '@/lib/touchTarget';
 import { toast } from 'sonner';
 
 function TimeSelector({ value, onChange }) {
@@ -23,20 +24,20 @@ function TimeSelector({ value, onChange }) {
     <div className="flex items-center gap-3">
       {/* Hours */}
       <div className="flex flex-col items-center gap-1">
-        <button onClick={() => adjustHours(1)} className={btnClass}><ChevronUp className="w-4 h-4" /></button>
+        <button onClick={() => adjustHours(1)} aria-label="Hour up" className={btnClass}><ChevronUp className="w-4 h-4" /></button>
         <div className="w-14 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-xl font-bold text-slate-800 dark:text-slate-100 select-none">
           {pad(hours)}
         </div>
-        <button onClick={() => adjustHours(-1)} className={btnClass}><ChevronDown className="w-4 h-4" /></button>
+        <button onClick={() => adjustHours(-1)} aria-label="Hour down" className={btnClass}><ChevronDown className="w-4 h-4" /></button>
       </div>
       <span className="text-2xl font-bold text-slate-500 dark:text-slate-400 mb-0.5">:</span>
       {/* Minutes */}
       <div className="flex flex-col items-center gap-1">
-        <button onClick={() => adjustMinutes(5)} className={btnClass}><ChevronUp className="w-4 h-4" /></button>
+        <button onClick={() => adjustMinutes(5)} aria-label="Minutes up" className={btnClass}><ChevronUp className="w-4 h-4" /></button>
         <div className="w-14 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-xl font-bold text-slate-800 dark:text-slate-100 select-none">
           {pad(minutes)}
         </div>
-        <button onClick={() => adjustMinutes(-5)} className={btnClass}><ChevronDown className="w-4 h-4" /></button>
+        <button onClick={() => adjustMinutes(-5)} aria-label="Minutes down" className={btnClass}><ChevronDown className="w-4 h-4" /></button>
       </div>
     </div>
   );
@@ -157,8 +158,10 @@ export default function ReminderSettings() {
         <button
           onClick={handleToggle}
           disabled={notificationsBlocked}
+          aria-label={reminder.enabled ? 'Turn off daily reminder' : 'Turn on daily reminder'}
           className={cn(
             "relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-40",
+            HIT_Y_FROM_24,
             reminder.enabled ? "bg-violet-600" : "bg-slate-300"
           )}
         >

@@ -8,6 +8,7 @@ import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineSt
 import ReminderSettings from '@/components/game/ReminderSettings';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { HIT_FROM_36 } from '@/lib/touchTarget';
 import { isNative } from '@/lib/platform';
 import { restorePurchases } from '@/lib/purchases';
 import RemoveAdsModal from '@/components/game/RemoveAdsModal';
@@ -117,7 +118,8 @@ export default function Settings() {
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
-            className="text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 shrink-0"
+            aria-label="Back"
+            className={`text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 shrink-0 ${HIT_FROM_36}`}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>

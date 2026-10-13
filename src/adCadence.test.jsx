@@ -26,7 +26,7 @@ vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 // SF-55d: the real victory screen fires canvas-confetti, whose first animation frame
 // draws on a 2D context jsdom does not have (getContext returns null), so it threw
 // an unhandled error after the screen opened and npm test exited 1.
-vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
+vi.mock('canvas-confetti', () => ({ default: Object.assign(vi.fn(), { reset: vi.fn() }) })); // reset: SF-61 cleanup
 vi.mock('@/components/game/voiceUtils', () => ({
   speakPhraseAndWord: vi.fn(), speakFixedPhrase: vi.fn(), unlockAudio: vi.fn(async () => {}),
   preloadGameAudio: vi.fn(), stopAllAudio: vi.fn(), speakWord: vi.fn(),

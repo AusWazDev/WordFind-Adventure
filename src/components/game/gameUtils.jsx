@@ -1457,38 +1457,6 @@ export function getClue(word) {
   return wordClues[word] || wordClues[word?.toUpperCase()] || `A ${word?.length || '?'}-letter word`;
 }
 
-// ─── Master level bonus word themes ──────────────────────────────────────────
-// Each entry pairs a word (placed hidden in the grid) with a cryptic clue.
-// The player hunts for this word after finding all listed words.
-
-const masterBonusThemes = [
-  { word: 'SILENCE',    hint: 'What librarians demand 🤫' },
-  { word: 'VICTORY',    hint: 'What champions celebrate 🏆' },
-  { word: 'PHANTOM',    hint: 'Something unseen, yet present 👻' },
-  { word: 'ECLIPSE',    hint: 'When one thing hides another 🌑' },
-  { word: 'WHISPER',    hint: 'A barely audible sound 🌬️' },
-  { word: 'SHADOW',     hint: 'It follows you everywhere 🌗' },
-  { word: 'ENIGMA',     hint: 'A puzzle within a puzzle 🧩' },
-  { word: 'SECRET',     hint: 'Something not meant to be known 🤐' },
-  { word: 'CIPHER',     hint: 'A coded message 🔐' },
-  { word: 'STEALTH',    hint: 'Moving without being detected 🥷' },
-  { word: 'VANISH',     hint: 'To disappear without a trace ✨' },
-  { word: 'CONCEAL',    hint: 'To keep something out of sight 🎭' },
-  { word: 'LABYRINTH',  hint: 'A maze you might get lost in 🌀' },
-  { word: 'ARCANE',     hint: 'Known only to a select few 🪄' },
-  { word: 'MIRAGE',     hint: 'Something that appears but is not there 🏜️' },
-  { word: 'LURKING',    hint: 'Waiting, unseen in the shadows 👀' },
-  { word: 'CAMOUFLAGE', hint: 'Nature\'s disguise 🦎' },
-  { word: 'CRYPTIC',    hint: 'Mysterious and hard to decode 🗝️' },
-  { word: 'ELUSIVE',    hint: 'Difficult to find or catch 🦋' },
-  { word: 'CLOAK',      hint: 'Worn to disguise or hide identity 🧥' },
-  { word: 'VEIL',       hint: 'A covering that conceals 💫' },
-  { word: 'MASK',       hint: 'Worn to hide a true identity 🎭' },
-  { word: 'PROWL',      hint: 'Moving stealthily through the night 🐈' },
-  { word: 'RECLUSE',    hint: 'One who hides away from the world 🏚️' },
-  { word: 'OCCULT',     hint: 'Hidden from ordinary knowledge 🔮' },
-];
-
 // ─── Category-themed bonus words for Master level ─────────────────────────────
 // Each category has several word + hint pairs. The bonus word is chosen from the
 // category in play so the hidden word always relates to the current theme.

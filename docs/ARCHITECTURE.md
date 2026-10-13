@@ -88,7 +88,9 @@ the repo `CLAUDE.md`).
   `src/components/game/overlaysNoBlur.test.jsx` (CR-102). jsdom has no canvas, so the
   library's first animation frame threw an unhandled error and `npm test` exited 1
   with every test passing. Any new test that renders the real `VictoryModal` needs
-  the same mock.
+  the same mock, **with a `reset`** (`Object.assign(vi.fn(), { reset: vi.fn() })`):
+  since SF-61 `VictoryModal` calls `confetti.reset()` when it closes or unmounts, and
+  in jsdom the real `reset()` also draws on the missing canvas.
 - **`@sentry/react` is mocked** in the three files that import `voiceUtils`
   (`voiceUtils.test.js`, `audioInterruption.test.js`, `voicePoll.test.js`; SF-59).
   Loading the real package was about 90% of their `beforeAll` import, which overran
@@ -101,9 +103,11 @@ the repo `CLAUDE.md`).
 
 ## 3. Game modes — five
 
-Defined in `src/components/game/GameModeSelector.jsx`. Internal id on the left, the
-label players see on the right (the same in `GameHeader.jsx` `modeLabels`, decision
-S2):
+Offered in `src/components/game/GameModeSelector.jsx`. Internal id on the left, the
+label players see on the right (decision S2). **As of 13 Oct 2026 (SF-61) the labels
+are spelled out in one place only, `MODE_LABELS` in `src/lib/constants.js`**, which
+every screen reads (mode picker, game header, loading screen, How to Play); the census
+in `modeLabels.test.jsx` fails if a second map or a stray label literal appears:
 
 | id | Label | Offline |
 |---|---|---|
@@ -315,6 +319,11 @@ Audio is served from the app's own `public/audio/` files.
 - **Audio degrades without telling the player:** if a recording fails, the Backup Voice
   (Web Speech API) speaks instead, with no error shown; since SF-60 each fallback is
   reported to Sentry (§3, Voice paths).
+- **Accessibility, as of 13 Oct 2026 (SF-61):** every icon-only button has an
+  `aria-label` (pinned by `src/a11yIconButtons.test.js`, which scans the source).
+  Small icon buttons get a 44 px touch area from an `::after` hit area
+  (`src/lib/touchTarget.js`), so their visible size and the layout are unchanged.
+  Reduced motion and a non-colour cue for found cells are not built yet.
 
 ---
 

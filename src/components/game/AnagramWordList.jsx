@@ -75,7 +75,7 @@ export default function AnagramWordList({ words, foundWords, hintWord, onHintCel
                 </span>
                 {!isFound && (
                   <div className="flex gap-1">
-                    <button onClick={() => reshuffleWord(word)}
+                    <button onClick={() => reshuffleWord(word)} aria-label="Shuffle letters"
                       className="flex items-center justify-center h-11 w-11 text-muted-foreground hover:text-violet-500 transition-colors rounded-lg">
                       <Shuffle className="w-4 h-4" />
                     </button>
@@ -86,6 +86,7 @@ export default function AnagramWordList({ words, foundWords, hintWord, onHintCel
                         disabled={!!hintWord}
                         className={`h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 ${hintWord ? 'opacity-40 cursor-not-allowed' : ''}`}
                         onClick={() => onHintCell(word)}
+                        aria-label="Hint: show first letter"
                         title="Flash first letter on grid (uses a hint, −25% score penalty)"
                       >
                         <Lightbulb className="w-4 h-4" />

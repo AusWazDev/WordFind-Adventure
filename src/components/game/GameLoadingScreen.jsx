@@ -1,18 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
+import { MODE_LABELS } from '@/lib/constants';
 
-// CR-66 (decision S2): the long set. 'Standard Mode' became 'Standard', and
-// mystery_word was missing, so Mystery Word games loaded under "Loading Game".
-// The spelling entry is for the mode removed in CR-01 and is unreachable.
-const MODE_LABELS = {
-  standard: 'Standard',
-  audio: 'Audio Challenge',
-  anagram: 'Anagram Hunt',
-  spelling: 'Spelling Bee',
-  association: 'Word Association',
-  mystery_word: 'Mystery Word',
-};
+// CR-66 (decision S2): the long set, now from the one shared map (SF-61, U1).
+// The old entry for the spelling mode, removed in CR-01, is gone.
 
 export default function GameLoadingScreen({ mode, level }) {
   const modeLabel = MODE_LABELS[mode] || 'Loading Game';

@@ -2,6 +2,16 @@
 
 export const LEVEL_NAMES = ['Easy', 'Medium', 'Hard', 'Expert', 'Master'];
 
+// Player-facing mode names, by internal mode id (decision S2). The ONLY place
+// these labels are spelled out; every screen reads them from here (SF-61, U1).
+export const MODE_LABELS = {
+  standard: 'Standard',
+  audio: 'Audio Challenge',
+  anagram: 'Anagram Hunt',
+  association: 'Word Association',
+  mystery_word: 'Mystery Word',
+};
+
 export const CATEGORIES = [
   { value: 'random',            label: 'Random Mix' },
   { value: 'animals',           label: 'Animals' },

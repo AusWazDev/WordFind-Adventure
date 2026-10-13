@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown, CheckCircle, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { HIT_FROM_36 } from '@/lib/touchTarget';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
 import * as Sentry from '@sentry/react';
@@ -61,7 +62,7 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
             {success ? (
@@ -70,11 +71,11 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
                 animate={{ scale: 1, opacity: 1 }}
                 className="py-8 text-center"
               >
-                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Crown className="w-9 h-9 text-amber-500" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800">Ads Removed! 🎉</h3>
-                <p className="text-slate-500 mt-1">Enjoy uninterrupted word-finding!</p>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">Ads Removed! 🎉</h3>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">Enjoy uninterrupted word-finding!</p>
               </motion.div>
             ) : (
               <>
@@ -82,11 +83,11 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <Crown className="w-5 h-5 text-amber-500" />
-                      <h2 className="text-2xl font-bold text-slate-800">Go Ad-Free</h2>
+                      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Go Ad-Free</h2>
                     </div>
-                    <p className="text-slate-500 text-sm">One-time purchase, no subscription</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">One-time purchase, no subscription</p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={handleClose}>
+                  <Button variant="ghost" size="icon" onClick={handleClose} aria-label="Close" className={HIT_FROM_36}>
                     <X className="w-5 h-5" />
                   </Button>
                 </div>
@@ -103,14 +104,14 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
                   {perks.map((perk, i) => (
                     <div key={i} className="flex items-center gap-3">
                       <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                      <span className="text-sm text-slate-700">{perk}</span>
+                      <span className="text-sm text-slate-700 dark:text-slate-200">{perk}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="flex items-center justify-center gap-2 mb-4">
-                  <Shield className="w-4 h-4 text-slate-400" />
-                  <p className="text-xs text-slate-400">Secure payment · Instant delivery</p>
+                  <Shield className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Secure payment · Instant delivery</p>
                 </div>
 
                 <Button
@@ -120,11 +121,11 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
                 >
                   {purchasing ? 'Processing…' : `Remove Ads${price ? ` — ${price}` : ''}`}
                 </Button>
-                <p className="text-center text-xs text-slate-400 mt-1">Billed through the App Store / Google Play</p>
+                <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-1">Billed through the App Store / Google Play</p>
 
                 <div className="flex items-center gap-1.5 justify-center mt-3">
                   <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                  <p className="text-xs text-slate-400">Purchases support the developer</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Purchases support the developer</p>
                   <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                 </div>
               </>

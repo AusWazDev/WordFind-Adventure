@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Volume2, Search, Shuffle, Brain, Eye, ChevronRight, ChevronLeft, Hand, Lightbulb, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MODE_LABELS } from '@/lib/constants';
+import { HIT_FROM_28 } from '@/lib/touchTarget';
 
 // ─── Slide content ────────────────────────────────────────────────────────────
 
@@ -66,7 +68,7 @@ const slides = [
   // Slide 2: Audio Challenge
   {
     id: 'audio',
-    title: 'Audio Challenge',
+    title: MODE_LABELS.audio,
     subtitle: 'The signature mode',
     icon: Volume2,
     content: (
@@ -103,11 +105,11 @@ const slides = [
     content: (
       <div className="divide-y divide-slate-100 dark:divide-slate-800">
         {[
-          { icon: Volume2,  name: 'Audio Challenge',   desc: 'Hear the word, find the spelling.' },
-          { icon: Eye,      name: 'Mystery Word',       desc: 'Leftover letters spell a hidden bonus word.' },
-          { icon: Search,   name: 'Standard',           desc: 'Classic word search — word list visible.' },
-          { icon: Brain,    name: 'Word Association',   desc: 'A clue shown instead of the word — find the match.' },
-          { icon: Shuffle,  name: 'Anagram Hunt',       desc: 'Words are scrambled — unscramble then find.' },
+          { icon: Volume2,  name: MODE_LABELS.audio,        desc: 'Hear the word, find the spelling.' },
+          { icon: Eye,      name: MODE_LABELS.mystery_word, desc: 'Leftover letters spell a hidden bonus word.' },
+          { icon: Search,   name: MODE_LABELS.standard,     desc: 'Classic word search — word list visible.' },
+          { icon: Brain,    name: MODE_LABELS.association,  desc: 'A clue shown instead of the word — find the match.' },
+          { icon: Shuffle,  name: MODE_LABELS.anagram,      desc: 'Words are scrambled — unscramble then find.' },
         ].map(({ icon: Icon, name, desc }) => (
           <div key={name} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
             <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/30 shrink-0 mt-0.5">
@@ -228,7 +230,8 @@ export default function HowToPlayModal({ isOpen, onClose }) {
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-1.5 rounded-xl bg-white/20 text-white hover:bg-white/30 transition-colors"
+                  aria-label="Close"
+                  className={`p-1.5 rounded-xl bg-white/20 text-white hover:bg-white/30 transition-colors ${HIT_FROM_28}`}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -240,8 +243,10 @@ export default function HowToPlayModal({ isOpen, onClose }) {
                   <button
                     key={i}
                     onClick={() => setCurrentSlide(i)}
+                    aria-label={`Go to slide ${i + 1}`}
                     className={cn(
-                      'rounded-full transition-all',
+                      // 44 px tall touch area; only half the 6 px gap wider, so dots never overlap (SF-61)
+                      'rounded-full transition-all relative after:absolute after:-inset-y-[19px] after:-inset-x-[3px]',
                       i === currentSlide
                         ? 'w-5 h-1.5 bg-white'
                         : 'w-1.5 h-1.5 bg-white/40'

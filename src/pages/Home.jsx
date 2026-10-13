@@ -15,6 +15,7 @@ import { showInterstitialBeforeGame, interstitialDue, markInterstitialShown } fr
 import HowToPlayModal from '@/components/game/HowToPlayModal';
 import WelcomeScreen, { hasSeenWelcome } from '@/components/game/WelcomeScreen';
 import { createPageUrl } from '@/utils';
+import { HIT_FROM_28 } from '@/lib/touchTarget';
 import { loadProgress, getLocalProgress } from '@/components/game/offlineStorage';
 import { PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import PullToRefresh from '@/components/ui/PullToRefresh';
@@ -132,7 +133,8 @@ export default function Home() {
               {/* How to Play button — always accessible */}
               <motion.button
                 onClick={() => setShowHowToPlay(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold shadow-sm hover:shadow-md transition-all"
+                aria-label="How to Play"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold shadow-sm hover:shadow-md transition-all ${HIT_FROM_28}`}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >

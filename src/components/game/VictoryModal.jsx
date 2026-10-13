@@ -18,13 +18,15 @@ export default function VictoryModal({
   hasBonusWord = false,
 }) {
   React.useEffect(() => {
-    if (isOpen) {
-      confetti({
-        particleCount: bonusFound ? 180 : 100,
-        spread: bonusFound ? 90 : 70,
-        origin: { y: 0.6 },
-      });
-    }
+    if (!isOpen) return undefined;
+    confetti({
+      particleCount: bonusFound ? 180 : 100,
+      spread: bonusFound ? 90 : 70,
+      origin: { y: 0.6 },
+    });
+    // SF-61: stop the burst when the victory screen closes or unmounts, so it does
+    // not keep falling over the next screen (canvas-confetti 1.9.4, confetti.reset()).
+    return () => confetti.reset();
   }, [isOpen]);
 
   const stars = level >= 3 ? 3 : level >= 2 ? 2 : 1;

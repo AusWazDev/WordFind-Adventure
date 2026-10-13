@@ -91,9 +91,12 @@ It replaced the How to Play modal (deleted). Route `#/Tutorial?mode=first|replay
   "Show me again" repeats it; KNIGHT and THUMB dragged early are ignored with a note);
   a miss (any non-word); hear KNIGHT (the sentence clip, as in Audio Challenge, or
   "Can't hear? Show the word", free) and find it; a free hint lights THUMB's T in the
-  real gold hint style, then find THUMB. Coach marks are a ring and a bubble with no
-  dim or blur, found through `data-row`/`data-col`/`data-coach`, re-measured on resize
-  and orientation change.
+  real gold hint style, then find THUMB (shown in the word list from the start). Coach
+  marks (CR-114, SF-66b): the target cells and controls draw their own outline
+  (`coachCells`, `coachTarget`); only the bubble is positioned, by `placeBubble`
+  (`src/lib/coachPlacement.js`: above the board, then the word-list area, then the part
+  of the board furthest from its targets; heading-only with "More" if nothing fits),
+  never over the step's targets, the step word's cells or its control. No dim or blur.
 - **Finish:** the five modes (`MODE_LABELS`) and a Hints box whose values match the code;
   the earn-or-buy line shows on native only. First run: "Play your first puzzle" (and
   Skip) hand off to Home with `state.startFirstPuzzle`, and Home starts Standard level 1,
@@ -298,7 +301,7 @@ Two fields inside `wf_progress` keep a paid pack from being lost or credited twi
 - **Measured on the tablet (SF-55, SF-55b, SF-55c):** a pack whose purchase was killed
   before crediting is added once, on the second launch after the kill; a normal
   purchase is added once and not again on relaunch.
-- **Progress writes (CR-112, SF-66b):** every write reads the stored progress and
+- **Progress writes (CR-113, SF-66b):** every write reads the stored progress and
   changes only the fields it owns (`changeProgress`, `offlineStorage.jsx`). Only a hint
   action, a purchase, a reconcile and the Daily's reward change `hints_remaining`; a
   finished game never writes it. Settings Reset keeps it exactly as stored and leaves a

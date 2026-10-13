@@ -8,7 +8,10 @@ import { cn } from '@/lib/utils';
 // buttons to the real balance. Here every action is the tutorial's own, and costs nothing.
 //
 // words: [{ word, hidden, dimmed, speaker, hint }] in display order.
-export default function TutorialWordList({ words, foundWords, hintWord, onPlay, onHint }) {
+// coachTarget (G5, SF-66b): 'word-play' or 'word-hint'. That control draws its own
+// outline, so the coach highlight is on the control itself and moves with it.
+const COACH = 'outline outline-2 -outline-offset-2 outline-amber-400';
+export default function TutorialWordList({ words, foundWords, hintWord, onPlay, onHint, coachTarget = null }) {
   return (
     <div className="bg-card rounded-2xl shadow-lg p-4">
       <div className="flex items-center justify-between mb-3">
@@ -50,10 +53,11 @@ export default function TutorialWordList({ words, foundWords, hintWord, onPlay, 
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-11 w-11 text-violet-600 hover:text-violet-700 hover:bg-violet-100"
+                  className={cn('h-11 w-11 text-violet-600 hover:text-violet-700 hover:bg-violet-100', coachTarget === 'word-play' && COACH)}
                   onClick={() => onPlay(word)}
                   aria-label="Play word"
                   data-coach="word-play"
+                  data-coach-target={coachTarget === 'word-play' ? 'control' : undefined}
                 >
                   <Volume2 className="w-4 h-4" />
                 </Button>
@@ -62,10 +66,11 @@ export default function TutorialWordList({ words, foundWords, hintWord, onPlay, 
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
+                  className={cn('h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100', coachTarget === 'word-hint' && COACH)}
                   onClick={() => onHint(word)}
                   aria-label="Hint: show first letter"
                   data-coach="word-hint"
+                  data-coach-target={coachTarget === 'word-hint' ? 'control' : undefined}
                 >
                   <Lightbulb className="w-4 h-4" />
                 </Button>

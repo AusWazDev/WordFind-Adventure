@@ -67,7 +67,7 @@ function DragHand({ containerRef, run }) {
       key={run}
       data-testid="coach-hand"
       className="pointer-events-none absolute z-30 text-white drop-shadow"
-      style={{ left: 0, top: 0 }}
+      style={{ left: 0, top: 0, margin: 0 }} // no space-y margin (the SF-66b 12 px offset)
       initial={{ x: x0, y, opacity: 0 }}
       animate={{ x: [x0, x0, x1, x1], y, opacity: [0, 1, 1, 0] }}
       transition={{ duration: 1.6, times: [0, 0.15, 0.85, 1] }}
@@ -164,18 +164,26 @@ export default function Tutorial() {
     navigate(createPageUrl('Home'), { replace: true });
   });
 
+  const { LAMB, KNIGHT, THUMB } = TUTORIAL_GAME.wordPositions;
   const coach = {
-    1: { ask: { sel: TUTORIAL_GAME.wordPositions.LAMB.map(cellSel), heading: 'Find LAMB', body: 'Press on the first letter, drag through the word, then let go.', link: reduced ? null : 'Show me again', onLink: () => setHandRun(r => r + 1) },
-         done: { sel: TUTORIAL_GAME.wordPositions.LAMB.map(cellSel), heading: 'Found LAMB!' } },
-    2: { ask: { sel: MISS_ROW.map(cellSel), dashed: true, heading: "What if you're wrong?", body: "Drag across the dotted letters. They don't spell one of the words." },
-         done: { sel: MISS_ROW.map(cellSel), dashed: true, heading: 'No penalty', body: "When it isn't one of the words, the letters shake. Just try again." } },
-    3: { ask: { sel: ['[data-coach="word-play"]'], heading: 'Some words are hidden', body: "Tap the speaker to hear the word, then find how it's spelt.", link: "Can't hear? Show the word", onLink: showWord },
-         next: { sel: ['[data-coach="word-play"]'], heading: 'Now find it on the board', body: 'Silent letters are the tricky part. Listen again any time.' },
-         done: { sel: TUTORIAL_GAME.wordPositions.KNIGHT.map(cellSel), heading: 'Found KNIGHT!' } },
-    4: { ask: { sel: ['[data-coach="word-hint"]'], heading: 'Stuck? Use a hint', body: "Tap the lightbulb. It lights up the first letter. This one's free." },
-         next: { sel: [cellSel(TUTORIAL_GAME.wordPositions.THUMB[0])], heading: 'It starts here', body: 'In real games a hint uses one from your balance, and that word scores less.' },
-         done: { sel: TUTORIAL_GAME.wordPositions.THUMB.map(cellSel), heading: 'Found THUMB!' } },
+    1: { ask: { cells: LAMB, heading: 'Find LAMB', body: 'Press on the first letter, drag through the word, then let go.', link: reduced ? null : 'Show me again', onLink: () => setHandRun(r => r + 1) },
+         done: { cells: LAMB, heading: 'Found LAMB!' } },
+    2: { ask: { cells: MISS_ROW, dashed: true, heading: "What if you're wrong?", body: "Drag across the dotted letters. They don't spell one of the words." },
+         done: { cells: MISS_ROW, dashed: true, heading: 'No penalty', body: "When it isn't one of the words, the letters shake. Just try again." } },
+    3: { ask: { control: 'word-play', heading: 'Some words are hidden', body: "Tap the speaker to hear the word, then find how it's spelt.", link: "Can't hear? Show the word", onLink: showWord },
+         next: { control: 'word-play', heading: 'Now find it on the board', body: 'Silent letters are the tricky part. Listen again any time.' },
+         done: { cells: KNIGHT, heading: 'Found KNIGHT!' } },
+    4: { ask: { control: 'word-hint', heading: "Can't spot it? Use a hint", body: "Tap the lightbulb next to THUMB. It lights up where the word starts. This one's free." },
+         next: { cells: [THUMB[0]], heading: 'THUMB starts here', body: 'Drag from the gold T down to the bottom of the word.' },
+         done: { cells: THUMB, heading: 'Found THUMB!' } },
   }[step]?.[phase];
+  // What the bubble must never cover (G2): the step's target cells, the cells of the word
+  // the step asks for (the dotted row in step 2), and its outlined control.
+  const stepCells = step === 2 ? MISS_ROW : (TUTORIAL_GAME.wordPositions[STEP_WORD[step]] || []);
+  const avoid = coach ? [
+    ...(coach.cells || []).map(cellSel), ...stepCells.map(cellSel),
+    ...(coach.control ? [`[data-coach="${coach.control}"]`] : []),
+  ] : [];
   // The step 3 close call (set only in step 3, cleared on every step change) replaces the
   // bubble's words only; the target and link stay.
   const coachShown = coach && closeCall
@@ -228,14 +236,14 @@ export default function Tutorial() {
   const list = [
     { word: 'LAMB', hidden: false, dimmed: false },
     { word: 'KNIGHT', hidden: !revealed, dimmed: step < 3, speaker: true },
-    { word: 'THUMB', hidden: true, dimmed: step < 4, hint: true },
+    { word: 'THUMB', hidden: false, dimmed: step < 4, hint: true }, // G1 (SF-66b): visible, like LAMB
   ];
 
   return (
     <MotionConfig reducedMotion="user">
       <div ref={pageRef} className="relative max-w-md mx-auto px-4 pb-6 space-y-3" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
         {skipButton}
-        <div className="w-full aspect-square">
+        <div className="w-full aspect-square" data-testid="tutorial-board">
           <GameBoard
             grid={TUTORIAL_GAME.grid}
             gridSize={TUTORIAL_GAME.gridSize}
@@ -243,11 +251,15 @@ export default function Tutorial() {
             wordPositions={TUTORIAL_GAME.wordPositions}
             onWordFound={handleWordFound}
             hintCells={hintCells}
+            coachCells={coachShown?.cells || []}
+            coachDashed={!!coachShown?.dashed}
           />
         </div>
         {note && <p role="status" className="text-center text-sm font-medium text-amber-700 dark:text-amber-400">{note}</p>}
-        <TutorialWordList words={list} foundWords={found} hintWord={hintCells.length ? 'THUMB' : null} onPlay={onPlay} onHint={onHint} />
-        {coachShown && <CoachMark containerRef={pageRef} selectors={coachShown.sel} dashed={coachShown.dashed} heading={coachShown.heading} body={coachShown.body} link={coachShown.link} onLink={coachShown.onLink} />}
+        <div data-testid="tutorial-list">
+          <TutorialWordList words={list} foundWords={found} hintWord={hintCells.length ? 'THUMB' : null} onPlay={onPlay} onHint={onHint} coachTarget={coachShown?.control || null} />
+        </div>
+        {coachShown && <CoachMark containerRef={pageRef} avoid={avoid} boardSelector='[data-testid="tutorial-board"]' listSelector='[data-testid="tutorial-list"]' heading={coachShown.heading} body={coachShown.body} link={coachShown.link} onLink={coachShown.onLink} />}
         {step === 1 && phase === 'ask' && !reduced && <DragHand containerRef={pageRef} run={handRun} />}
       </div>
     </MotionConfig>

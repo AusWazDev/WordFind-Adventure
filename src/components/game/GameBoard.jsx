@@ -22,6 +22,10 @@ export default function GameBoard({
   // neither, so they behave exactly as before.
   interactive = true,     // false: no pointer, mouse or touch handlers and no touch listeners
   selectedCells: selectedCellsOverride, // when given, shown as the selection (display only)
+  // G5 (SF-66b), tutorial only: the cells a coach step points at draw their own inset
+  // outline, so the highlight is on the cell itself and moves with it.
+  coachCells = [],
+  coachDashed = false,
 }) {
   const [selecting, setSelecting] = useState(false);
   const [startCell, setStartCell] = useState(null);
@@ -163,6 +167,7 @@ export default function GameBoard({
   const shownSelection = selectedCellsOverride ?? selectedCells;
   const isSelected = (row, col) => shownSelection.some(c => c.row === row && c.col === col);
   const isMiss = (row, col) => !!miss && miss.cells.some(c => c.row === row && c.col === col);
+  const isCoach = (row, col) => coachCells.some(c => c.row === row && c.col === col);
   const inputHandlers = interactive ? {
     onMouseDown: handleStart, onMouseMove: handleMove, onMouseUp: handleEnd, onMouseLeave: handleEnd,
     onTouchStart: handleStart, onTouchMove: handleMove, onTouchEnd: handleEnd,
@@ -208,9 +213,11 @@ export default function GameBoard({
               data-row={rowIndex}
               data-col={colIndex}
               data-miss={isMiss(rowIndex, colIndex) ? (miss.shake ? 'shake' : 'tint') : undefined}
+              data-coach-target={isCoach(rowIndex, colIndex) ? 'cell' : undefined}
               className={cn(
                 'flex items-center justify-center rounded-md font-bold cursor-pointer transition-colors duration-100',
                 getCellFontSize(),
+                isCoach(rowIndex, colIndex) && cn('outline outline-2 -outline-offset-2 outline-amber-400', coachDashed && 'outline-dashed'),
                 isSelected(rowIndex, colIndex)
                   ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md z-10'
                   : isMiss(rowIndex, colIndex) // U8 (SF-62): a missed selection, for MISS_MS

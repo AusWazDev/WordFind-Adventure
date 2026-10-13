@@ -61,7 +61,10 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => root?.unmount()); container?.remove(); vi.useRealTimers(); vi.restoreAllMocks(); });
 
 const advance = ms => act(async () => { vi.advanceTimersByTime(ms); });
-const coach = () => container.querySelector('[data-testid="coach"]')?.textContent || '';
+// The live bubble only: CoachMark also renders two hidden copies to measure (SF-66b).
+const coach = () => container.querySelector('[data-testid="coach"] > :not([aria-hidden])')?.textContent || '';
+// The bubble's full text (its hidden full copy): what it says once expanded.
+const fullCoachText = () => container.querySelector('[data-testid="coach"] > [aria-hidden="true"]')?.textContent || '';
 const board = () => container.querySelector('[data-row="0"][data-col="0"]').parentElement.parentElement;
 const at = ([r, c]) => ({ clientX: c * 100 + 50, clientY: r * 100 + 50, bubbles: true });
 const drag = async (from, to) => {
@@ -70,8 +73,14 @@ const drag = async (from, to) => {
   }
 };
 const missShown = () => container.querySelectorAll('[data-miss]').length > 0;
+const liveButton = label => [...container.querySelectorAll('button')]
+  .filter(x => !x.closest('[aria-hidden="true"]'))
+  .find(x => x.textContent.trim() === label || x.getAttribute('aria-label') === label);
 const click = async label => {
-  const b = [...container.querySelectorAll('button')].find(x => x.textContent.trim() === label || x.getAttribute('aria-label') === label);
+  // jsdom gives every element the same box, so no spot clears the targets and the bubble
+  // shows heading-only, with its link behind "More" (G2, SF-66b). Open it first.
+  if (!liveButton(label) && liveButton('More')) await act(async () => { liveButton('More').click(); });
+  const b = liveButton(label);
   if (!b) throw new Error(`no button "${label}"`);
   await act(async () => { b.click(); });
 };
@@ -142,7 +151,7 @@ describe('the whole first run (SF-64)', () => {
     await advance(FOUND_ADVANCE_MS);
 
     // Step 4: the hint marks T for free; finding THUMB finishes.
-    expect(coach()).toContain('Stuck? Use a hint');
+    expect(coach()).toContain("Can't spot it? Use a hint");
     await stepFour();
     expect(container.textContent).toContain("You're ready to play");
 
@@ -185,7 +194,7 @@ describe('step details (SF-64)', () => {
     expect(isGold([0, 5])).toBe(false);
     await click('Hint: show first letter');
     expect(isGold([0, 5])).toBe(true);
-    expect(coach()).toContain('It starts here');
+    expect(coach()).toContain('THUMB starts here');
     expect(writes()).toEqual([]);
     expect(noAdOrHintCalls()).toEqual([]);
   });
@@ -195,7 +204,7 @@ describe('step details (SF-64)', () => {
     await render('first');
     expect(container.querySelector('[data-testid="coach-hand"]')).toBeNull();
     expect(coach()).not.toContain('Show me again');
-    expect(container.querySelector('[data-testid="coach-ring"]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-coach-target="cell"]').length, 'LAMB\'s four cells mark themselves').toBe(4);
   });
 
   it('no blur, backdrop or nav on the Tutorial page', async () => {
@@ -204,14 +213,17 @@ describe('step details (SF-64)', () => {
       /(^|\s)(backdrop-)?blur(-|$|\s)/.test(el.getAttribute('class') || '') || /blur\(/.test(`${el.style.backdropFilter} ${el.style.filter}`));
     expect(blurred.map(el => el.className)).toEqual([]);
     expect(document.querySelector('nav.bottom-nav')).toBeNull();
-    expect(container.querySelector('[data-testid="coach-ring"]'), 'control: a coach mark is drawn').not.toBeNull();
+    expect(container.querySelector('[data-coach-target]'), 'control: a coach target is marked').not.toBeNull();
   });
 });
 
 describe('NIGHT in step 3 only (SF-64b)', () => {
   const NIGHT = [[5, 1], [5, 5]];
   const NIGHT_BACKWARDS = [[5, 5], [5, 1]];
-  const closeCall = () => coach().includes('So close!') && coach().includes('Listen again. This one starts with a silent letter.');
+  // Heading on the live bubble; body on its full copy (what it shows once expanded: in
+  // jsdom every box is the same, so the bubble is heading-only, SF-66b).
+  const fullCoach = () => container.querySelector('[data-testid="coach"]')?.textContent || '';
+  const closeCall = () => coach().includes('So close!') && fullCoach().includes('Listen again. This one starts with a silent letter.');
 
   it('step 3: NIGHT, either way round, is a miss with the "So close!" note, and the step stays', async () => {
     await render('first');
@@ -220,7 +232,7 @@ describe('NIGHT in step 3 only (SF-64b)', () => {
     expect(missShown()).toBe(true);
     expect(closeCall()).toBe(true);
     await advance(FOUND_ADVANCE_MS + MISS_ADVANCE_MS);
-    expect(coach(), 'the step does not advance').not.toContain('Stuck? Use a hint');
+    expect(coach(), 'the step does not advance').not.toContain("Can't spot it? Use a hint");
     expect(rowText('KNIGHT')).not.toContain('KNIGHT');
     await drag(...NIGHT_BACKWARDS);
     expect(missShown()).toBe(true);
@@ -310,4 +322,88 @@ describe('Android Back on the Tutorial (SF-65, rule e)', () => {
       expect(CapApp.minimizeApp).not.toHaveBeenCalled();
     });
   }
+});
+
+describe('G1 (SF-66b): step 4 shows THUMB and points at the lightbulb', () => {
+  it('THUMB is visible in the word list from the start, like LAMB', async () => {
+    await render('first');
+    expect(rowText('LAMB'), 'control: LAMB is shown').toContain('LAMB');
+    expect(rowText('THUMB')).toContain('THUMB');
+  });
+
+  it('step 4 copy: the ask, then after the tap; the balance line is gone', async () => {
+    await render('first');
+    await stepOne(); await stepTwo(); await stepThree();
+    expect(coach()).toContain("Can't spot it? Use a hint");
+    expect(fullCoachText()).toContain("Tap the lightbulb next to THUMB. It lights up where the word starts. This one's free.");
+    await click('Hint: show first letter');
+    expect(coach()).toContain('THUMB starts here');
+    expect(fullCoachText()).toContain('Drag from the gold T down to the bottom of the word.');
+    expect(container.textContent).not.toContain('In real games a hint uses one from your balance');
+    await drag(...THUMB);
+    expect(coach()).toContain('Found THUMB!');
+  });
+});
+
+describe('G5 (SF-66b): targets are marked on the elements themselves', () => {
+  const page = () => container.querySelector('[data-testid="tutorial-board"]').parentElement;
+  // Every tutorial highlight: anything marked as a coach target, the old ring, or any
+  // positioned element drawing an amber outline or border.
+  const highlights = () => [...container.querySelectorAll('*')].filter(el =>
+    el.hasAttribute('data-coach-target') || el.getAttribute('data-testid') === 'coach-ring'
+    || (/(^|\s)absolute(\s|$)/.test(el.getAttribute('class') || '') && /(outline|border)-amber-400/.test(el.getAttribute('class') || '')));
+  const cellKey = el => `${el.getAttribute('data-row')},${el.getAttribute('data-col')}`;
+  const isTargetOrChild = (el, cellKeys, control) => {
+    const host = el.closest('[data-row]') || el.closest('[data-coach]');
+    if (!host) return false;
+    if (host.hasAttribute('data-row')) return cellKeys.includes(cellKey(host));
+    return host.getAttribute('data-coach') === control;
+  };
+  const keys = list => list.map(([r, c]) => `${r},${c}`);
+  const expectOnTargets = (label, cellKeys, control = null) => {
+    const hs = highlights();
+    expect(hs.length, `${label}: control, something is highlighted`).toBeGreaterThan(0);
+    const stray = hs.filter(el => !isTargetOrChild(el, cellKeys, control)).map(el => el.outerHTML.slice(0, 80));
+    expect(stray, `${label}: every highlight is a target or its child`).toEqual([]);
+    if (cellKeys.length) expect(hs.filter(el => el.hasAttribute('data-row')).map(cellKey).sort(), `${label}: every target cell is highlighted`).toEqual([...cellKeys].sort());
+  };
+
+  it('every highlighted element is a target cell or control, at every step', async () => {
+    await render('first');
+    expectOnTargets('step 1', keys([[0, 0], [0, 1], [0, 2], [0, 3]]));
+    await stepOne();
+    expectOnTargets('step 2', keys([[1, 0], [1, 1], [1, 2], [1, 3]]));
+    expect(container.querySelector('[data-row="1"][data-col="0"]').className, 'step 2 is dashed').toContain('outline-dashed');
+    await stepTwo();
+    expectOnTargets('step 3', [], 'word-play');
+    await click('Play word');
+    expectOnTargets('step 3 after the speaker', [], 'word-play');
+    await drag(...KNIGHT); await advance(FOUND_ADVANCE_MS);
+    expectOnTargets('step 4', [], 'word-hint');
+    await click('Hint: show first letter');
+    expectOnTargets('step 4 after the tap', keys([[0, 5]]));
+  });
+
+  it('there is no tutorial overlay element other than the bubble', async () => {
+    await render('first');
+    // Positioned children of the page. Allowed, by name: the coach bubble, the Skip
+    // button, and step 1's drag hand (a demonstration, not a highlight).
+    const positioned = () => [...page().children].filter(el => /(^|\s)absolute(\s|$)/.test(el.getAttribute('class') || ''));
+    const allowed = el => el.getAttribute('data-testid') === 'coach' || el.getAttribute('data-testid') === 'coach-hand' || el.textContent.trim() === 'Skip tutorial';
+    expect(positioned().some(el => el.getAttribute('data-testid') === 'coach'), 'control: the bubble is found').toBe(true);
+    expect(positioned().filter(el => !allowed(el)).map(el => el.outerHTML.slice(0, 80))).toEqual([]);
+    await stepOne(); await stepTwo();
+    expect(positioned().filter(el => !allowed(el)).map(el => el.outerHTML.slice(0, 80))).toEqual([]);
+  });
+
+  it('after a resize or rotation, the highlight is on the same cells', async () => {
+    await render('first');
+    const before = highlights().map(el => (el.hasAttribute('data-row') ? cellKey(el) : el.outerHTML.slice(0, 40))).sort();
+    expect(before, 'control: LAMB is highlighted').toEqual(keys([[0, 0], [0, 1], [0, 2], [0, 3]]).sort());
+    Element.prototype.getBoundingClientRect = () => ({ left: 0, top: 0, right: 900, bottom: 500, width: 900, height: 500, x: 0, y: 0 });
+    await act(async () => { window.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('orientationchange')); });
+    await advance(200);
+    const after = highlights().map(el => (el.hasAttribute('data-row') ? cellKey(el) : el.outerHTML.slice(0, 40))).sort();
+    expect(after).toEqual(before);
+  });
 });

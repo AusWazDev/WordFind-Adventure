@@ -49,6 +49,7 @@ describe('the Tutorial page is isolated (SF-64)', () => {
   it('control: the scan follows the graph (it reaches GameBoard, voiceUtils and lib/tutorial)', () => {
     expect(graph).toEqual(expect.arrayContaining([
       'pages/Tutorial.jsx', 'components/game/GameBoard.jsx', 'components/game/voiceUtils.jsx', 'lib/tutorial.js', 'lib/motion.js',
+      'lib/backButton.js', // SF-65: the Back registry is in the graph, so the checks below cover it
     ]));
   });
 

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun, RotateCcw, Crown, GraduationCap, ChevronRight } from 'lucide-react';
 import { TUTORIAL_KEY, TUTORIAL_REPLAY } from '@/lib/tutorial';
+import { useBackHandler } from '@/lib/backButton';
 import { Button } from '@/components/ui/button';
 import { speakPhraseAndWord, unlockAudio, stopAllAudio } from '@/components/game/voiceUtils';
 import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineStorage';
@@ -43,6 +44,11 @@ export default function Settings() {
   const [restoring, setRestoring] = useState(false);
   const [adsRemoved, setAdsRemoved] = useState(() => localStorage.getItem('ads_removed') === 'true');
   const [showRemoveAds, setShowRemoveAds] = useState(false);
+  // Android Back (SF-65): the Reset confirmation closes as Cancel does (rule b); otherwise
+  // Back does what this page's Back control does (rule f).
+  const [resetOpen, setResetOpen] = useState(false);
+  useBackHandler('modal', () => setResetOpen(false), resetOpen);
+  useBackHandler('page', () => navigate(-1));
 
   useEffect(() => {
     const s = getLocalSettings();
@@ -356,7 +362,7 @@ export default function Settings() {
           {/* Reset Game Data */}
           <motion.div
           >
-            <AlertDialog>
+            <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
               <AlertDialogTrigger asChild>
                 <Button
                   variant="outline"

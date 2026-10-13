@@ -14,6 +14,7 @@ import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio, st
 import { loadProgress, updateProgress, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
 import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
+import { useBackHandler } from '@/lib/backButton';
 import { toast } from 'sonner';
 
 // ─── Orientation hook ─────────────────────────────────────────────────────────
@@ -448,6 +449,10 @@ export default function Game() {
     initGame();
   };
   const handleHome = () => navigate(createPageUrl('Home'));
+  // Android Back (SF-65): in play, what the header Back does (rule c); on the victory
+  // screen, its Home path, which shows no ad (rule d; ads run only on Next Level and Replay).
+  useBackHandler('game', handleHome, !showVictory);
+  useBackHandler('victory', handleHome, showVictory);
 
   if (!gameData) return <GameLoadingScreen mode={mode} level={level} />;
 

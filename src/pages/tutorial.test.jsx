@@ -29,6 +29,7 @@ vi.mock('@/lib/purchases', () => ({ PURCHASE_OPTIONS: [], REMOVE_ADS_PRODUCT_ID:
 const { default: Layout } = await import('@/Layout');
 const { default: Tutorial, FOUND_ADVANCE_MS, MISS_ADVANCE_MS } = await import('./Tutorial');
 const { getSentence } = await import('@/components/game/trickySentences');
+const { installBackButton, __resetBackButton } = await import('@/lib/backButton');
 
 let container, root, location, setItem;
 function Where() { location = useLocation(); return <div data-testid="home" />; }
@@ -281,4 +282,32 @@ describe('Skip and finish in each mode (SF-64)', () => {
     expect(container.textContent).toContain('Replay this any time from Settings.');
     for (const label of ['Audio Challenge', 'Standard', 'Anagram Hunt', 'Word Association', 'Mystery Word']) expect(container.textContent).toContain(`${label}:`);
   });
+});
+
+describe('Android Back on the Tutorial (SF-65, rule e)', () => {
+  let listeners, CapApp, remove, goHome;
+  beforeEach(async () => {
+    __resetBackButton();
+    platform.native = true; // Android
+    listeners = {};
+    CapApp = { addListener: async (n, fn) => { listeners[n] = fn; return { remove() {} }; }, minimizeApp: vi.fn(), exitApp: vi.fn() };
+    goHome = vi.fn();
+    remove = await installBackButton(CapApp, { goHome, onHome: () => location?.pathname === '/Home' });
+  });
+  afterEach(() => { remove?.(); __resetBackButton(); });
+
+  for (const mode of ['first', 'replay']) {
+    it(`${mode}: Back is Skip, but to Home: the flag is set, audio stops, no game starts, no ad, hint or progress call`, async () => {
+      await render(mode);
+      await act(async () => { listeners.backButton(); });
+      expect(location.pathname).toBe('/Home');
+      expect(location.state).toBeNull(); // first run goes Home, not into the first puzzle
+      expect(localStorage.getItem('wf_tutorial_done')).toBe('true');
+      expect(voice.calls).toContain('stopAllAudio');
+      expect(writes()).toEqual(['wf_tutorial_done']);
+      expect(noAdOrHintCalls()).toEqual([]);
+      expect(goHome).not.toHaveBeenCalled(); // the tutorial's own handler ran, not the default
+      expect(CapApp.minimizeApp).not.toHaveBeenCalled();
+    });
+  }
 });

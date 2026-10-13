@@ -11,6 +11,7 @@ import { MODE_LABELS } from '@/lib/constants';
 import { isNative } from '@/lib/platform';
 import { prefersReducedMotion } from '@/lib/motion';
 import { markTutorialDone } from '@/lib/tutorial';
+import { useBackHandler } from '@/lib/backButton';
 import { createPageUrl } from '@/utils';
 
 // The guided first game (S43, SF-64). ISOLATED BY DESIGN: this page and everything it
@@ -154,6 +155,14 @@ export default function Tutorial() {
     if (firstRun) navigate(createPageUrl('Home'), { replace: true, state: { startFirstPuzzle: true } });
     else navigate(createPageUrl('Home'), { replace: true });
   };
+  // Android Back (SF-65, rule e): as Skip (flag set, audio stopped), but in either mode it
+  // goes to Home and never starts a game.
+  useBackHandler('tutorial', () => {
+    timers.current.forEach(clearTimeout);
+    markTutorialDone();
+    stopAllAudio();
+    navigate(createPageUrl('Home'), { replace: true });
+  });
 
   const coach = {
     1: { ask: { sel: TUTORIAL_GAME.wordPositions.LAMB.map(cellSel), heading: 'Find LAMB', body: 'Press on the first letter, drag through the word, then let go.', link: reduced ? null : 'Show me again', onLink: () => setHandRun(r => r + 1) },

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown, CheckCircle, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HIT_FROM_36 } from '@/lib/touchTarget';
+import { useBackHandler } from '@/lib/backButton';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
 import * as Sentry from '@sentry/react';
@@ -40,6 +41,8 @@ export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
     setSuccess(false);
     onClose();
   };
+  // Android Back closes it exactly as its Close button does (SF-65, rule b).
+  useBackHandler('modal', handleClose, isOpen);
 
   const perks = [
     'No ads between games',

@@ -5,6 +5,7 @@ import { createPageUrl } from '@/utils';
 import { loadProgress, updateProgress, getDailyRecord, saveDailyRecord, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
 import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
+import { useBackHandler } from '@/lib/backButton';
 import GameBoard from '@/components/game/GameBoard';
 import WordList from '@/components/game/WordList';
 import AnagramWordList from '@/components/game/AnagramWordList';
@@ -401,6 +402,14 @@ export default function DailyChallenge() {
     window.addEventListener(PROGRESS_CHANGED_EVENT, reread);
     return () => window.removeEventListener(PROGRESS_CHANGED_EVENT, reread);
   }, []);
+
+  // Android Back (SF-65): in play, the header Home button's path (rule c); on an end
+  // screen (Challenge Complete, Time's Up, already completed), its Home button's path,
+  // which shows no ad (rule d).
+  const backHome = () => navigate(createPageUrl('Home'));
+  const ended = victory || gameOver || alreadyCompleted;
+  useBackHandler('game', backHome, !ended);
+  useBackHandler('victory', backHome, ended);
 
   if (!gameData) {
     return (

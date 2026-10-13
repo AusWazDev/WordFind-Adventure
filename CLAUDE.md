@@ -240,6 +240,8 @@ npx cap open ios
 >
 > Both scripts run `vite build --mode capacitor`, which leaves the service worker out; `src/buildModes.test.js` checks it.
 
+> ⚠️ **Before the next iOS build (13 Oct 2026, CR-110, SF-65):** `@capacitor/app` was added and only Android was synced. **The Mac must run `npx cap sync ios`** (after `npm install` and `npm run build:ios`) so the iOS project picks up the plugin. Not done on Windows on purpose.
+
 ---
 
 ## Next Steps

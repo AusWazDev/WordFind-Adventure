@@ -39,7 +39,7 @@ No backend and no accounts: as at 13 Oct 2026 the app's own state is all in
 |---|---|
 | App | React ^18.2.0, Vite ^6.1.0, Tailwind ^3.4.17, shadcn/ui, Framer Motion ^11.16.4, lucide-react ^0.475.0 icons |
 | Routing | **`HashRouter`** (`src/App.jsx`), react-router-dom ^6.26.0. Required for Capacitor and Electron, where there is no server for deep paths |
-| Mobile | Capacitor ^8.3.0 (`@capacitor/core`, `/cli`, `/ios`, `/android`); `capacitor.config.json` has `appId: au.com.uniquegames.soundfind` |
+| Mobile | Capacitor ^8.3.0 (`@capacitor/core`, `/cli`, `/ios`, `/android`), `@capacitor/app` ^8.1.2 (Android Back, CR-110); `capacitor.config.json` has `appId: au.com.uniquegames.soundfind` |
 | Desktop | Electron ^41.3.0 and electron-builder ^26.8.1, packaged as an `appx` for the Microsoft Store |
 | Ads | `@capacitor-community/admob` ^8.0.0 (`src/lib/admob.js`, `src/lib/adCadence.js`) |
 | In-app purchases | `@revenuecat/purchases-capacitor` ^13.1.5 (`src/lib/purchases.js`, `src/lib/hintLedger.js`) |
@@ -102,6 +102,27 @@ It replaced the How to Play modal (deleted). Route `#/Tutorial?mode=first|replay
   and Settings' "Replay tutorial" (replay). **Resume:** Home sends a player with the
   welcome seen, no `wf_tutorial_done` and no games played to the first run. Settings
   Reset removes `wf_tutorial_done`.
+
+### Android Back, as of 13 Oct 2026 (U7, SF-65, CR-110)
+
+`@capacitor/app` ^8.1.2 supplies the `backButton` listener. One listener is installed
+once, on Android only, by `BackButtonBridge` (`src/App.jsx`) through
+`installBackButton` (`src/lib/backButton.js`); iOS, web and Electron get none. Screens
+register what Back means while it applies (`useBackHandler(kind, handler, active)`),
+and `resolveBack` picks one, first match wins:
+
+| Rule | When | Back does |
+|---|---|---|
+| a | an ad or purchase screen is in front | nothing (they are their own Android activities; Back is also ignored while the app is inactive) |
+| b | a modal is open (`'modal'`) | its own close function: the hint shop, Remove Ads, Settings' Reset confirmation |
+| c | Game or Daily in play (`'game'`) | the header Back: Home |
+| d | Victory or the Daily's end (`'victory'`) | Home through `handleHome`, no ad |
+| e | the Tutorial (`'tutorial'`) | as Skip (`wf_tutorial_done`, audio stopped), always to Home |
+| f | Settings (`'page'`) / Stats | Settings' own Back (`navigate(-1)`) / Home through the router |
+| g | Home or the welcome | `App.minimizeApp()` |
+
+⚠️ **iOS:** only Android was synced when the plugin was added. **The Mac must run
+`npx cap sync ios` before the next iOS build.**
 
 ### Build scripts (`package.json`)
 

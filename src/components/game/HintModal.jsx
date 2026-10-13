@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Coins, Sparkles, Star, Shield, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HIT_FROM_36 } from '@/lib/touchTarget';
+import { useBackHandler } from '@/lib/backButton';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
@@ -194,6 +195,8 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
     setView('options');
     onClose();
   };
+  // Android Back closes the shop exactly as its Close button does (SF-65, rule b).
+  useBackHandler('modal', handleClose, isOpen);
 
   // The overlay dims but does not blur: a full-screen backdrop blur made every
   // repaint inside the shop slow on a low-end Android GPU (SF-49, D-A).

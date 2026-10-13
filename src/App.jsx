@@ -1,13 +1,16 @@
-import { useState, useEffect, useLayoutEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Toaster } from 'sonner'
 import { pagesConfig } from './pages.config'
-import { HashRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { App as CapApp } from '@capacitor/app';
 import * as Sentry from '@sentry/react';
 import PageNotFound from './lib/PageNotFound';
 import SplashScreen from './components/game/SplashScreen';
 import { isNative } from './lib/platform';
 import { initAdMob } from './lib/admob';
 import { initPurchases } from './lib/purchases';
+import { installBackButton } from './lib/backButton';
+import { createPageUrl } from './utils';
 
 // Reset #root scroll to top on every page navigation.
 // Without this, the new page briefly inherits the previous page's scroll
@@ -18,6 +21,26 @@ function ScrollToTop() {
     const root = document.getElementById('root');
     if (root) root.scrollTop = 0;
   }, [pathname]);
+  return null;
+}
+
+// Android Back (SF-65, U7): one listener, installed once, Android only. Its
+// priority logic is resolveBack in lib/backButton.js.
+export const HOME_PATHS = ['/', '/Home'];
+export function BackButtonBridge() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const locRef = useRef(location);
+  locRef.current = location;
+  useEffect(() => {
+    let remove = null;
+    let cancelled = false;
+    installBackButton(CapApp, {
+      goHome: () => navigate(createPageUrl('Home')),
+      onHome: () => HOME_PATHS.includes(locRef.current.pathname),
+    }).then(r => { if (cancelled) r?.(); else remove = r; });
+    return () => { cancelled = true; remove?.(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }
 
@@ -45,6 +68,7 @@ function App() {
         <SplashScreen onComplete={() => setShowSplash(false)} />
       )}
       <ScrollToTop />
+      <BackButtonBridge />
       <Routes>
         <Route path="/" element={
           <LayoutWrapper currentPageName={mainPageKey}>

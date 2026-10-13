@@ -298,6 +298,11 @@ Two fields inside `wf_progress` keep a paid pack from being lost or credited twi
 - **Measured on the tablet (SF-55, SF-55b, SF-55c):** a pack whose purchase was killed
   before crediting is added once, on the second launch after the kill; a normal
   purchase is added once and not again on relaunch.
+- **Progress writes (CR-112, SF-66b):** every write reads the stored progress and
+  changes only the fields it owns (`changeProgress`, `offlineStorage.jsx`). Only a hint
+  action, a purchase, a reconcile and the Daily's reward change `hints_remaining`; a
+  finished game never writes it. Settings Reset keeps it exactly as stored and leaves a
+  missing one missing (S6); the screens then show 12, the ledger counts it as 0.
 - `saveLocalProgress` never moves the ledger backwards (union of IDs; the baseline is
   kept), Settings Reset keeps both fields with `hints_remaining`, and Android's
   backup (§5) restores them with the balance.

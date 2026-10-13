@@ -11,7 +11,7 @@ import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
 import { generateGame, checkWord, spellsFoundWord, calculateScore } from '@/components/game/gameUtils';
 import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio, stopAllAudio } from '@/components/game/voiceUtils';
-import { loadProgress, updateProgress, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
+import { loadProgress, changeProgress, hintCount, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
 import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
 import { useBackHandler } from '@/lib/backButton';
@@ -130,16 +130,14 @@ export default function Game() {
   // Timer ref — cancels bonus-hunt hint flash; regular hints are persistent (no timer)
   const hintTimerRef = useRef(null);
   const hintWordRef = useRef(null);
-  // Refs for saveProgress — progress/score/hintsRemaining are stale in the handleWordFound closure
+  // Refs for saveProgress — progress/score are stale in the handleWordFound closure
   const progressRef = useRef(null);
   const scoreRef = useRef(0);
-  const hintsRemainingRef = useRef(12);
   useEffect(() => { hintWordRef.current = hintWord; }, [hintWord]);
   const hintCellsRef = useRef([]); // read by handleWordFound, whose closure is stale (FB-22)
   useEffect(() => { hintCellsRef.current = hintCells; }, [hintCells]);
   useEffect(() => { progressRef.current = progress; }, [progress]);
   useEffect(() => { scoreRef.current = score; }, [score]);
-  useEffect(() => { hintsRemainingRef.current = hintsRemaining; }, [hintsRemaining]);
 
   // Board sizing — measured in JS for exact pixel values
   const boardAreaRef = useRef(null);
@@ -294,20 +292,28 @@ export default function Game() {
     // Use refs — progress/score/hintsRemaining are stale in the handleWordFound closure
     const currentProgress = progressRef.current;
     const currentScore = scoreRef.current;
-    const currentHints = hintsRemainingRef.current;
     if (!currentProgress) return;
     // CR-15: track completed games so ads are gated on completions rather than
     // starts. Shared with the Daily since S41 (src/lib/adCadence.js).
     recordCompletedGame();
 
-    const updated = await updateProgress(null, currentProgress, {
-      total_score: (currentProgress.total_score || 0) + currentScore,
-      games_played: (currentProgress.games_played || 0) + 1,
-      words_found: (currentProgress.words_found || 0) + wordsFoundCount,
-      hints_remaining: currentHints,
-      current_level: Math.max(currentProgress.current_level || 1, level),
-    });
+    // SF-66b (A4): built on the STORED progress, and only the fields a finished game
+    // owns. The balance is not one of them: every hint action writes it as it happens.
+    const updated = changeProgress(stored => ({
+      total_score: (stored.total_score || 0) + currentScore,
+      games_played: (stored.games_played || 0) + 1,
+      words_found: (stored.words_found || 0) + wordsFoundCount,
+      current_level: Math.max(stored.current_level || 1, level),
+    }));
     setProgress(updated);
+  };
+
+  // SF-66b (A4): a hint spent or earned changes the STORED balance by that amount, and
+  // the screen shows what was stored, so its copy never goes stale.
+  const changeHints = delta => {
+    const updated = changeProgress(stored => ({ hints_remaining: hintCount(stored) + delta }));
+    setProgress(updated);
+    setHintsRemaining(hintCount(updated));
   };
 
   const handleUseHint = () => {
@@ -316,9 +322,7 @@ export default function Game() {
 
     // ── Bonus hunt hint: flash the first letter of the bonus word ─────────────
     if (bonusHuntActive && gameData.bonusWord && gameData.bonusLetterPositions?.length > 0) {
-      const newHints = hintsRemaining - 1;
-      setHintsRemaining(newHints);
-      if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+      changeHints(-1);
       setHintCells([gameData.bonusLetterPositions[0]]);
       setHintWord(null);
       toast.info(`Hint: the hidden word starts with "${gameData.bonusWord[0]}"`, { duration: 4000 });
@@ -332,9 +336,7 @@ export default function Game() {
     if (unfoundWords.length === 0) return;
     const randomWord = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
     const positions = gameData.wordPositions[randomWord.toUpperCase()];
-    const newHints = hintsRemaining - 1;
-    setHintsRemaining(newHints);
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+    changeHints(-1);
     if (positions?.length > 0) {
       setHintCells([positions[0]]);
       setHintWord(randomWord.toLowerCase());
@@ -346,9 +348,7 @@ export default function Game() {
   const handleRevealWord = (word) => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     setRevealedWords(prev => [...prev, word]);
-    const newHints = hintsRemaining - 1;
-    setHintsRemaining(newHints);
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+    changeHints(-1);
     toast.info(`Word revealed: ${word}`, { duration: 3000 });
   };
 
@@ -358,9 +358,7 @@ export default function Game() {
     if (hintWordRef.current) return; // hint already active — block re-entry
     const positions = gameData.wordPositions[word.toUpperCase()];
     if (!positions?.length) return;
-    const newHints = hintsRemaining - 1;
-    setHintsRemaining(newHints);
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
+    changeHints(-1);
     // Mark this word as hinted — score will be reduced by 25% when found
     setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
     setHintCells([positions[0]]);
@@ -369,11 +367,9 @@ export default function Game() {
   };
 
   const handleWatchAd = () => {
-    const newHints = hintsRemaining + 1;
-    setHintsRemaining(newHints);
+    changeHints(+1);
     setShowHintModal(false);
     toast.success('You earned 1 hint!');
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
   };
 
   // S40-C (SF-50): the credit and its transaction ID are written together, from the

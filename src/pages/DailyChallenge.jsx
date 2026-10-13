@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { loadProgress, updateProgress, getDailyRecord, saveDailyRecord, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
+import { loadProgress, changeProgress, hintCount, getDailyRecord, saveDailyRecord, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
 import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
 import { useBackHandler } from '@/lib/backButton';
@@ -113,11 +113,9 @@ export default function DailyChallenge() {
   // progress was still null, so every victory skipped the progress save.
   const progressRef       = useRef(null);
   const scoreRef          = useRef(0);
-  const hintsRemainingRef = useRef(12);
   const timeLeftRef       = useRef(null);
   const timeLimitRef      = useRef(0);
   useEffect(() => { progressRef.current = progress; },             [progress]);
-  useEffect(() => { hintsRemainingRef.current = hintsRemaining; }, [hintsRemaining]);
   useEffect(() => { timeLeftRef.current = timeLeft; },             [timeLeft]);
 
   // Hint guard (CR-61, ported from Game.jsx): one hint at a time, and its timer
@@ -291,18 +289,20 @@ export default function DailyChallenge() {
     // first render's handleWordFound closure, where progress and score are stale.
     const currentProgress = progressRef.current;
     const currentScore    = scoreRef.current;
-    const currentHints    = hintsRemainingRef.current;
 
     // S28 (developer, 2 Oct 2026): the reward is once per day. Read from storage
     // now, not from state, so a stale closure cannot miss it. A repeat completion
     // counts as a game but pays no hints and leaves the day's record and streak.
     if (getDailyRecord(date)?.completed) {
       if (currentProgress) {
-        const updated = await updateProgress(null, currentProgress, {
-          total_score:  (currentProgress.total_score || 0) + currentScore,
-          games_played: (currentProgress.games_played || 0) + 1,
-          words_found:  (currentProgress.words_found || 0) + wordsFoundCount,
-        });
+        // SF-66b (A4): built on the STORED progress, and only these three fields. It
+        // used to save the whole object this screen loaded when it opened, which put
+        // back the balance from then (a rewarded hint lost, a spent hint refunded).
+        const updated = changeProgress(stored => ({
+          total_score:  (stored.total_score || 0) + currentScore,
+          games_played: (stored.games_played || 0) + 1,
+          words_found:  (stored.words_found || 0) + wordsFoundCount,
+        }));
         setProgress(updated);
       }
       return;
@@ -316,17 +316,17 @@ export default function DailyChallenge() {
     setRewardEarned(true);
 
     if (currentProgress) {
-      // The reward adds to the CURRENT balance, including hints spent this game.
-      const newHints = currentHints + reward_hints;
-      const updated = await updateProgress(null, currentProgress, {
-        total_score:     (currentProgress.total_score || 0) + currentScore,
-        games_played:    (currentProgress.games_played || 0) + 1,
-        words_found:     (currentProgress.words_found || 0) + wordsFoundCount,
-        hints_remaining: newHints,
-        best_streak:     Math.max(currentProgress.best_streak || 0, newStreak),
-      });
+      // The reward adds to the CURRENT balance, including hints spent this game: the
+      // stored balance, which every hint action has already written (SF-66b, A4).
+      const updated = changeProgress(stored => ({
+        total_score:     (stored.total_score || 0) + currentScore,
+        games_played:    (stored.games_played || 0) + 1,
+        words_found:     (stored.words_found || 0) + wordsFoundCount,
+        hints_remaining: hintCount(stored) + reward_hints,
+        best_streak:     Math.max(stored.best_streak || 0, newStreak),
+      }));
       setProgress(updated);
-      setHintsRemaining(newHints);
+      setHintsRemaining(hintCount(updated));
     }
 
     saveDailyRecord(date, {
@@ -338,6 +338,14 @@ export default function DailyChallenge() {
     });
   };
 
+  // SF-66b (A4): a hint spent or earned changes the STORED balance by that amount, and
+  // the screen keeps what was stored, so a later write never puts back an old balance.
+  const changeHints = delta => {
+    const updated = changeProgress(stored => ({ hints_remaining: hintCount(stored) + delta }));
+    setProgress(updated);
+    setHintsRemaining(hintCount(updated));
+  };
+
   const handleUseHint = () => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     if (!gameData) return;
@@ -346,9 +354,7 @@ export default function DailyChallenge() {
     if (!unfound.length) return;
     const word      = unfound[Math.floor(Math.random() * unfound.length)];
     const positions = gameData.wordPositions[word.toUpperCase()];
-    const newHints  = hintsRemaining - 1;
-    setHintsRemaining(newHints);
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints }).catch(console.error);
+    changeHints(-1);
     // Mark word as hinted — score will be reduced by 25% when found
     setHintedWords(prev => { const n = new Set(prev); n.add(word.toLowerCase()); return n; });
     // Set the ref now, not after re-render, so a second tap in the same frame is blocked too.
@@ -366,18 +372,14 @@ export default function DailyChallenge() {
   const handleRevealWord = (word) => {
     if (hintsRemaining <= 0) { setShowHintModal(true); return; }
     setRevealedWords(prev => [...prev, word]);
-    const newHints = hintsRemaining - 1;
-    setHintsRemaining(newHints);
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints }).catch(console.error);
+    changeHints(-1);
     toast.info(`Revealed: ${word}`);
   };
 
   const handleWatchAd = () => {
-    const newHints = hintsRemaining + 1;
-    setHintsRemaining(newHints);
+    changeHints(+1);
     setShowHintModal(false);
     toast.success('You earned 1 hint!');
-    if (progress) updateProgress(null, progress, { hints_remaining: newHints });
   };
 
   // S40-C (SF-50): the credit and its transaction ID are written together, from the

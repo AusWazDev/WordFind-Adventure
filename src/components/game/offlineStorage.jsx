@@ -59,10 +59,26 @@ export async function loadProgress() {
   return seed;
 }
 
-export async function updateProgress(_ignored, progress, data) {
-  const merged = { ...(progress || {}), ...data };
-  saveLocalProgress(merged);
-  return merged;
+// The hint balance as game logic reads it: a stored number, or the starting 12 when the
+// field is missing or not a number (the same default the screens load with).
+export const hintCount = progress => (typeof progress?.hints_remaining === 'number' ? progress.hints_remaining : 12);
+
+// SF-66b (A4): every progress write reads the STORED progress at the moment it writes
+// and changes only the fields that write owns. `change` is an object of those fields, or
+// a function of the stored progress returning them. Screens used to save the whole
+// object they loaded when they opened, which put back a stale balance (SF-66c: a
+// rewarded hint lost, a spent hint refunded). Returns the progress as now stored.
+export function changeProgress(change) {
+  const stored = getLocalProgress() || {};
+  const fields = typeof change === 'function' ? change(stored) : change;
+  saveLocalProgress(fields);
+  return getLocalProgress() || { ...stored, ...fields };
+}
+
+// Kept for its callers' signature. The `progress` argument is IGNORED since SF-66b:
+// only `data`'s fields are written, on top of what is stored.
+export async function updateProgress(_ignored, _progress, data) {
+  return changeProgress(data);
 }
 
 // ─── UserSettings ─────────────────────────────────────────────────────────────

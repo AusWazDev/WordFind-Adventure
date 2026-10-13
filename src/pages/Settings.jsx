@@ -82,7 +82,6 @@ export default function Settings() {
     // exploit the reset button to restore free hints or bypass IAP purchases.
     const adsRemoved      = localStorage.getItem('ads_removed');
     const savedProgress   = JSON.parse(localStorage.getItem('wf_progress') || '{}');
-    const hintsRemaining  = savedProgress.hints_remaining ?? 0;
 
     // Clear all game-progress keys
     ['wf_progress', 'wf_settings', 'wf_daily', 'wf_welcome_seen', TUTORIAL_KEY, // tutorial flag: SF-64
@@ -93,7 +92,10 @@ export default function Settings() {
     // Restore monetisation values. The hint ledger (S40-C, SF-50) is kept with the
     // balance, or a reconcile after Reset would credit every recorded pack again.
     if (adsRemoved) localStorage.setItem('ads_removed', adsRemoved);
-    const kept = { hints_remaining: hintsRemaining };
+    // S6 (SF-66b): Reset never writes a balance it did not read. A stored balance is
+    // kept exactly as stored; a missing one stays missing (it used to become 0).
+    const kept = {};
+    if (Object.prototype.hasOwnProperty.call(savedProgress, 'hints_remaining')) kept.hints_remaining = savedProgress.hints_remaining;
     if (Array.isArray(savedProgress.credited_txn_ids)) kept.credited_txn_ids = savedProgress.credited_txn_ids;
     if (savedProgress.reconcile_since) kept.reconcile_since = savedProgress.reconcile_since;
     localStorage.setItem('wf_progress', JSON.stringify(kept));

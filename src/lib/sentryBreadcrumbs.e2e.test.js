@@ -6,8 +6,14 @@
 // SDK with the app's options and a capturing transport (as sentryConfig.e2e.test.js), so
 // it sees exactly what would leave the device. Console, network and the app's own
 // breadcrumbs must still pass.
+//
+// SF-70b: no wall-clock waits. The SDK's own timers (the DOM handler's 1 s debounce,
+// dom.js:205, and flush's timeout, promisebuffer.js:75) look up setTimeout when they run,
+// so fake timers drive them; every wait below is `wait(ms)`, which advances fake time.
+// Before this, setup slept 1.1 s and flushed for up to 2 s in real time, and under a
+// heavily loaded full run the hook passed its 10 s limit.
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import * as Sentry from '@sentry/react';
 import { buildSentryOptions } from './sentryConfig';
 
@@ -15,8 +21,11 @@ const envelopes = [];
 const events = () => envelopes.flatMap(([, items]) => items.filter(([h]) => h.type === 'event').map(([, e]) => e));
 const lastEvent = () => events()[events().length - 1];
 const categories = () => (lastEvent()?.breadcrumbs || []).map(b => b.category);
+// Advances fake time; no real time passes.
+const wait = ms => vi.advanceTimersByTimeAsync(ms);
 
 beforeAll(async () => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
   globalThis.fetch = async () => new Response('ok', { status: 200 });
   Sentry.init({
     ...buildSentryOptions({ dsn: 'https://public@o0.ingest.us.sentry.io/0', environment: 'test', release: 'soundfind@test' }),
@@ -31,15 +40,19 @@ beforeAll(async () => {
   field.setAttribute('aria-label', 'Name field');
   document.body.appendChild(field);
   field.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: 'a' }));
-  await new Promise(r => setTimeout(r, 1100)); // the SDK's DOM handler debounces for 1 s
+  await wait(1100); // past the SDK's 1 s DOM debounce
   console.warn('[AdMob] prepareInterstitial failed: test');
   await fetch('https://localhost/audio/female/KNIGHT.mp3');
   Sentry.addBreadcrumb({ category: 'audio', message: 'playback stalled', level: 'warning' });
   Sentry.addBreadcrumb({ category: 'admob', message: 'consent info' });
   Sentry.addBreadcrumb({ category: 'purchases', message: 'fetchAndCachePrices failed' });
   Sentry.captureMessage('Backup Voice used: recorded audio failed', { level: 'warning' });
-  await Sentry.flush(2000);
+  const flushed = Sentry.flush(2000);
+  await wait(2000);
+  await flushed;
 });
+
+afterAll(() => { vi.useRealTimers(); });
 
 describe('tap and typing breadcrumbs (SF-70)', () => {
   it('control: an event was captured, with breadcrumbs', () => {

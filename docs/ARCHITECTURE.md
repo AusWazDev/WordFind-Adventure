@@ -155,6 +155,25 @@ Only Audio Challenge speaks (normal games and the Daily), plus Settings' Test Vo
   web or electron) and `online` (`navigator.onLine`), with the word; at most one per
   reason per app session.
 
+### Selection and miss feedback, as of 13 Oct 2026 (SF-62, U8)
+
+- **Selecting** is press, drag and release (`GameBoard.jsx`). A release over 2 or more
+  cells asks the page (`onWordFound`), which answers `'found'`, `'miss'` or `'ignored'`.
+  A single-cell tap never asks; it only feeds Mystery Word's gold letters.
+- **The page decides** (`Game.jsx` and `DailyChallenge.jsx` `handleWordFound`): a new
+  word on its own cells is `found`; letters that are no unfound word, or a word on the
+  wrong cells (CAKE inside PANCAKE), are a `miss`; a word already found (either way
+  round, `spellsFoundWord` in `gameUtils.jsx`), any drag in Mystery Word's bonus phase,
+  and any drag after a Daily ends are `ignored`.
+- **A miss** tints the released cells red (with a dark variant) and shakes them
+  sideways for `MISS_MS` (400 ms), animating transform only; under
+  `prefers-reduced-motion: reduce` it tints without shaking. A new drag clears it at
+  once. A miss changes nothing else: no count, score, hints, progress, sound or vibration.
+- **Seams for a demo board** (the tutorial; real games pass neither): `interactive={false}`
+  attaches no input handlers and no touch listeners; `selectedCells` shows a given
+  selection. Every cell carries `data-row` and `data-col`. The header hint buttons and
+  the word list's play, hint and reveal buttons carry `data-coach` attributes.
+
 ---
 
 ## 4. Monetisation

@@ -2,6 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+// U8 (SF-62): how long a missed selection stays tinted (and shakes).
+export const MISS_MS = 400;
+const SHAKE = [0, -4, 4, -3, 3, 0];
+
+// Read at the moment of each miss, so a change in the system setting applies at once.
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+
 export default function GameBoard({
   grid,
   foundWords,
@@ -12,13 +20,28 @@ export default function GameBoard({
   bonusLetterCells = [],
   bonusHuntActive = false,
   onBonusCellTap,
-  isLandscape
+  isLandscape,
+  // SF-62 seams for a non-interactive demo board (the tutorial). Real games pass
+  // neither, so they behave exactly as before.
+  interactive = true,     // false: no pointer, mouse or touch handlers and no touch listeners
+  selectedCells: selectedCellsOverride, // when given, shown as the selection (display only)
 }) {
   const [selecting, setSelecting] = useState(false);
   const [startCell, setStartCell] = useState(null);
   const [selectedCells, setSelectedCells] = useState([]);
   const [foundCells, setFoundCells] = useState(new Set());
+  const [miss, setMiss] = useState(null); // { cells, shake } while a missed selection shows (U8)
+  const missTimerRef = useRef(null);
   const gridRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(missTimerRef.current), []);
+
+  const clearMiss = () => { clearTimeout(missTimerRef.current); setMiss(null); };
+  const showMiss = cells => {
+    clearTimeout(missTimerRef.current);
+    setMiss({ cells, shake: !prefersReducedMotion() });
+    missTimerRef.current = setTimeout(() => setMiss(null), MISS_MS);
+  };
 
   useEffect(() => {
     const cells = new Set();
@@ -37,7 +60,7 @@ export default function GameBoard({
   // non-passive listener on the DOM node forces preventDefault() to be honoured.
   useEffect(() => {
     const el = gridRef.current;
-    if (!el) return;
+    if (!el || !interactive) return;
     const suppressScroll = (e) => { e.preventDefault(); };
     el.addEventListener('touchstart', suppressScroll, { passive: false });
     el.addEventListener('touchmove',  suppressScroll, { passive: false });
@@ -45,7 +68,7 @@ export default function GameBoard({
       el.removeEventListener('touchstart', suppressScroll);
       el.removeEventListener('touchmove',  suppressScroll);
     };
-  }, []);
+  }, [interactive]);
 
   const getCellFromPoint = (x, y) => {
     if (!gridRef.current) return null;
@@ -106,6 +129,7 @@ export default function GameBoard({
     const point = e.touches ? e.touches[0] : e;
     const cell = getCellFromPoint(point.clientX, point.clientY);
     if (cell) {
+      clearMiss(); // a new drag is never held up by the last miss (U8)
       setSelecting(true);
       setStartCell(cell);
       setSelectedCells([cell]);
@@ -124,7 +148,9 @@ export default function GameBoard({
     if (selecting) {
       if (selectedCells.length >= 2) {
         const word = selectedCells.map(c => grid[c.row][c.col]).join('');
-        onWordFound(word, selectedCells);
+        // U8 (SF-62): the page reports back 'found', 'miss' or 'ignored'; only a
+        // miss shows feedback. A single-cell tap never reaches here.
+        if (onWordFound(word, selectedCells) === 'miss') showMiss(selectedCells);
       } else if (selectedCells.length === 1 && onBonusCellTap) {
         const cell = selectedCells[0];
         if (isBonusLetter(cell.row, cell.col)) {
@@ -137,7 +163,13 @@ export default function GameBoard({
     setSelectedCells([]);
   };
 
-  const isSelected = (row, col) => selectedCells.some(c => c.row === row && c.col === col);
+  const shownSelection = selectedCellsOverride ?? selectedCells;
+  const isSelected = (row, col) => shownSelection.some(c => c.row === row && c.col === col);
+  const isMiss = (row, col) => !!miss && miss.cells.some(c => c.row === row && c.col === col);
+  const inputHandlers = interactive ? {
+    onMouseDown: handleStart, onMouseMove: handleMove, onMouseUp: handleEnd, onMouseLeave: handleEnd,
+    onTouchStart: handleStart, onTouchMove: handleMove, onTouchEnd: handleEnd,
+  } : {};
   const isFound = (row, col) => foundCells.has(`${row}-${col}`);
   const isHint = (row, col) => hintCells.some(c => c.row === row && c.col === col);
   const isBonusLetter = (row, col) => bonusLetterCells.some(c => c.row === row && c.col === col);
@@ -161,13 +193,7 @@ export default function GameBoard({
       ref={gridRef}
       className="w-full h-full bg-card rounded-2xl shadow-lg select-none"
       style={{ touchAction: 'none', overscrollBehavior: 'none', padding: '6px' }}
-      onMouseDown={handleStart}
-      onMouseMove={handleMove}
-      onMouseUp={handleEnd}
-      onMouseLeave={handleEnd}
-      onTouchStart={handleStart}
-      onTouchMove={handleMove}
-      onTouchEnd={handleEnd}
+      {...inputHandlers}
     >
       <div
         className="w-full h-full"
@@ -182,11 +208,16 @@ export default function GameBoard({
           row.map((letter, colIndex) => (
             <motion.div
               key={`${rowIndex}-${colIndex}`}
+              data-row={rowIndex}
+              data-col={colIndex}
+              data-miss={isMiss(rowIndex, colIndex) ? (miss.shake ? 'shake' : 'tint') : undefined}
               className={cn(
                 'flex items-center justify-center rounded-md font-bold cursor-pointer transition-colors duration-100',
                 getCellFontSize(),
                 isSelected(rowIndex, colIndex)
                   ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md z-10'
+                  : isMiss(rowIndex, colIndex) // U8 (SF-62): a missed selection, for MISS_MS
+                  ? 'bg-red-200 text-red-800 dark:bg-red-900/70 dark:text-red-100 z-10'
                   : isHint(rowIndex, colIndex) // before found, so a hint on a found cell shows (SF-44, D-C)
                   ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md z-10 ring-2 ring-amber-300'
                   : isFound(rowIndex, colIndex)
@@ -197,20 +228,22 @@ export default function GameBoard({
                   ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 ring-1 ring-amber-400 dark:ring-amber-600'
                   : 'bg-muted text-foreground hover:bg-muted/70'
               )}
-              animate={ // same order as the colour above (FB-22, CR-85; SF-44): selected, hint, found
+              animate={ // same order as the colour above (FB-22, CR-85; SF-44): selected, miss, hint, found
                 isSelected(rowIndex, colIndex)
-                  ? { scale: 1.08 }
+                  ? { scale: 1.08, x: 0 }
+                  : isMiss(rowIndex, colIndex)
+                  ? { scale: 1, x: miss.shake ? SHAKE : 0 } // transform only (U8); no shake under reduced motion
                   : isHint(rowIndex, colIndex)
-                  ? { scale: 1.08 }
+                  ? { scale: 1.08, x: 0 }
                   : isFound(rowIndex, colIndex)
-                  ? { scale: 1 }
+                  ? { scale: 1, x: 0 }
                   : isBonusLetter(rowIndex, colIndex) && bonusHuntActive
-                  ? { scale: 1.06 }
+                  ? { scale: 1.06, x: 0 }
                   : isBonusLetter(rowIndex, colIndex)
-                  ? { scale: 1.04 }
-                  : { scale: 1 }
+                  ? { scale: 1.04, x: 0 }
+                  : { scale: 1, x: 0 }
               }
-              transition={{ duration: 0.1 }}
+              transition={{ duration: 0.1, x: { duration: 0.3 } }}
             >
               {letter}
             </motion.div>

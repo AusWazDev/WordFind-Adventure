@@ -9,7 +9,7 @@ import GameHeader from '@/components/game/GameHeader';
 import GameLoadingScreen from '@/components/game/GameLoadingScreen';
 import HintModal from '@/components/game/HintModal';
 import VictoryModal from '@/components/game/VictoryModal';
-import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
+import { generateGame, checkWord, spellsFoundWord, calculateScore } from '@/components/game/gameUtils';
 import { speakPhraseAndWord, speakFixedPhrase, unlockAudio, preloadGameAudio, stopAllAudio } from '@/components/game/voiceUtils';
 import { loadProgress, updateProgress, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
 import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
@@ -201,13 +201,17 @@ export default function Game() {
     }
   };
 
+  // Returns 'found', 'miss' or 'ignored' for GameBoard's miss feedback (U8, SF-62).
   const handleWordFound = useCallback((selectedWord, cells) => {
     const currentGame = gameDataRef.current;
     const currentFound = foundWordsRef.current;
-    if (!currentGame) return;
+    if (!currentGame) return 'ignored';
+    // Mystery Word's bonus phase: every listed word is found; a drag is not a miss.
+    if (bonusHuntActiveRef.current) return 'ignored';
 
     // ── Regular word check ────────────────────────────────────────────────────
     const foundWord = checkWord(selectedWord, currentGame.words, currentFound);
+    if (!foundWord) return spellsFoundWord(selectedWord, currentFound) ? 'ignored' : 'miss';
     if (foundWord) {
       // Guard: verify selected cells match the stored grid positions for this word.
       // Without this, highlighting a substring (e.g. CAKE within PANCAKE) would
@@ -218,7 +222,7 @@ export default function Game() {
         const storedSet   = new Set(storedPositions.map(p => `${p.row},${p.col}`));
         const positionsMatch = selectedSet.size === storedSet.size &&
           [...selectedSet].every(k => storedSet.has(k));
-        if (!positionsMatch) return;
+        if (!positionsMatch) return 'miss'; // the right letters in the wrong place (CAKE inside PANCAKE)
       }
 
       const newFoundWords = [...currentFound, foundWord];
@@ -282,6 +286,7 @@ export default function Game() {
         }
       }
     }
+    return 'found';
   }, [level, mode, audioEnabled]);
 
   const saveProgress = async (wordsFoundCount) => {

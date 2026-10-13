@@ -79,6 +79,7 @@ export default function GameHeader({
           onClick={onUseHint}
           disabled={hintActive}
           aria-label={`Hint, ${hintsRemaining} left`}
+          data-coach="header-hint"
           className={`flex items-center gap-1 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 px-2 py-1 rounded-lg transition-colors shrink-0 ${HIT_PILL_FROM_24} ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100 dark:hover:from-violet-900/40 dark:hover:to-indigo-900/40'}`}
           whileTap={hintActive ? {} : { scale: 0.95 }}
         >
@@ -142,6 +143,7 @@ export default function GameHeader({
           onClick={onUseHint}
           disabled={hintActive}
           aria-label={`Hint, ${hintsRemaining} left`}
+          data-coach="header-hint"
           className={`flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 px-4 py-2 rounded-xl transition-colors ${HIT_Y_FROM_36} ${hintActive ? 'opacity-40 cursor-not-allowed' : 'hover:from-violet-100 hover:to-indigo-100 dark:hover:from-violet-900/40 dark:hover:to-indigo-900/40'}`}
           whileHover={hintActive ? {} : { scale: 1.02 }}
           whileTap={hintActive ? {} : { scale: 0.98 }}

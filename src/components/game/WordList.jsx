@@ -128,6 +128,7 @@ export default function WordList({
                       className="h-11 w-11 text-violet-600 hover:text-violet-700 hover:bg-violet-100"
                       onClick={() => speakWord(word)}
                       aria-label="Play word"
+                      data-coach="word-play"
                       title="Hear word with example sentence"
                     >
                       <Volume2 className="w-4 h-4" />
@@ -139,6 +140,7 @@ export default function WordList({
                         className="h-11 w-11 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
                         onClick={() => onRevealWord(word)}
                         aria-label="Reveal word"
+                        data-coach="word-reveal"
                         title="Reveal this word (uses a hint)"
                       >
                         <Eye className="w-4 h-4" />
@@ -151,6 +153,8 @@ export default function WordList({
                       className={`h-11 w-11 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 ${hintWord ? 'opacity-40 cursor-not-allowed' : ''}`}
                       onClick={() => onHintCell?.(word)}
                       aria-label="Hint: show first letter"
+
+                      data-coach="word-hint"
                       title="Flash first letter on grid (uses a hint)"
                     >
                       <Lightbulb className="w-4 h-4" />
@@ -167,6 +171,8 @@ export default function WordList({
                     className={`h-9 w-9 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 ${HIT_FROM_36} ${hintWord ? 'opacity-40 cursor-not-allowed' : ''}`}
                     onClick={() => onHintCell(word)}
                     aria-label="Hint: show first letter"
+
+                    data-coach="word-hint"
                     title="Flash first letter on grid (uses a hint, −25% score penalty)"
                   >
                     <Lightbulb className="w-4 h-4" />

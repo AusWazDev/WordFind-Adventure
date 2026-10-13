@@ -2095,6 +2095,18 @@ export function checkWord(selectedWord, words, foundWords) {
   return null;
 }
 
+// U8 (SF-62): whether a selection spells, either way round, a word already found.
+// Re-dragging a found word is not a miss, so it gets no miss feedback. checkWord is
+// unchanged; this only tells its "no match" result apart.
+export function spellsFoundWord(selectedWord, foundWords) {
+  const upper = selectedWord.toUpperCase();
+  const reversed = upper.split('').reverse().join('');
+  return foundWords.some(w => {
+    const t = w.toUpperCase();
+    return t === upper || t === reversed;
+  });
+}
+
 // ─── Scoring ──────────────────────────────────────────────────────────────────
 
 const TRICKY_WORDS_SET = new Set(allTrickyWords.map(w => w.toUpperCase()));

@@ -10,7 +10,7 @@ import WordList from '@/components/game/WordList';
 import AnagramWordList from '@/components/game/AnagramWordList';
 import AssociationWordList from '@/components/game/AssociationWordList';
 import HintModal from '@/components/game/HintModal';
-import { generateGame, checkWord, calculateScore } from '@/components/game/gameUtils';
+import { generateGame, checkWord, spellsFoundWord, calculateScore } from '@/components/game/gameUtils';
 import { getDailyChallengeConfig, previousLocalDateKey, formatCountdown, dailyTimeLimit } from '@/components/game/DailyChallengeUtils';
 import { toast } from 'sonner';
 import { stopAllAudio, unlockAudio, speakPhraseAndWord, speakFixedPhrase } from '@/components/game/voiceUtils';
@@ -204,12 +204,14 @@ export default function DailyChallenge() {
     }
   };
 
+  // Returns 'found', 'miss' or 'ignored' for GameBoard's miss feedback (U8, SF-62).
   const handleWordFound = useCallback((selectedWord, cells) => {
     const currentGame  = gameDataRef.current;
     const currentFound = foundWordsRef.current;
-    if (!currentGame || gameOver || victory) return;
+    if (!currentGame || gameOver || victory) return 'ignored';
 
     const foundWord = checkWord(selectedWord, currentGame.words, currentFound);
+    if (!foundWord) return spellsFoundWord(selectedWord, currentFound) ? 'ignored' : 'miss';
     if (foundWord) {
       // Guard (DEF-14, ported from Game.jsx in CR-61): the selected cells must be
       // this word's stored positions, or CAKE inside PANCAKE would count as CAKE.
@@ -219,7 +221,7 @@ export default function DailyChallenge() {
         const storedSet   = new Set(storedPositions.map(p => `${p.row},${p.col}`));
         const positionsMatch = selectedSet.size === storedSet.size &&
           [...selectedSet].every(k => storedSet.has(k));
-        if (!positionsMatch) return;
+        if (!positionsMatch) return 'miss'; // the right letters in the wrong place
       }
 
       const newFoundWords = [...currentFound, foundWord];
@@ -267,6 +269,7 @@ export default function DailyChallenge() {
         triggerVictory(newFoundWords.length);
       }
     }
+    return 'found';
   }, [level, mode, bonus_multiplier, gameOver, victory]);
 
   // S41 (SF-52): a due interstitial shows before the new board and its timer start.

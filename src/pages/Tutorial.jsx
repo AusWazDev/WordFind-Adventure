@@ -88,17 +88,19 @@ export default function Tutorial() {
   const [revealed, setRevealed] = useState(false);
   const [hintCells, setHintCells] = useState([]);
   const [note, setNote] = useState(null);
+  const [closeCall, setCloseCall] = useState(false); // NIGHT dragged in step 3 (SF-64b)
   const [handRun, setHandRun] = useState(0);
   const [reduced] = useState(prefersReducedMotion);
 
   const after = (ms, fn) => { timers.current.push(setTimeout(fn, ms)); };
-  const goTo = n => { setStep(n); setPhase('ask'); setNote(null); };
+  const goTo = n => { setStep(n); setPhase('ask'); setNote(null); setCloseCall(false); };
   // Leaving the page by any route stops audio and pending steps.
   useEffect(() => () => { timers.current.forEach(clearTimeout); stopAllAudio(); }, []);
 
   // Answers GameBoard as Game.jsx does: 'found', 'miss' or 'ignored' (SF-62).
   const handleWordFound = (letters, sel) => {
     setNote(null);
+    setCloseCall(false);
     if (phase === 'done' || step === FINISH) return 'ignored';
     const upper = letters.toUpperCase();
     const reversed = [...upper].reverse().join('');
@@ -118,6 +120,8 @@ export default function Tutorial() {
     }
     if (found.some(w => w === upper || w === reversed)) return 'ignored';
     if (step === 2) { setPhase('done'); after(MISS_ADVANCE_MS, () => goTo(3)); }
+    // Step 3 only: NIGHT (inside KNIGHT) is still a miss, with a nudge toward the silent K.
+    if (step === 3 && (upper === 'NIGHT' || reversed === 'NIGHT')) setCloseCall(true);
     return 'miss';
   };
 
@@ -130,10 +134,11 @@ export default function Tutorial() {
     else await speakWordAudio(word, settings);
   };
   const onPlay = word => {
+    setCloseCall(false);
     if (step === 3 && phase === 'ask') setPhase('next');
     play(word);
   };
-  const showWord = () => { setRevealed(true); if (phase === 'ask') setPhase('next'); };
+  const showWord = () => { setCloseCall(false); setRevealed(true); if (phase === 'ask') setPhase('next'); };
   const onHint = word => { // free: lights the first letter with the real hint style, spends nothing
     if (step !== 4 || phase !== 'ask' || word !== 'THUMB') return;
     setHintCells([TUTORIAL_GAME.wordPositions.THUMB[0]]);
@@ -162,6 +167,11 @@ export default function Tutorial() {
          next: { sel: [cellSel(TUTORIAL_GAME.wordPositions.THUMB[0])], heading: 'It starts here', body: 'In real games a hint uses one from your balance, and that word scores less.' },
          done: { sel: TUTORIAL_GAME.wordPositions.THUMB.map(cellSel), heading: 'Found THUMB!' } },
   }[step]?.[phase];
+  // The step 3 close call (set only in step 3, cleared on every step change) replaces the
+  // bubble's words only; the target and link stay.
+  const coachShown = coach && closeCall
+    ? { ...coach, heading: 'So close!', body: 'Listen again. This one starts with a silent letter.' }
+    : coach;
 
   const skipButton = (
     <button type="button" onClick={leave} className="absolute top-0 right-0 z-40 min-h-[44px] px-3 text-sm font-semibold text-muted-foreground hover:text-foreground">
@@ -228,7 +238,7 @@ export default function Tutorial() {
         </div>
         {note && <p role="status" className="text-center text-sm font-medium text-amber-700 dark:text-amber-400">{note}</p>}
         <TutorialWordList words={list} foundWords={found} hintWord={hintCells.length ? 'THUMB' : null} onPlay={onPlay} onHint={onHint} />
-        {coach && <CoachMark containerRef={pageRef} selectors={coach.sel} dashed={coach.dashed} heading={coach.heading} body={coach.body} link={coach.link} onLink={coach.onLink} />}
+        {coachShown && <CoachMark containerRef={pageRef} selectors={coachShown.sel} dashed={coachShown.dashed} heading={coachShown.heading} body={coachShown.body} link={coachShown.link} onLink={coachShown.onLink} />}
         {step === 1 && phase === 'ask' && !reduced && <DragHand containerRef={pageRef} run={handRun} />}
       </div>
     </MotionConfig>

@@ -207,6 +207,39 @@ describe('step details (SF-64)', () => {
   });
 });
 
+describe('NIGHT in step 3 only (SF-64b)', () => {
+  const NIGHT = [[5, 1], [5, 5]];
+  const NIGHT_BACKWARDS = [[5, 5], [5, 1]];
+  const closeCall = () => coach().includes('So close!') && coach().includes('Listen again. This one starts with a silent letter.');
+
+  it('step 3: NIGHT, either way round, is a miss with the "So close!" note, and the step stays', async () => {
+    await render('first');
+    await stepOne(); await stepTwo();
+    await drag(...NIGHT);
+    expect(missShown()).toBe(true);
+    expect(closeCall()).toBe(true);
+    await advance(FOUND_ADVANCE_MS + MISS_ADVANCE_MS);
+    expect(coach(), 'the step does not advance').not.toContain('Stuck? Use a hint');
+    expect(rowText('KNIGHT')).not.toContain('KNIGHT');
+    await drag(...NIGHT_BACKWARDS);
+    expect(missShown()).toBe(true);
+    expect(closeCall()).toBe(true);
+  });
+
+  it('steps 1 and 2: NIGHT is an ordinary miss with no note', async () => {
+    await render('first');
+    await drag(...NIGHT);
+    expect(missShown()).toBe(true);
+    expect(coach()).not.toContain('So close!');
+    expect(coach()).toContain('Find LAMB');
+    await stepOne();
+    await drag(...NIGHT);
+    expect(missShown()).toBe(true);
+    expect(coach()).not.toContain('So close!');
+    expect(coach(), 'step 2 moves on after any miss, as before').toContain('No penalty');
+  });
+});
+
 describe('Skip and finish in each mode (SF-64)', () => {
   it('first run, Skip: starts the first puzzle via Home, sets the flag, stops audio', async () => {
     await render('first');

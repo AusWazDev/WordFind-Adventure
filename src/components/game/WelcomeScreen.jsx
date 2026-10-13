@@ -8,6 +8,7 @@ import { isNative } from '@/lib/platform';
 import { isElectronPage } from '@/lib/staleServiceWorkers';
 import { prefersReducedMotion } from '@/lib/motion';
 import { markWelcomeSeen } from '@/lib/welcome';
+import { markTutorialDone } from '@/lib/tutorial';
 
 // Kept for existing imports; the logic lives in src/lib/welcome.js (SF-63).
 export { hasSeenWelcome, markWelcomeSeen } from '@/lib/welcome';
@@ -66,7 +67,14 @@ export default function WelcomeScreen({ onShowMeHow, onSkip }) {
     await unlockAudio();
     await speakWordAudio(DEMO_WORD, getLocalSettings());
   };
-  const close = next => () => { stopAllAudio(); markWelcomeSeen(); next(); };
+  // skipsTutorial: "Skip, just play" also marks the tutorial done (SF-64b), so Home's resume
+  // rule does not send this player to it while their first game is still unfinished.
+  const close = (next, skipsTutorial = false) => () => {
+    stopAllAudio();
+    markWelcomeSeen();
+    if (skipsTutorial) markTutorialDone();
+    next();
+  };
 
   return (
     <MotionConfig reducedMotion="user">
@@ -139,7 +147,7 @@ export default function WelcomeScreen({ onShowMeHow, onSkip }) {
             </motion.button>
             <button
               type="button"
-              onClick={close(onSkip)}
+              onClick={close(onSkip, true)}
               className="w-full py-3 min-h-[44px] text-sm font-semibold text-white/70 hover:text-white transition-colors"
             >
               Skip, just play

@@ -115,6 +115,21 @@ describe('nothing blurred is mounted while it shows (SF-63)', () => {
   });
 });
 
+describe('"Skip, just play" and the resume rule (SF-64b)', () => {
+  it('after Skip, with the game left unfinished, Home starts no tutorial redirect', async () => {
+    await render();
+    await click('Skip, just play');
+    expect(location.pathname, 'control: the game started').toBe('/Game');
+    // The game is left unfinished: games_played is still 0 (no progress at all here).
+    await act(async () => root.unmount()); container.remove();
+    location = null;
+    await render();
+    expect(location ? `${location.pathname}${location.search}` : null, 'no redirect to the tutorial').toBeNull();
+    expect(text()).toContain('Choose Game Mode');
+    expect(localStorage.getItem('wf_tutorial_done')).toBe('true');
+  });
+});
+
 describe('"Show me how" opens the guided first game (SF-64)', () => {
   it('goes to the tutorial in first-run mode, with the welcome marked seen', async () => {
     await render();

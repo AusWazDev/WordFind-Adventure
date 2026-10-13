@@ -178,7 +178,7 @@ export default function Game() {
   const loadProgressData = async () => {
     const p = await loadProgress();
     setProgress(p);
-    setHintsRemaining(p.hints_remaining ?? 12);
+    setHintsRemaining(hintCount(p));
   };
 
   const initGame = async () => {
@@ -377,7 +377,7 @@ export default function Game() {
   const handlePurchase = (amount, purchase) => {
     const { progress: updated, creditedHints } = creditPurchaseNow(purchase, amount);
     setProgress(updated);
-    setHintsRemaining(updated.hints_remaining);
+    setHintsRemaining(hintCount(updated));
     setShowHintModal(false);
     if (creditedHints) toast.success(`You purchased ${amount} hints!`);
   };
@@ -389,7 +389,7 @@ export default function Game() {
       const p = getLocalProgress();
       if (!p) return;
       setProgress(p);
-      setHintsRemaining(p.hints_remaining ?? 12);
+      setHintsRemaining(hintCount(p));
     };
     window.addEventListener(PROGRESS_CHANGED_EVENT, reread);
     return () => window.removeEventListener(PROGRESS_CHANGED_EVENT, reread);

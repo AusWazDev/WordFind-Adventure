@@ -25,6 +25,9 @@ import { HIT_FROM_28 } from '@/lib/touchTarget';
 import { useBackHandler } from '@/lib/backButton';
 import { loadProgress, getLocalProgress } from '@/components/game/offlineStorage';
 import { PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
+import { hintBalance } from '@/lib/hintBalance';
+import { HOME_BACKGROUND, PILL_BUTTON } from '@/lib/brand';
+import Wordmark from '@/components/game/Wordmark';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
@@ -168,7 +171,7 @@ export default function Home() {
 
   return (
     <PullToRefresh onRefresh={loadProgressData}>
-      <div className="min-h-full bg-gradient-to-br from-slate-50 via-violet-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className={`min-h-full ${HOME_BACKGROUND}`} style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-lg md:max-w-2xl mx-auto px-4 pt-5 pb-4">
 
           {/* Header */}
@@ -186,9 +189,7 @@ export default function Home() {
                   display: 'block',
                 }}
               />
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                Sound<span className="text-violet-600">Find</span>
-              </h1>
+              <Wordmark />
             </div>
 
             <div className="flex items-center gap-3">
@@ -196,7 +197,7 @@ export default function Home() {
               <motion.button
                 onClick={() => navigate(TUTORIAL_REPLAY)}
                 aria-label="How to Play"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold shadow-sm hover:shadow-md transition-all ${HIT_FROM_28}`}
+                className={`${PILL_BUTTON} ${HIT_FROM_28}`}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
@@ -212,7 +213,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Lightbulb className="w-4 h-4 text-emerald-500" />
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{progress.hints_remaining ?? 12}</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{hintBalance(progress)}</span>
                   </div>
                 </div>
               )}

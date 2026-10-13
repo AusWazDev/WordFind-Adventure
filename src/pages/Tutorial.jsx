@@ -5,6 +5,8 @@ import { Hand } from 'lucide-react';
 import GameBoard from '@/components/game/GameBoard';
 import TutorialWordList from '@/components/game/TutorialWordList';
 import CoachMark, { useTargetRect } from '@/components/game/CoachMark';
+import { HOME_BACKGROUND, HEADING_TEXT, PRIMARY_BUTTON } from '@/lib/brand';
+import { MODE_ICONS } from '@/lib/modeIcons';
 import { unlockAudio, speakWordAudio, speakSentenceAudio, stopAllAudio } from '@/components/game/voiceUtils';
 import { getSentence, hasSentence } from '@/components/game/trickySentences';
 import { MODE_LABELS } from '@/lib/constants';
@@ -200,14 +202,17 @@ export default function Tutorial() {
     const earnLine = isNative(); // Android and iOS have both the rewarded ad and the hint packs
     return (
       <MotionConfig reducedMotion="user">
-        <div className="max-w-md mx-auto px-4 py-6 space-y-4" style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}>
+        {/* G3 (SF-66b): a full-height column; my-auto centres the content when it fits, and
+            when it does not, the content starts at the top and the page scrolls (no clipping). */}
+        <div data-testid="finish-page" className={`min-h-[100dvh] flex flex-col ${HOME_BACKGROUND}`} style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <div data-testid="finish-content" className="my-auto w-full max-w-sm mx-auto px-6 space-y-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">You're ready to play</h1>
+            <h1 className={`text-2xl font-bold ${HEADING_TEXT}`}>You're ready to play</h1>
             <p className="text-sm text-muted-foreground mt-1">Every game is a word search with a twist. Pick one from the home screen:</p>
           </div>
           <ul className="bg-card rounded-2xl shadow-lg p-4 space-y-2">
             {MODE_LINES.map(([id, line]) => (
-              <li key={id} className="text-sm"><span className="font-semibold text-foreground">{MODE_LABELS[id]}:</span> <span className="text-muted-foreground">{line}</span></li>
+              <li key={id} className="text-sm flex items-start gap-2">{React.createElement(MODE_ICONS[id], { className: 'w-4 h-4 mt-0.5 shrink-0 text-violet-600', 'aria-hidden': true, 'data-mode-icon': id })}<span><span className="font-semibold text-foreground">{MODE_LABELS[id]}:</span> <span className="text-muted-foreground">{line}</span></span></li>
             ))}
           </ul>
           <div className="bg-card rounded-2xl shadow-lg p-4 space-y-2" data-testid="hints-box">
@@ -223,11 +228,12 @@ export default function Tutorial() {
           <button
             type="button"
             onClick={leave}
-            className="w-full py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-violet-500 to-indigo-600"
+            className={PRIMARY_BUTTON}
           >
             {firstRun ? 'Play your first puzzle' : 'Back to home'}
           </button>
           {firstRun && <p className="text-center text-xs text-muted-foreground">Replay this any time from Settings.</p>}
+        </div>
         </div>
       </MotionConfig>
     );
@@ -241,6 +247,7 @@ export default function Tutorial() {
 
   return (
     <MotionConfig reducedMotion="user">
+      <div className={`min-h-[100dvh] ${HOME_BACKGROUND}`}>
       <div ref={pageRef} className="relative max-w-md mx-auto px-4 pb-6 space-y-3" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
         {skipButton}
         <div className="w-full aspect-square" data-testid="tutorial-board">
@@ -261,6 +268,7 @@ export default function Tutorial() {
         </div>
         {coachShown && <CoachMark containerRef={pageRef} avoid={avoid} boardSelector='[data-testid="tutorial-board"]' listSelector='[data-testid="tutorial-list"]' heading={coachShown.heading} body={coachShown.body} link={coachShown.link} onLink={coachShown.onLink} />}
         {step === 1 && phase === 'ask' && !reduced && <DragHand containerRef={pageRef} run={handRun} />}
+      </div>
       </div>
     </MotionConfig>
   );

@@ -30,6 +30,8 @@ const { default: Layout } = await import('@/Layout');
 const { default: Tutorial, FOUND_ADVANCE_MS, MISS_ADVANCE_MS } = await import('./Tutorial');
 const { getSentence } = await import('@/components/game/trickySentences');
 const { installBackButton, __resetBackButton } = await import('@/lib/backButton');
+const { HOME_BACKGROUND, HEADING_TEXT, PRIMARY_BUTTON } = await import('@/lib/brand');
+const { MODE_ICONS } = await import('@/lib/modeIcons');
 
 let container, root, location, setItem;
 function Where() { location = useLocation(); return <div data-testid="home" />; }
@@ -405,5 +407,55 @@ describe('G5 (SF-66b): targets are marked on the elements themselves', () => {
     await advance(200);
     const after = highlights().map(el => (el.hasAttribute('data-row') ? cellKey(el) : el.outerHTML.slice(0, 40))).sort();
     expect(after).toEqual(before);
+  });
+});
+
+describe('G3 and G4 (SF-66b): the finish screen and the tutorial pages', () => {
+  const HEX = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z])/;
+  const classes = el => (el.getAttribute('class') || '').split(/\s+/);
+  const noHexOrBlur = () => {
+    const els = [...container.querySelectorAll('*')];
+    expect(els.length, 'control: the page rendered').toBeGreaterThan(10);
+    expect(els.filter(el => HEX.test(el.getAttribute('style') || '') || HEX.test(el.getAttribute('class') || '')).map(el => el.outerHTML.slice(0, 80))).toEqual([]);
+    expect(els.filter(el => /(^|\s)(backdrop-)?blur(-|\s|$)/.test(el.getAttribute('class') || '')).map(el => el.outerHTML.slice(0, 80))).toEqual([]);
+  };
+  const toFinish = async () => { await stepOne(); await stepTwo(); await stepThree(); await stepFour(); };
+
+  it("the finish: centred when it fits, top and scrolling when not; the welcome's width; Home's heading colour and background", async () => {
+    await render('replay');
+    await toFinish();
+    const page = container.querySelector('[data-testid="finish-page"]');
+    const content = container.querySelector('[data-testid="finish-content"]');
+    expect(page, 'control: the finish screen is showing').not.toBeNull();
+    for (const c of ['min-h-[100dvh]', 'flex', 'flex-col', ...HOME_BACKGROUND.split(' ')]) expect(classes(page)).toContain(c);
+    for (const c of ['my-auto', 'w-full', 'max-w-sm', 'mx-auto']) expect(classes(content)).toContain(c);
+    expect(classes(page)).not.toContain('overflow-hidden');
+    expect(content.querySelector('h1').className).toBe(`text-2xl font-bold ${HEADING_TEXT}`);
+    const button = [...container.querySelectorAll('button')].find(b => b.textContent.trim() === 'Back to home');
+    expect(button.className).toBe(PRIMARY_BUTTON);
+    noHexOrBlur();
+  });
+
+  it("each mode on the finish screen shows the mode picker's icon for it", async () => {
+    await render('replay');
+    await toFinish();
+    const items = [...container.querySelectorAll('[data-testid="finish-content"] li')].filter(li => li.querySelector('[data-mode-icon]'));
+    expect(items.length, 'all five modes').toBe(5);
+    for (const li of items) {
+      const id = li.querySelector('[data-mode-icon]').getAttribute('data-mode-icon');
+      const probe = document.createElement('div');
+      const r = createRoot(probe);
+      await act(async () => { r.render(React.createElement(MODE_ICONS[id])); });
+      const lucide = [...probe.querySelector('svg').classList].find(c => /^lucide-/.test(c));
+      expect(li.querySelector('svg').classList.contains(lucide), `${id} uses ${lucide}`).toBe(true);
+      await act(async () => r.unmount());
+    }
+  });
+
+  it("the tutorial steps sit on Home's background, with no hex colour or blur", async () => {
+    await render('first');
+    const page = container.querySelector('[data-testid="tutorial-board"]').parentElement.parentElement;
+    for (const c of HOME_BACKGROUND.split(' ')) expect(classes(page)).toContain(c);
+    noHexOrBlur();
   });
 });

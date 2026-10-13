@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, Volume2, ChevronRight, Shuffle, Brain, WifiOff, Sparkles, Eye } from 'lucide-react';
+import { ChevronRight, WifiOff, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { isNative } from '@/lib/platform';
 import { isElectronPage } from '@/lib/staleServiceWorkers';
 import { MODE_LABELS } from '@/lib/constants';
+import { MODE_ICONS } from '@/lib/modeIcons';
 
 const REQUIRES_ONLINE  = new Set(); // No modes currently require online — reserved for future use
 const DEGRADED_OFFLINE = new Set(['audio']);
@@ -16,7 +17,7 @@ const OTHER_MODES = [
     id: 'standard',
     name: MODE_LABELS.standard,
     description: 'Classic word search with a visible word list',
-    icon: Search,
+    icon: MODE_ICONS.standard,
     gradient: 'from-violet-500 to-indigo-600',
     bgGradient: 'from-violet-50 to-indigo-50',
   },
@@ -24,7 +25,7 @@ const OTHER_MODES = [
     id: 'association',
     name: MODE_LABELS.association,
     description: 'Find words using hand-crafted clues — works fully offline',
-    icon: Brain,
+    icon: MODE_ICONS.association,
     gradient: 'from-cyan-500 to-blue-600',
     bgGradient: 'from-cyan-50 to-blue-50',
     badge: 'New!',
@@ -33,7 +34,7 @@ const OTHER_MODES = [
     id: 'anagram',
     name: MODE_LABELS.anagram,
     description: 'Words shown scrambled — unscramble then find them',
-    icon: Shuffle,
+    icon: MODE_ICONS.anagram,
     gradient: 'from-pink-500 to-rose-600',
     bgGradient: 'from-pink-50 to-rose-50',
     badge: 'New!',
@@ -84,7 +85,7 @@ export default function GameModeSelector({ onSelectMode }) {
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm shrink-0">
-                <Volume2 className="w-6 h-6 text-white" />
+                <MODE_ICONS.audio className="w-6 h-6 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -132,7 +133,7 @@ export default function GameModeSelector({ onSelectMode }) {
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm shrink-0">
-                <Eye className="w-5 h-5 text-white" />
+                <MODE_ICONS.mystery_word className="w-5 h-5 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">

@@ -53,6 +53,14 @@ Pages (`src/pages.config.js`, `PAGES`): `DailyChallenge`, `Game`, `Home`, `Setti
 decision S3); an old `#/Leaderboard` link shows Page Not Found. The bottom nav is
 Home, Stats, Settings.
 
+### Brand, as of 14 Oct 2026 (G4, CR-118)
+
+Home in the Default setting is the reference. `src/lib/brand.js` holds Home's page
+background, heading and secondary text colours, the How to Play pill, and the one primary
+button (violet-600 to indigo-600). `Wordmark.jsx` is Home's wordmark; the welcome uses it
+at a larger size. The welcome, the tutorial and its finish screen use Home's background and
+follow the theme setting. No inline hex colour; system font; no blur.
+
 ### First-launch welcome, as of 13 Oct 2026 (S42, SF-63)
 
 - **Who sees it** (`src/lib/welcome.js`): a player with `wf_welcome_seen` not `'true'`
@@ -301,6 +309,8 @@ Two fields inside `wf_progress` keep a paid pack from being lost or credited twi
 - **Measured on the tablet (SF-55, SF-55b, SF-55c):** a pack whose purchase was killed
   before crediting is added once, on the second launch after the kill; a normal
   purchase is added once and not again on relaunch.
+- **Reading the balance (CR-117, SF-66b):** every reader uses `hintBalance`
+  (`src/lib/hintBalance.js`): a missing, non-numeric or negative value counts as 12.
 - **Progress writes (CR-113, SF-66b):** every write reads the stored progress and
   changes only the fields it owns (`changeProgress`, `offlineStorage.jsx`). Only a hint
   action, a purchase, a reconcile and the Daily's reward change `hints_remaining`; a

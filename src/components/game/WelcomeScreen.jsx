@@ -9,6 +9,9 @@ import { isElectronPage } from '@/lib/staleServiceWorkers';
 import { prefersReducedMotion } from '@/lib/motion';
 import { markWelcomeSeen } from '@/lib/welcome';
 import { markTutorialDone } from '@/lib/tutorial';
+import { HOME_BACKGROUND, SECONDARY_TEXT, PILL_BUTTON, PRIMARY_BUTTON } from '@/lib/brand';
+import { HIT_FROM_28 } from '@/lib/touchTarget';
+import Wordmark from '@/components/game/Wordmark';
 
 // Kept for existing imports; the logic lives in src/lib/welcome.js (SF-63).
 export { hasSeenWelcome, markWelcomeSeen } from '@/lib/welcome';
@@ -79,20 +82,17 @@ export default function WelcomeScreen({ onShowMeHow, onSkip }) {
   return (
     <MotionConfig reducedMotion="user">
       <div
-        className="relative w-full flex flex-col items-center justify-center px-6"
+        className={`relative w-full flex flex-col items-center justify-center px-6 ${HOME_BACKGROUND}`}
         style={{
           minHeight: '100dvh',
-          background: 'linear-gradient(160deg, #0f0e1a 0%, #1a1830 100%)',
           paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
           paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
         }}
       >
         <div className="w-full max-w-sm flex flex-col items-center gap-6">
           <motion.div className="text-center" initial={{ y: -12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05 }}>
-            <h1 className="text-5xl font-black text-white tracking-tight leading-none">
-              Sound<span className="text-violet-400">Find</span>
-            </h1>
-            <p className="text-white/60 text-sm mt-2 font-medium">Hear the word. Find the spelling.</p>
+            <Wordmark size="lg" />
+            <p className={`${SECONDARY_TEXT} text-sm mt-2 font-medium`}>Hear the word. Find the spelling.</p>
           </motion.div>
 
           {/* The demo board: not touchable as a game; a tap replays the demo. */}
@@ -122,16 +122,16 @@ export default function WelcomeScreen({ onShowMeHow, onSkip }) {
               type="button"
               onClick={hearIt}
               aria-label="Hear the word KNIGHT"
-              className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-white/10 text-white text-sm font-semibold hover:bg-white/15 transition-colors"
+              className={`${PILL_BUTTON} ${HIT_FROM_28}`}
             >
               <Volume2 className="w-4 h-4" /> Hear it
             </button>
-            <p className="text-white/50 text-xs">Silent K, silent GH.</p>
+            <p className={`${SECONDARY_TEXT} text-xs`}>Silent K, silent GH.</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
             {['5 game modes', 'Natural voices', offlineChip].map(chip => (
-              <span key={chip} className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">{chip}</span>
+              <span key={chip} className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium">{chip}</span>
             ))}
           </div>
 
@@ -139,8 +139,7 @@ export default function WelcomeScreen({ onShowMeHow, onSkip }) {
             <motion.button
               type="button"
               onClick={close(onShowMeHow)}
-              className="w-full flex items-center justify-center py-4 rounded-2xl font-black text-base text-white shadow-xl shadow-violet-900/40"
-              style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)' }}
+              className={PRIMARY_BUTTON}
               whileTap={{ scale: 0.97 }}
             >
               Show me how
@@ -148,7 +147,7 @@ export default function WelcomeScreen({ onShowMeHow, onSkip }) {
             <button
               type="button"
               onClick={close(onSkip, true)}
-              className="w-full py-3 min-h-[44px] text-sm font-semibold text-white/70 hover:text-white transition-colors"
+              className={`${PILL_BUTTON} ${HIT_FROM_28} mx-auto`}
             >
               Skip, just play
             </button>

@@ -59,9 +59,8 @@ export async function loadProgress() {
   return seed;
 }
 
-// The hint balance as game logic reads it: a stored number, or the starting 12 when the
-// field is missing or not a number (the same default the screens load with).
-export const hintCount = progress => (typeof progress?.hints_remaining === 'number' ? progress.hints_remaining : 12);
+// The hint balance as every reader reads it (SF-66b B1): see lib/hintBalance.js.
+export { hintBalance as hintCount } from '@/lib/hintBalance';
 
 // SF-66b (A4): every progress write reads the STORED progress at the moment it writes
 // and changes only the fields that write owns. `change` is an object of those fields, or

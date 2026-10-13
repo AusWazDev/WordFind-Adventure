@@ -21,11 +21,14 @@ import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
 import { HINT_PACK_MAP } from '@/lib/purchases';
 import { getLocalProgress, saveLocalProgress, loadProgress } from '@/components/game/offlineStorage';
+import { hintBalance } from '@/lib/hintBalance';
 
 export const PROGRESS_CHANGED_EVENT = 'soundfind-progress-changed';
 
 const ids = progress => (Array.isArray(progress?.credited_txn_ids) ? progress.credited_txn_ids : []);
-const hints = progress => (typeof progress?.hints_remaining === 'number' ? progress.hints_remaining : 0);
+// A credit adds to the balance the player sees: a missing or invalid one counts as 12, as on
+// every screen (SF-66b B1). It used to count as 0, so a pack replaced 12 with its own size.
+const hints = progress => hintBalance(progress);
 
 // Pure. Sets the baseline if it is missing; never credits anything.
 export function withBaseline(progress, now) {

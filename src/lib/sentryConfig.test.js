@@ -62,6 +62,12 @@ describe('scrubUrl', () => {
 });
 
 describe('beforeBreadcrumb', () => {
+  it('drops tap and typing breadcrumbs, which carry element labels (SF-70)', () => {
+    expect(options.beforeBreadcrumb({ category: 'ui.click', message: 'body > button[aria-label="Hint, 5 left"]' }, {})).toBeNull();
+    expect(options.beforeBreadcrumb({ category: 'ui.input', message: 'body > input[aria-label="x"]' }, {})).toBeNull();
+    expect(options.beforeBreadcrumb({ category: 'console', message: 'kept' }, {})?.message, 'control: other categories pass').toBe('kept');
+  });
+
   it('drops navigation breadcrumbs', () => {
     const crumb = { category: 'navigation', data: { from: '/#/Home', to: `/${GAME_HASH}` } };
     expect(options.beforeBreadcrumb(crumb, {})).toBeNull();

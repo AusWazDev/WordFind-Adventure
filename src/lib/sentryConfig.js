@@ -10,7 +10,8 @@
 // - request.url is cut to scheme + host + path. The HashRouter hash carries
 //   the route and its query (#/Game?mode=…&category=…&level=…).
 // - User-Agent and Referer headers are removed.
-// - Navigation breadcrumbs are dropped (their from/to carry the hash query).
+// - Navigation breadcrumbs are dropped (their from/to carry the hash query), and so are
+//   tap and typing breadcrumbs (ui.click, ui.input; SF-70), which carry element labels.
 // - The BrowserSession integration is removed: session envelopes carry the
 //   user_agent and never pass through beforeSend.
 //
@@ -48,8 +49,14 @@ export function scrubEvent(event) {
   return event;
 }
 
+// Breadcrumb categories never sent. navigation: its from/to carry the hash query.
+// ui.click and ui.input (SF-70): their message describes the tapped or typed-in element,
+// including its aria-label, so a tap on the hint button carried "Hint, N left" (the hint
+// balance) into every later report. No other category carries an element label (SF-70 A).
+export const DROPPED_BREADCRUMB_CATEGORIES = ['navigation', 'ui.click', 'ui.input'];
+
 export function scrubBreadcrumb(breadcrumb) {
-  if (breadcrumb?.category === 'navigation') return null;
+  if (DROPPED_BREADCRUMB_CATEGORIES.includes(breadcrumb?.category)) return null;
   return breadcrumb;
 }
 

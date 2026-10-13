@@ -316,9 +316,9 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 |---|---|
 | **Primary source** | `src/lib/sentryConfig.js` (all `Sentry.init` options), `src/main.jsx` (calls it) |
 | **Supporting source** | `src/lib/admob.js`, `src/lib/purchases.js`, `src/components/game/HintModal.jsx`, `src/components/game/RemoveAdsModal.jsx` (CR-58 capture calls) |
-| **Tests** | `src/lib/sentryConfig.test.js`, `src/lib/sentryConfig.e2e.test.js` (real SDK, capturing transport). Run `npm test` |
+| **Tests** | `src/lib/sentryConfig.test.js`, `src/lib/sentryConfig.e2e.test.js` (real SDK, capturing transport), `src/lib/sentryBreadcrumbs.e2e.test.js` (tap and typing breadcrumbs dropped, SF-70). Run `npm test` |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md`; uniquegames-site SoundFind privacy policy (Sentry section) |
-| **Also check when changed** | Does `npm test` still pass? Is `tracesSampleRate` still OMITTED (0 counts as enabled)? Does any new breadcrumb, header or context carry a route query or device detail? Does the privacy policy still describe what Sentry receives? |
+| **Also check when changed** | Does `npm test` still pass? Is `tracesSampleRate` still OMITTED (0 counts as enabled)? Does any new breadcrumb, header or context carry a route query, device detail or element label (SF-70: `ui.click` and `ui.input` are dropped)? Does the privacy policy still describe what Sentry receives? |
 
 ---
 

@@ -89,16 +89,33 @@ export async function initAdMob() {
   }
 }
 
-export async function prepareInterstitial() {
+// SF-66b B2. A failed load is retried ONCE, INTERSTITIAL_RETRY_MS later; if that fails
+// too, nothing more is requested until the next show attempt (which reloads). A loaded ad
+// older than INTERSTITIAL_MAX_AGE_MS is treated as not prepared at show time and
+// reloaded: Google's interstitials expire after an hour.
+export const INTERSTITIAL_RETRY_MS = 60 * 1000;
+export const INTERSTITIAL_MAX_AGE_MS = 50 * 60 * 1000;
+let loadedAt = null;      // when the current interstitial finished loading, or null
+let retryTimer = null;    // the one pending retry, if any
+
+export async function prepareInterstitial({ retry = false } = {}) {
   const units = getAdUnits();
   if (!units) return;
   try {
     await AdMob.prepareInterstitial({ adId: units.interstitial, ...AD_REQUEST_OPTIONS });
+    loadedAt = Date.now();
   } catch (e) {
+    loadedAt = null;
     console.warn('[AdMob] prepareInterstitial failed:', e);
-    Sentry.addBreadcrumb({ category: 'admob', message: 'prepareInterstitial failed', data: { error: String(e) }, level: 'warning' });
+    Sentry.addBreadcrumb({ category: 'admob', message: 'prepareInterstitial failed', data: { error: String(e), retry }, level: 'warning' });
+    if (!retry && !retryTimer) {
+      retryTimer = setTimeout(() => { retryTimer = null; prepareInterstitial({ retry: true }); }, INTERSTITIAL_RETRY_MS);
+    }
   }
 }
+
+// Tests only.
+export const __resetInterstitialState = () => { loadedAt = null; clearTimeout(retryTimer); retryTimer = null; };
 
 // Show the preloaded interstitial and resolve only when it is GONE (DEF-54, SF-57).
 // The plugin's own AdMob.showInterstitial() resolves straight after show()/present()
@@ -122,9 +139,16 @@ export function showInterstitialUntilClosed({ onShowed } = {}) {
       }
       Promise.all(handles).then(hs => hs.forEach(h => h?.remove?.())).catch(() => {});
       resolve(dismissed);
+      loadedAt = null; // shown, failed or expired: this ad is used up
       prepareInterstitial(); // fire-and-forget pre-load for next time
     };
     const listen = (event, fn) => handles.push(Promise.resolve(AdMob.addListener(event, fn)));
+    // An ad loaded more than INTERSTITIAL_MAX_AGE_MS ago is not shown: it counts as not
+    // prepared, so finish() reloads it, as for any ad that cannot be shown (B2).
+    if (loadedAt !== null && Date.now() - loadedAt > INTERSTITIAL_MAX_AGE_MS) {
+      finish(false, 'interstitial older than 50 minutes');
+      return;
+    }
     listen(InterstitialAdPluginEvents.Showed, () => { if (!settled) onShowed?.(); });
     listen(InterstitialAdPluginEvents.Dismissed, () => finish(true));
     listen(InterstitialAdPluginEvents.FailedToShow, e => finish(false, e?.message || 'failed to show'));

@@ -317,6 +317,9 @@ Two fields inside `wf_progress` keep a paid pack from being lost or credited twi
   request carries `tagForUnderAgeOfConsent: true`; every request sets `npa: true`.
   Android's merged manifest has no `AD_ID` and no `ACCESS_ADSERVICES_*` permissions
   (S21, CR-71, CR-73).
+- **Interstitial loading (CR-116, SF-66b):** loaded at start-up and again after every
+  show attempt. A failed load is retried once, 60 s later. An ad loaded more than 50
+  minutes before it is due is not shown: it counts as not prepared and is reloaded.
 - **Interstitial cadence (CR-101, decision S41):** every completed game counts, normal
   and Daily (`recordCompletedGame`, key `games_completed_count`). An interstitial is
   due when `games_completed_count − last_ad_completed_at ≥ 6` (`AD_FREQUENCY`), with

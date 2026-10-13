@@ -92,6 +92,7 @@ afterEach(() => { Element.prototype.getBoundingClientRect = realRect; });
 beforeEach(() => {
   localStorage.clear();
   localStorage.setItem('wf_welcome_seen', 'true');
+  localStorage.setItem('wf_tutorial_done', 'true'); // SF-64: or Home resumes the tutorial
   plugin.reset();
   platform.native = true;
   window.matchMedia = window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));

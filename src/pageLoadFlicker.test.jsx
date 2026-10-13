@@ -25,6 +25,7 @@ beforeEach(() => {
   localStorage.clear();
   localStorage.setItem('wf_progress', JSON.stringify({ id: 'local', current_level: 3, total_score: 4242, hints_remaining: 7, games_played: 37, words_found: 290, best_streak: 5 }));
   localStorage.setItem('wf_welcome_seen', 'true');
+  localStorage.setItem('wf_tutorial_done', 'true'); // SF-64: or Home resumes the tutorial
 });
 
 describe('first render shows the data (FB-2)', () => {

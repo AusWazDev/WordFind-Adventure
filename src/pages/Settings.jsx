@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun, RotateCcw, Crown } from 'lucide-react';
+import { Volume2, ArrowLeft, Bell, Trash2, AlertTriangle, CheckCircle2, Sun, RotateCcw, Crown, GraduationCap, ChevronRight } from 'lucide-react';
+import { TUTORIAL_KEY, TUTORIAL_REPLAY } from '@/lib/tutorial';
 import { Button } from '@/components/ui/button';
 import { speakPhraseAndWord, unlockAudio, stopAllAudio } from '@/components/game/voiceUtils';
 import { getLocalSettings, saveLocalSettings } from '@/components/game/offlineStorage';
@@ -78,7 +79,7 @@ export default function Settings() {
     const hintsRemaining  = savedProgress.hints_remaining ?? 0;
 
     // Clear all game-progress keys
-    ['wf_progress', 'wf_settings', 'wf_daily', 'wf_welcome_seen',
+    ['wf_progress', 'wf_settings', 'wf_daily', 'wf_welcome_seen', TUTORIAL_KEY, // tutorial flag: SF-64
      'games_completed_count', 'last_ad_completed_at'].forEach(key => {
       localStorage.removeItem(key);
     });
@@ -234,6 +235,22 @@ export default function Settings() {
             </div>
             <ReminderSettings />
           </motion.div>
+
+          {/* Replay the guided first game (S43, SF-64) */}
+          <button
+            type="button"
+            onClick={() => navigate(TUTORIAL_REPLAY)}
+            className="w-full p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-transparent dark:border-slate-700 flex items-center gap-3 text-left"
+          >
+            <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-xl">
+              <GraduationCap className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-slate-800 dark:text-slate-100">Replay tutorial</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">The guided first game, about a minute</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+          </button>
 
           {/* About & Legal */}
           <motion.div

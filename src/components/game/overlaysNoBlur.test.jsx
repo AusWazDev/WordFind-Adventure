@@ -22,7 +22,6 @@ vi.mock('canvas-confetti', () => ({ default: Object.assign(vi.fn(), { reset: vi.
 const { default: VictoryModal } = await import('./VictoryModal');
 const { default: RemoveAdsModal } = await import('./RemoveAdsModal');
 const { default: AdModal } = await import('./AdModal');
-const { default: HowToPlayModal } = await import('./HowToPlayModal');
 
 let container, root;
 beforeEach(() => {
@@ -38,7 +37,6 @@ const OVERLAYS = [
   ['VictoryModal', 'bg-black/50', () => <VictoryModal isOpen score={100} wordsFound={6} level={1} onNextLevel={noop} onReplay={noop} onHome={noop} />],
   ['RemoveAdsModal', 'bg-black/60', () => <RemoveAdsModal isOpen onClose={noop} onSuccess={noop} />],
   ['AdModal', 'bg-black/70', () => <AdModal isOpen onClose={noop} onRemoveAds={noop} />],
-  ['HowToPlayModal', 'bg-black/50', () => <HowToPlayModal isOpen onClose={noop} />],
 ];
 
 describe('full-screen overlays: dim, no backdrop blur (SF-49b)', () => {

@@ -12,8 +12,7 @@
 //  1. The portrait header's top row (Back · level column · Audio): justify-between with
 //     no gap, so the distance depends on the screen width; the level column between
 //     them is far wider than the 4 + 4 px of reach.
-//  2. How to Play's Close against its slide dots: different rows; Close sits at the
-//     header's right end and the dots are centred, so they never share a column.
+// (How to Play, with its slide dots and the second exclusion, was retired in SF-64.)
 import React from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -38,7 +37,6 @@ vi.mock('@/components/game/GameBoard', () => ({ default: props => { board.props 
 vi.mock('@/components/game/gameUtils', async importOriginal => ({ ...(await importOriginal()), generateGame: () => BONUS_GAME }));
 
 const { default: GameHeader } = await import('@/components/game/GameHeader');
-const { default: HowToPlayModal } = await import('@/components/game/HowToPlayModal');
 const { default: WordList } = await import('@/components/game/WordList');
 const { default: ReminderSettings } = await import('@/components/game/ReminderSettings');
 const { default: Game } = await import('@/pages/Game');
@@ -146,12 +144,6 @@ describe('no extended tap area overlaps a neighbour (SF-62)', () => {
     expect(stacked.filter(p => p.overlap)).toEqual([]);
   });
 
-  it('How to Play: the slide dots', async () => {
-    await render(<HowToPlayModal isOpen onClose={() => {}} />);
-    const pairs = rowOverlaps(byLabel('Go to slide 1').parentElement);
-    expect(pairs.length, 'control: 4 dots, 6 pairs').toBe(6);
-    expect(pairs.filter(p => p.overlap)).toEqual([]);
-  });
 
   it('word list rows (the per-word hint, outside Audio Challenge)', async () => {
     await render(<WordList words={['cat', 'dog', 'owl']} foundWords={[]} isAudioMode={false} revealedWords={[]} onRevealWord={() => {}} onHintCell={() => {}} hintsRemaining={3} hintWord={null} category="animals" />);

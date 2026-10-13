@@ -9,6 +9,7 @@ import Game from './pages/Game';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Stats from './pages/Stats';
+import Tutorial from './pages/Tutorial';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Home": Home,
     "Settings": Settings,
     "Stats": Stats,
+    "Tutorial": Tutorial,
 }
 
 export const pagesConfig = {

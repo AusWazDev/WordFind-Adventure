@@ -38,6 +38,7 @@ async function render() {
         <Routes>
           <Route path="/" element={<Layout currentPageName="Home"><Home /></Layout>} />
           <Route path="/Game" element={<Where />} />
+          <Route path="/Tutorial" element={<Where />} />
         </Routes>
       </MemoryRouter>,
     );
@@ -99,14 +100,28 @@ describe('who sees the welcome (SF-63)', () => {
 });
 
 describe('nothing blurred is mounted while it shows (SF-63)', () => {
-  it('no blur element and no bottom nav while the welcome shows; both return once it closes', async () => {
+  it('no blur element and no bottom nav while the welcome shows', async () => {
     await render();
     expect(nav()).toBeNull();
     expect(blurred().map(el => el.className)).toEqual([]);
+  });
+
+  it('control: on Home after the welcome, the nav and its blur are mounted and the scan finds them', async () => {
+    localStorage.setItem('wf_welcome_seen', 'true');
+    localStorage.setItem('wf_tutorial_done', 'true');
+    await render();
+    expect(nav()).not.toBeNull();
+    expect(blurred().length).toBeGreaterThan(0);
+  });
+});
+
+describe('"Show me how" opens the guided first game (SF-64)', () => {
+  it('goes to the tutorial in first-run mode, with the welcome marked seen', async () => {
+    await render();
     await click('Show me how');
-    expect(text(), 'interim: How to Play opens').toContain('Finding Words');
-    expect(nav(), 'control: the nav is back').not.toBeNull();
-    expect(blurred().length, 'control: the scan finds the nav blur once it is mounted').toBeGreaterThan(0);
+    expect(`${location.pathname}${location.search}`).toBe('/Tutorial?mode=first');
+    expect(localStorage.getItem('wf_welcome_seen')).toBe('true');
+    expect(localStorage.getItem('wf_tutorial_done'), 'never set on start').toBeNull();
   });
 });
 
@@ -122,6 +137,9 @@ describe('"Skip, just play" starts a game exactly like a level choice (SF-63)', 
     // The same choice made in Home's own picker gives the same ad gate and route.
     await act(async () => root.unmount()); container.remove();
     ads.calls = []; location = null;
+    // Without this, Home would resume the tutorial (SF-64: welcome seen, tutorial not done,
+    // no games played), which is not what this comparison is about.
+    localStorage.setItem('wf_tutorial_done', 'true');
     await render();
     // The picker's buttons carry a description after the name.
     for (const name of ['Standard', 'Random', 'Easy']) {

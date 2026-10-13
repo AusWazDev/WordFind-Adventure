@@ -32,6 +32,7 @@ const navLabels = container => [...container.querySelectorAll('nav.bottom-nav bu
 beforeEach(() => {
   localStorage.clear();
   localStorage.setItem('wf_welcome_seen', 'true');
+  localStorage.setItem('wf_tutorial_done', 'true'); // SF-64: or Home resumes the tutorial
   window.matchMedia = window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
   window.ResizeObserver = window.ResizeObserver || class { observe() {} unobserve() {} disconnect() {} };
   window.scrollTo = () => {};

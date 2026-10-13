@@ -70,9 +70,38 @@ Home, Stats, Settings.
   `speakWordAudio('KNIGHT', settings)`; nothing plays by itself; KNIGHT preloaded on
   arrival with `preloadGameAudio`), three chips (the offline one reads "Most modes
   work offline" on the web and "Works offline" on native and Electron, from
-  `isNative()` and `isElectronPage()`), "Show me how" (interim: opens How to Play
-  until vc6-D) and "Skip, just play" (Standard, level 1, category `random`, through
+  `isNative()` and `isElectronPage()`), "Show me how" (since SF-64: the guided first
+  game, first run) and "Skip, just play" (Standard, level 1, category `random`, through
   Home's own `startLevel`). Both buttons stop audio and set `wf_welcome_seen`.
+
+### The guided first game, as of 13 Oct 2026 (S43, SF-64)
+
+It replaced the How to Play modal (deleted). Route `#/Tutorial?mode=first|replay`
+(`src/pages/Tutorial.jsx`); Layout mounts no nav there, so nothing blurred is mounted.
+
+- **Isolated:** the page's import graph never reaches `offlineStorage`, `adCadence`,
+  `hintLedger`, `purchases` or `admob`, and its only storage write is
+  `wf_tutorial_done = 'true'` (`src/lib/tutorial.js`), set on finish or Skip, never on
+  start. It reads the voice setting from `wf_settings` directly.
+- **Board:** a fixed 6×6 game object (LAMB row 1, KNIGHT row 6, THUMB down column 6) on
+  the real, interactive `GameBoard`; its own `handleWordFound` answers `found`, `miss`
+  or `ignored`, so the real miss display shows. `TutorialWordList` copies WordList's look
+  (WordList itself imports `offlineStorage`).
+- **Steps,** each waiting for its own action: find LAMB (a hand shows the drag once,
+  "Show me again" repeats it; KNIGHT and THUMB dragged early are ignored with a note);
+  a miss (any non-word); hear KNIGHT (the sentence clip, as in Audio Challenge, or
+  "Can't hear? Show the word", free) and find it; a free hint lights THUMB's T in the
+  real gold hint style, then find THUMB. Coach marks are a ring and a bubble with no
+  dim or blur, found through `data-row`/`data-col`/`data-coach`, re-measured on resize
+  and orientation change.
+- **Finish:** the five modes (`MODE_LABELS`) and a Hints box whose values match the code;
+  the earn-or-buy line shows on native only. First run: "Play your first puzzle" (and
+  Skip) hand off to Home with `state.startFirstPuzzle`, and Home starts Standard level 1,
+  `random`, through `startLevel`. Replay: "Back to home".
+- **Entry points:** the welcome's "Show me how" (first run); Home's How to Play button
+  and Settings' "Replay tutorial" (replay). **Resume:** Home sends a player with the
+  welcome seen, no `wf_tutorial_done` and no games played to the first run. Settings
+  Reset removes `wf_tutorial_done`.
 
 ### Build scripts (`package.json`)
 
@@ -127,7 +156,8 @@ the repo `CLAUDE.md`).
 Offered in `src/components/game/GameModeSelector.jsx`. Internal id on the left, the
 label players see on the right (decision S2). **As of 13 Oct 2026 (SF-61) the labels
 are spelled out in one place only, `MODE_LABELS` in `src/lib/constants.js`**, which
-every screen reads (mode picker, game header, loading screen, How to Play); the census
+every screen reads (mode picker, game header, loading screen, the tutorial's finish
+screen; How to Play until SF-64); the census
 in `modeLabels.test.jsx` fails if a second map or a stray label literal appears:
 
 | id | Label | Offline |

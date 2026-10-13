@@ -61,9 +61,9 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 |---|---|
 | **Primary source** | `src/components/game/gameUtils.jsx` (word placement, filler logic) |
 | **Supporting source** | `src/components/game/WordList.jsx`, `src/components/game/GameBoard.jsx`, `src/pages/Game.jsx` |
-| **Related docs** | `docs/Change Register.md`, `STATUS.md`, `src/components/game/HowToPlayModal.jsx` |
+| **Related docs** | `docs/Change Register.md`, `STATUS.md`, `src/pages/Tutorial.jsx` (was `HowToPlayModal.jsx`, deleted in SF-64) |
 | **Beta test cases** | TC-03 (Mystery Word fills grid), TC-04 (Mystery Word revealed on win), TC-08 (no non-category fillers) |
-| **Also check when changed** | Is the homophone label still suppressed in non-audio Mystery Word? Is `HowToPlayModal.jsx` description still accurate? |
+| **Also check when changed** | Is the homophone label still suppressed in non-audio Mystery Word? Is the tutorial's finish-screen description (`Tutorial.jsx` `MODE_LINES`) still accurate? |
 
 ---
 
@@ -113,9 +113,9 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 |---|---|
 | **Primary source** | `src/components/game/HintModal.jsx` |
 | **Supporting source** | `src/components/game/gameUtils.jsx`, `src/components/game/offlineStorage.jsx`, `src/pages/Game.jsx` |
-| **Related docs** | `docs/Change Register.md`, `STATUS.md`, `src/components/game/HowToPlayModal.jsx` |
+| **Related docs** | `docs/Change Register.md`, `STATUS.md`, `src/pages/Tutorial.jsx` (was `HowToPlayModal.jsx`, deleted in SF-64) |
 | **Beta test cases** | TC-05 (hint reveals a cell), TC-06 (hint count decrements), TC-07 (offline hint limit) |
-| **Also check when changed** | Does the 12 free hints on first launch (CR-10) still work? Are hint buttons greyed out offline? Is the penalty % shown in `HowToPlayModal.jsx` still correct? |
+| **Also check when changed** | Does the 12 free hints on first launch (CR-10) still work? Are hint buttons greyed out offline? Is the penalty % shown in the tutorial's Hints box (`Tutorial.jsx`) still correct? |
 
 ---
 
@@ -157,14 +157,14 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 
 ---
 
-### 11. How to Play Modal
+### 11. How to Play Modal (retired 13 Oct 2026, SF-64; replaced by the guided first game, `src/pages/Tutorial.jsx`)
 
 | | Files |
 |---|---|
-| **Primary source** | `src/components/game/HowToPlayModal.jsx` |
+| **Primary source** | `src/pages/Tutorial.jsx` (finish screen: the five modes and the Hints box). *Was `src/components/game/HowToPlayModal.jsx`, deleted in SF-64.* |
 | **Supporting source** | `src/pages/Game.jsx` |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
-| **Beta test cases** | TC-28 (How to Play opens), TC-29 (content accurate) |
+| **Beta test cases** | TC-28 (How to Play opens; now the tutorial in replay mode), TC-29 (content accurate) |
 | **Also check when changed** | Are all 5 current modes documented? Are hint penalties accurate? Is Mystery Word description current? Are nav buttons rendering correctly (not stuck hover state — DEF-06)? Is Audio Challenge header teal/indigo (not amber — CR-21)? |
 
 ---
@@ -193,17 +193,18 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | **Daily time floor (CR-85, S27, 2 Oct 2026)** | `src/components/game/DailyChallengeUtils.jsx` (`min_seconds` on each timed template; `dailyTimeLimit` returns the larger of the scaled limit and the floor). **Also check:** `min_seconds` is a floor, not the limit. A new timed template needs one, or it gets the scaled limit alone. Test: `src/components/game/dailyTimeFloor.test.js`, which holds the old limits as its own data. |
 | **Cell scale follows the colour order (CR-85, FB-22, 2 Oct 2026)** | `src/components/game/GameBoard.jsx` (the cell `motion.div`'s `className` and `animate`, shared by Game and the Daily). **Also check:** any new cell state must be added to both chains, in the same order. Test: `src/components/game/gameBoardHintScale.test.jsx`. |
 | **Android backup on the measured defaults (CR-94, SF-48, S40-B, 12 Oct 2026)** | `android/app/src/main/AndroidManifest.xml` (`allowBackup="true"`, no rules, no agent) and `res/xml*`. **Also check:** any backup rules file or agent must keep the WebView's storage (`wf_progress`) and RevenueCat's preferences together; after a dependency change, check the merged release manifest (CR-94 has the command). Test: `src/androidBackupConfig.test.js`. |
+| **Guided first game (CR-108, SF-64, S43, 13 Oct 2026)** | `src/pages/Tutorial.jsx` (steps, finish screen `MODE_LINES` and Hints box, Skip), `src/components/game/TutorialWordList.jsx`, `src/components/game/CoachMark.jsx`, `src/lib/tutorial.js` (`wf_tutorial_done`, routes), `src/pages/Home.jsx` (resume, `startFirstPuzzle` hand-off, How to Play button), `src/pages/Settings.jsx` (Replay tutorial row; Reset), `src/Layout.jsx` (no nav on the page), `src/pages.config.js`. **Also check:** the page's import graph must stay clear of storage, ad, purchase and hint modules; the Hints box must match the code's hint values; a test that renders Home with `wf_welcome_seen` and no games needs `wf_tutorial_done` or Home resumes the tutorial. Tests: `src/tutorialIsolation.test.js`, `src/pages/tutorial.test.jsx`, `src/pages/tutorialEntry.test.jsx`. |
 | **First-launch welcome (CR-107, SF-63, S42, 13 Oct 2026)** | `src/lib/welcome.js` (`isWelcomeDue`, `settleWelcomeForPlayers`, `useWelcomeDue`), `src/components/game/WelcomeScreen.jsx` (demo board, "Hear it", chips, buttons), `src/pages/Home.jsx` (renders the welcome instead of its content; `startLevel` shared by the picker and Skip; `WELCOME_SKIP_START`), `src/Layout.jsx` (no nav while the welcome is due), `src/lib/motion.js` (`prefersReducedMotion`, shared with `GameBoard.jsx`). **Also check:** anything that writes `games_played` or `wf_welcome_seen` changes who sees it; nothing blurred may mount on Home while it is due. Tests: `welcomeScreen.test.jsx`, `src/pages/welcome.test.jsx`. |
 | **Miss feedback (CR-106, SF-62, U8, 13 Oct 2026)** | `GameBoard.jsx` (`MISS_MS`, `showMiss`, `data-miss`, the red tint and `x` shake), `Game.jsx` and `DailyChallenge.jsx` (`handleWordFound` returns `'found'`/`'miss'`/`'ignored'`), `gameUtils.jsx` (`spellsFoundWord`). **Also check:** any new page that renders `GameBoard` must return one of the three answers; a miss must stay cost-free. Tests: `missFeedback.test.jsx`, `src/pages/missClassification.test.jsx`. |
 | **GameBoard demo seams and coach targets (CR-106, SF-62, 13 Oct 2026)** | `GameBoard.jsx` (`interactive`, `selectedCells`, `data-row`/`data-col`), `GameHeader.jsx` (`data-coach="header-hint"`), `WordList.jsx` (`data-coach` `word-play`, `word-hint`, `word-reveal`). **Also check:** real games pass neither seam prop. Test: `gameBoardSeams.test.jsx`. |
 | **Tap areas never overlap (CR-106, SF-62, 13 Oct 2026)** | `src/lib/touchTarget.js` and every element using an `after:` hit area. **Also check:** a new or widened hit area must keep reach within its container's gap. Test: `src/tapAreaOverlap.test.jsx` (a class-derived model; two exclusions named in its header). |
-| **Mode names, one map (CR-105, SF-61, U1, 13 Oct 2026)** | `src/lib/constants.js` (`MODE_LABELS`), read by `GameHeader.jsx`, `GameLoadingScreen.jsx`, `GameModeSelector.jsx`, `HowToPlayModal.jsx`. **Also check:** a new screen that names a mode reads `MODE_LABELS`; never add a second map or a label literal. Test: `src/components/game/modeLabels.test.jsx`. |
-| **Touch targets and icon-button labels (CR-105, SF-61, U5, U6, 13 Oct 2026)** | `src/lib/touchTarget.js` (`HIT_*`: an `::after` hit area, visible size unchanged; the element must not clip overflow), used by `GameHeader.jsx`, `HintModal.jsx`, `RemoveAdsModal.jsx`, `HowToPlayModal.jsx`, `ReminderSettings.jsx`, `WordList.jsx`, `Settings.jsx`, `Home.jsx`; inline hit classes on the Mystery Word backspace (`Game.jsx`) and the How to Play dots. **Also check:** any new icon-only button needs an `aria-label` and, if under 44 px, a hit area. Tests: `src/a11yIconButtons.test.js`, `src/components/game/headerTargets.test.jsx`. |
+| **Mode names, one map (CR-105, SF-61, U1, 13 Oct 2026)** | `src/lib/constants.js` (`MODE_LABELS`), read by `GameHeader.jsx`, `GameLoadingScreen.jsx`, `GameModeSelector.jsx`, `src/pages/Tutorial.jsx` (`HowToPlayModal.jsx` until SF-64). **Also check:** a new screen that names a mode reads `MODE_LABELS`; never add a second map or a label literal. Test: `src/components/game/modeLabels.test.jsx`. |
+| **Touch targets and icon-button labels (CR-105, SF-61, U5, U6, 13 Oct 2026)** | `src/lib/touchTarget.js` (`HIT_*`: an `::after` hit area, visible size unchanged; the element must not clip overflow), used by `GameHeader.jsx`, `HintModal.jsx`, `RemoveAdsModal.jsx`, `HowToPlayModal.jsx` (deleted in SF-64), `ReminderSettings.jsx`, `WordList.jsx`, `Settings.jsx`, `Home.jsx`; inline hit classes on the Mystery Word backspace (`Game.jsx`) and the How to Play dots. **Also check:** any new icon-only button needs an `aria-label` and, if under 44 px, a hit area. Tests: `src/a11yIconButtons.test.js`, `src/components/game/headerTargets.test.jsx`. |
 | **Victory confetti cancelled on close (CR-105, SF-61, 13 Oct 2026)** | `VictoryModal.jsx` (effect cleanup calls `confetti.reset()`). **Also check:** a test that renders the real `VictoryModal` must mock `canvas-confetti` with a `reset`. Test: `src/components/game/victoryConfetti.test.jsx`. |
 | **Interstitial waits for Dismissed; 6-game gap; test ad units in debug (CR-101, SF-57, DEF-54, 13 Oct 2026)** | `src/lib/admob.js` (`showInterstitialUntilClosed`, `adUnitsFor`, `isDebugBuild`, `TEST_AD_UNITS`), `src/lib/adCadence.js` (`interstitialDue`: `completed − last ≥ 6`; `last_ad_completed_at` written on Showed). **Also check:** never await the plugin's `AdMob.showInterstitial()` alone (it resolves while the ad is on screen); any new start path awaits `showInterstitialBeforeGame()` before its board or timer; mocks of the plugin use `admobPluginMock.testutil.js` (its real behaviour); iOS debug builds need `CAPACITOR_DEBUG = true` in the Debug configuration to get test units. Tests: `src/lib/adFlow.test.jsx`, `src/adCadence.test.jsx`. |
 | **What the hint ledger records (CR-100, SF-56, DEF-53, 13 Oct 2026)** | `src/lib/purchases.js` (`purchaseProduct` returns `purchase: { productId, purchaseDate, listed }`), `src/lib/hintLedger.js` (`findListedEntry`, `creditPurchase`, the `pending:`/`matched:` claims in `reconcile`). **Also check:** the purchase result's transaction ID is the store's and never matches RevenueCat's listed ID; any change to what is recorded needs fixtures in the observed ID shapes (store `GPA.…`, RevenueCat `o1_…`) and a device check with a normal purchase and a relaunch. Test: `src/lib/hintLedger.test.jsx` (i), (ii). |
 | **Hint-pack ledger and reconcile (CR-98, SF-50, S40-C, P1, 13 Oct 2026)** | `src/lib/hintLedger.js` (pure `reconcile`, `creditPurchase`, `withBaseline`; wiring), `src/lib/purchases.js` (`purchaseProduct` returns `txnId`; `initPurchases` sets the baseline, `syncAdFreeStatus` runs the reconcile), `offlineStorage.jsx` (`saveLocalProgress` never moves `credited_txn_ids`/`reconcile_since` backwards), `Settings.jsx` (Reset keeps both), `Game.jsx`/`DailyChallenge.jsx`/`Home.jsx` (purchase credit; re-read on `soundfind-progress-changed`). **Also check:** any new screen that writes the hint balance must re-read on that event; any new reset must keep the two fields. Test: `src/lib/hintLedger.test.jsx`. |
-| **No backdrop blur on full-screen overlays (CR-97, SF-49b, 13 Oct 2026)** | `VictoryModal.jsx`, `RemoveAdsModal.jsx`, `AdModal.jsx`, `HowToPlayModal.jsx` (and `HintModal.jsx`, CR-95). **Also check:** a new full-screen overlay should dim without `backdrop-blur-*`. The bottom nav bar's blur (`Layout.jsx`) is measured, not decided (see STATUS, SF-49b). Test: `src/components/game/overlaysNoBlur.test.jsx`. |
+| **No backdrop blur on full-screen overlays (CR-97, SF-49b, 13 Oct 2026)** | `VictoryModal.jsx`, `RemoveAdsModal.jsx`, `AdModal.jsx`, `HowToPlayModal.jsx` (deleted in SF-64) (and `HintModal.jsx`, CR-95). **Also check:** a new full-screen overlay should dim without `backdrop-blur-*`. The bottom nav bar's blur (`Layout.jsx`) is measured, not decided (see STATUS, SF-49b). Test: `src/components/game/overlaysNoBlur.test.jsx`. |
 | **Interstitial cadence, one place (CR-96, SF-52, S41, 13 Oct 2026)** | `src/lib/adCadence.js` (count, due check, mark, native show), called from `Home.jsx` `handleSelectLevel`, `Game.jsx` `handleNextLevel`/`handleReplay`/`saveProgress`, `DailyChallenge.jsx` `triggerVictory`/`handleTryAgain`, `DailyChallengeCard.jsx` `handleStart`. **Also check:** any new way to start or complete a game must call it; the storage keys are published and must not change. Test: `src/adCadence.test.jsx`. |
 | **Hint shop overlay without backdrop blur (CR-95, SF-49, 13 Oct 2026)** | `src/components/game/HintModal.jsx` (the `fixed inset-0` overlay: `bg-black/60`, no `backdrop-blur-*`). **Also check:** a full-screen backdrop blur is slow on low-end Android GPUs (SF-47 measured ten times the slow frames); the other modals still have one. Test: `src/components/game/hintModalOverlay.test.jsx`. |
 | **Where hints are kept, on the purchase view (CR-93, SF-46, S40, 12 Oct 2026)** | `src/components/game/HintModal.jsx` (`PurchaseView`, the line under the pack list). **Also check:** if hints ever move off the device or gain a restore (SF-45's B or C), this line and the Terms' section 6 change together. Test: `src/components/game/hintStorageNote.test.jsx`. |
@@ -324,7 +325,7 @@ These apply to **every** code commit, regardless of feature area:
 | Any `src/` file changed | Add entry to `docs/Change Register.md` (DEF or CR) |
 | Any `src/` file changed | Update `STATUS.md` session log |
 | New source file added | Add it to this `docs/Traceability.md` map |
-| Game mode added or removed | Update `README.md`, `WelcomeScreen.jsx`, `HowToPlayModal.jsx`, beta test sheet |
+| Game mode added or removed | Update `README.md`, `WelcomeScreen.jsx`, `src/pages/Tutorial.jsx` (`MODE_LINES`; `HowToPlayModal.jsx` was deleted in SF-64), beta test sheet |
 | Live URL changes | Update `README.md`, `docs/Beta Tester Invite Message.md`, `docs/Launch Plan.md` |
 | Voice loading logic changes | Update `docs/Safari Voice Investigation.md` to reflect current strategy |
 

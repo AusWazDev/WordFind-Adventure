@@ -28,6 +28,7 @@ const AD_TEXT = 'Your game starts in';
 async function playToLevelSelect(completedGames) {
   localStorage.clear();
   localStorage.setItem('wf_welcome_seen', 'true');
+  localStorage.setItem('wf_tutorial_done', 'true'); // SF-64: or Home resumes the tutorial
   localStorage.setItem('games_completed_count', String(completedGames));
   container = document.createElement('div');
   document.body.appendChild(container);

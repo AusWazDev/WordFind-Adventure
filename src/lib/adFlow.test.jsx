@@ -57,6 +57,7 @@ const realRect = Element.prototype.getBoundingClientRect;
 beforeEach(() => {
   localStorage.clear();
   localStorage.setItem('wf_welcome_seen', 'true');
+  localStorage.setItem('wf_tutorial_done', 'true'); // SF-64: or Home resumes the tutorial
   plugin.reset();
   platform.native = true;
   daily.shortTimer = false;

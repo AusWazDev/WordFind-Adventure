@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Trophy, Lightbulb, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GameModeSelector from '@/components/game/GameModeSelector';
@@ -12,9 +12,9 @@ import AdModal from '@/components/game/AdModal';
 import RemoveAdsModal from '@/components/game/RemoveAdsModal';
 import { isNative } from '@/lib/platform';
 import { showInterstitialBeforeGame, interstitialDue, markInterstitialShown } from '@/lib/adCadence';
-import HowToPlayModal from '@/components/game/HowToPlayModal';
 import WelcomeScreen from '@/components/game/WelcomeScreen';
-import { useWelcomeDue, settleWelcomeForPlayers } from '@/lib/welcome';
+import { useWelcomeDue, settleWelcomeForPlayers, hasSeenWelcome, hasPlayed } from '@/lib/welcome';
+import { hasDoneTutorial, TUTORIAL_FIRST, TUTORIAL_REPLAY } from '@/lib/tutorial';
 
 // "Skip, just play" starts Standard level 1 here. Home's category picker has no
 // preselected option; Random is its first and catch-all choice (CategorySelector), and
@@ -45,12 +45,24 @@ export default function Home() {
   // Onboarding state. The welcome is due for a new player only (S42, SF-63); a player
   // with games played who never saw it has it marked seen, quietly.
   const welcomeDue = useWelcomeDue();
-  const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const location = useLocation();
+  // The tutorial's first run ends by asking Home to start the first puzzle, so that it
+  // goes through startLevel without the tutorial importing any ad or progress code (S43).
+  const startFirstPuzzle = !!location.state?.startFirstPuzzle;
+  // Resume: a player who saw the welcome but has neither finished the tutorial nor a
+  // game goes back to the tutorial's first run. A player with games played never does.
+  const resumeTutorial = !welcomeDue && !startFirstPuzzle && hasSeenWelcome() && !hasDoneTutorial() && !hasPlayed();
 
   useEffect(() => {
     settleWelcomeForPlayers();
     loadProgressData().catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (!startFirstPuzzle) return;
+    navigate(location.pathname, { replace: true, state: null }); // so Back never restarts it
+    startLevel(WELCOME_SKIP_START.mode, WELCOME_SKIP_START.category, WELCOME_SKIP_START.level);
+  }, [startFirstPuzzle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A reconcile credit (S40-C, SF-50) updates the hint count shown here.
   useEffect(() => {
@@ -134,12 +146,14 @@ export default function Home() {
   // The welcome renders INSTEAD of Home (S42, SF-63): none of Home's own content is
   // mounted, and Layout leaves out the blurred bottom nav while it is due. The ad
   // modals stay, so "Skip, just play" behaves exactly like a level choice.
+  if (resumeTutorial) return <Navigate to={TUTORIAL_FIRST} replace />;
+  if (startFirstPuzzle) return adModals; // starting the first puzzle; nothing else to show
+
   if (welcomeDue) {
     return (
       <>
         <WelcomeScreen
-          // INTERIM until vc6-D: the guided first game replaces this How to Play modal.
-          onShowMeHow={() => setShowHowToPlay(true)}
+          onShowMeHow={() => navigate(TUTORIAL_FIRST)}
           onSkip={() => startLevel(WELCOME_SKIP_START.mode, WELCOME_SKIP_START.category, WELCOME_SKIP_START.level)}
         />
         {adModals}
@@ -173,9 +187,9 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* How to Play button — always accessible */}
+              {/* How to Play: opens the guided first game in replay mode (S43, SF-64) */}
               <motion.button
-                onClick={() => setShowHowToPlay(true)}
+                onClick={() => navigate(TUTORIAL_REPLAY)}
                 aria-label="How to Play"
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold shadow-sm hover:shadow-md transition-all ${HIT_FROM_28}`}
                 whileHover={{ scale: 1.03 }}
@@ -240,10 +254,6 @@ export default function Home() {
         </div>
 
         {adModals}
-        <HowToPlayModal
-          isOpen={showHowToPlay}
-          onClose={() => setShowHowToPlay(false)}
-        />
       </div>
     </PullToRefresh>
   );

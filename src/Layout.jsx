@@ -28,7 +28,9 @@ export default function Layout({ children, currentPageName }) {
   // While Home shows the first-launch welcome, the nav (which carries a backdrop blur)
   // is not mounted at all (S42, SF-63); it returns the moment the welcome closes.
   const welcomeShowing = useWelcomeDue() && currentPageName === 'Home';
-  const showNav = !HIDE_NAV_PAGES.includes(currentPageName) && !welcomeShowing;
+  // The tutorial (S43, SF-64) is the same: no blur mounted, so no nav at all.
+  const navMounted = !welcomeShowing && currentPageName !== 'Tutorial';
+  const showNav = !HIDE_NAV_PAGES.includes(currentPageName) && navMounted;
   const mainRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -110,7 +112,7 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* The nav bar shows and hides instantly, in step with page-content's padding. */}
-      {!welcomeShowing && <nav className={`bottom-nav fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 z-50 ${showNav ? 'translate-y-0' : 'translate-y-full pointer-events-none'}`}>
+      {navMounted && <nav className={`bottom-nav fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 z-50 ${showNav ? 'translate-y-0' : 'translate-y-full pointer-events-none'}`}>
         <div className="flex items-center justify-around h-16">
           {NAV_ITEMS.map(({ label, icon: Icon, page }) => {
             const isActive = currentPageName === page;

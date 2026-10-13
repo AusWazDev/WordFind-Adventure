@@ -53,6 +53,27 @@ Pages (`src/pages.config.js`, `PAGES`): `DailyChallenge`, `Game`, `Home`, `Setti
 decision S3); an old `#/Leaderboard` link shows Page Not Found. The bottom nav is
 Home, Stats, Settings.
 
+### First-launch welcome, as of 13 Oct 2026 (S42, SF-63)
+
+- **Who sees it** (`src/lib/welcome.js`): a player with `wf_welcome_seen` not `'true'`
+  and no games played (`wf_progress` missing, or `games_played` 0). A player with games
+  played never sees it and has `wf_welcome_seen` set quietly. Settings Reset clears
+  `wf_welcome_seen` and rewrites `wf_progress` without `games_played`, so a reset
+  player sees it again. All platforms.
+- **Instead of Home:** `Home.jsx` returns the welcome in place of its own content, and
+  `Layout.jsx` does not mount the bottom nav (the app's one large backdrop blur) while
+  it is due; both read the same small store (`useWelcomeDue`).
+- **Content** (`WelcomeScreen.jsx`): title, tagline, a demo board (`GameBoard`,
+  `interactive={false}`, a fixed 6×6 grid with KNIGHT on row 2, highlighted cell by
+  cell 140 ms apart through `selectedCells`, then found; plays once, a tap replays it,
+  reduced motion shows it found at once), "Hear it" (`unlockAudio` then
+  `speakWordAudio('KNIGHT', settings)`; nothing plays by itself; KNIGHT preloaded on
+  arrival with `preloadGameAudio`), three chips (the offline one reads "Most modes
+  work offline" on the web and "Works offline" on native and Electron, from
+  `isNative()` and `isElectronPage()`), "Show me how" (interim: opens How to Play
+  until vc6-D) and "Skip, just play" (Standard, level 1, category `random`, through
+  Home's own `startLevel`). Both buttons stop audio and set `wf_welcome_seen`.
+
 ### Build scripts (`package.json`)
 
 ```

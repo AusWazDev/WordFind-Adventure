@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Lightbulb, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,13 @@ import RemoveAdsModal from '@/components/game/RemoveAdsModal';
 import { isNative } from '@/lib/platform';
 import { showInterstitialBeforeGame, interstitialDue, markInterstitialShown } from '@/lib/adCadence';
 import HowToPlayModal from '@/components/game/HowToPlayModal';
-import WelcomeScreen, { hasSeenWelcome } from '@/components/game/WelcomeScreen';
+import WelcomeScreen from '@/components/game/WelcomeScreen';
+import { useWelcomeDue, settleWelcomeForPlayers } from '@/lib/welcome';
+
+// "Skip, just play" starts Standard level 1 here. Home's category picker has no
+// preselected option; Random is its first and catch-all choice (CategorySelector), and
+// draws from every category, as a null category does (SF-63).
+export const WELCOME_SKIP_START = { mode: 'standard', category: 'random', level: 1 };
 import { createPageUrl } from '@/utils';
 import { HIT_FROM_28 } from '@/lib/touchTarget';
 import { loadProgress, getLocalProgress } from '@/components/game/offlineStorage';
@@ -36,11 +42,13 @@ export default function Home() {
   const [adsRemoved, setAdsRemoved] = useState(() => localStorage.getItem('ads_removed') === 'true');
   const isOnline = useOnlineStatus();
 
-  // Onboarding state
-  const [showWelcome, setShowWelcome] = useState(() => !hasSeenWelcome());
+  // Onboarding state. The welcome is due for a new player only (S42, SF-63); a player
+  // with games played who never saw it has it marked seen, quietly.
+  const welcomeDue = useWelcomeDue();
   const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   useEffect(() => {
+    settleWelcomeForPlayers();
     loadProgressData().catch(console.error);
   }, []);
 
@@ -72,8 +80,12 @@ export default function Home() {
     setStep('level');
   };
 
-  const handleSelectLevel = async (level) => {
-    const url = createPageUrl('Game') + `?mode=${selectedMode}&category=${selectedCategory}&level=${level}`;
+  // The one way a game starts from Home: the level picker and the welcome's
+  // "Skip, just play" both call it, so ads, progress and hints behave the same (SF-63).
+  const handleSelectLevel = (level) => startLevel(selectedMode, selectedCategory, level);
+
+  const startLevel = async (mode, category, level) => {
+    const url = createPageUrl('Game') + `?mode=${mode}&category=${category}&level=${level}`;
     if (adsRemoved || !isOnline) { navigate(url); return; } // skip ad if offline or ads removed
     // CR-15: Gate ads on completed games, not game starts. The cadence lives in
     // src/lib/adCadence.js (S41, SF-52), shared with every other start path.
@@ -103,6 +115,37 @@ export default function Home() {
 
   const backLabel = step === 'level' ? '← Back to categories' : '← Back to modes';
   const backStep  = step === 'level' ? 'category' : 'mode';
+
+  const adModals = (
+    <>
+      <AdModal
+        isOpen={showAd}
+        onClose={handleAdClosed}
+        onRemoveAds={() => { setShowAd(false); setShowRemoveAds(true); }}
+      />
+      <RemoveAdsModal
+        isOpen={showRemoveAds}
+        onClose={() => setShowRemoveAds(false)}
+        onSuccess={handleRemoveAdsSuccess}
+      />
+    </>
+  );
+
+  // The welcome renders INSTEAD of Home (S42, SF-63): none of Home's own content is
+  // mounted, and Layout leaves out the blurred bottom nav while it is due. The ad
+  // modals stay, so "Skip, just play" behaves exactly like a level choice.
+  if (welcomeDue) {
+    return (
+      <>
+        <WelcomeScreen
+          // INTERIM until vc6-D: the guided first game replaces this How to Play modal.
+          onShowMeHow={() => setShowHowToPlay(true)}
+          onSkip={() => startLevel(WELCOME_SKIP_START.mode, WELCOME_SKIP_START.category, WELCOME_SKIP_START.level)}
+        />
+        {adModals}
+      </>
+    );
+  }
 
   return (
     <PullToRefresh onRefresh={loadProgressData}>
@@ -196,34 +239,12 @@ export default function Home() {
 
         </div>
 
-        <AdModal
-          isOpen={showAd}
-          onClose={handleAdClosed}
-          onRemoveAds={() => { setShowAd(false); setShowRemoveAds(true); }}
-        />
-        <RemoveAdsModal
-          isOpen={showRemoveAds}
-          onClose={() => setShowRemoveAds(false)}
-          onSuccess={handleRemoveAdsSuccess}
-        />
+        {adModals}
         <HowToPlayModal
           isOpen={showHowToPlay}
           onClose={() => setShowHowToPlay(false)}
         />
       </div>
-
-      {/* Welcome screen — shown once on first launch, renders over everything */}
-      <AnimatePresence>
-        {showWelcome && (
-          <WelcomeScreen
-            onDone={() => setShowWelcome(false)}
-            onShowHowToPlay={() => {
-              setShowWelcome(false);
-              setShowHowToPlay(true);
-            }}
-          />
-        )}
-      </AnimatePresence>
     </PullToRefresh>
   );
 }

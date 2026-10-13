@@ -1,14 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { prefersReducedMotion } from '@/lib/motion';
 
 // U8 (SF-62): how long a missed selection stays tinted (and shakes).
 export const MISS_MS = 400;
 const SHAKE = [0, -4, 4, -3, 3, 0];
-
-// Read at the moment of each miss, so a change in the system setting applies at once.
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 
 export default function GameBoard({
   grid,

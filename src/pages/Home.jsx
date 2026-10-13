@@ -22,6 +22,7 @@ import { hasDoneTutorial, TUTORIAL_FIRST, TUTORIAL_REPLAY } from '@/lib/tutorial
 export const WELCOME_SKIP_START = { mode: 'standard', category: 'random', level: 1 };
 import { createPageUrl } from '@/utils';
 import { HIT_FROM_28 } from '@/lib/touchTarget';
+import { useBackHandler } from '@/lib/backButton';
 import { loadProgress, getLocalProgress } from '@/components/game/offlineStorage';
 import { PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import PullToRefresh from '@/components/ui/PullToRefresh';
@@ -127,6 +128,10 @@ export default function Home() {
 
   const backLabel = step === 'level' ? '← Back to categories' : '← Back to modes';
   const backStep  = step === 'level' ? 'category' : 'mode';
+  // Android Back (SF-66): with the picker past its first stage, Back does what the
+  // picker's own back button does (rule f, a 'page' handler); at the mode stage
+  // nothing is registered, so Home minimises (rule g).
+  useBackHandler('page', () => setStep(backStep), step !== 'mode');
 
   const adModals = (
     <>

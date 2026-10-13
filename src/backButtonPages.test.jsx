@@ -47,6 +47,8 @@ const { default: Game } = await import('@/pages/Game');
 const { default: DailyChallenge } = await import('@/pages/DailyChallenge');
 const { default: Settings } = await import('@/pages/Settings');
 const { default: Stats } = await import('@/pages/Stats');
+const { default: Home } = await import('@/pages/Home');
+let realHome = false; // SF-66: the picker tests mount the real Home
 
 // The fake @capacitor/app plugin.
 let listeners, CapApp;
@@ -75,7 +77,7 @@ async function mount(entry, extra = []) {
           <Route path="/DailyChallenge" element={<DailyChallenge />} />
           <Route path="/Settings" element={<Settings />} />
           <Route path="/Stats" element={<Stats />} />
-          <Route path="/Home" element={<div data-testid="home">home</div>} />
+          <Route path="/Home" element={realHome ? <Home /> : <div data-testid="home">home</div>} />
           <Route path="/" element={<div data-testid="home">home</div>} />
           <Route path="*" element={<div>other</div>} />
         </Routes>
@@ -110,6 +112,7 @@ beforeEach(() => {
   plugin.reset();
   platform.native = true;
   __resetBackButton();
+  realHome = false;
   makeApp();
   Object.values(adSpies).forEach(s => s.mockClear());
   window.matchMedia = window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
@@ -270,5 +273,51 @@ describe('never registered off Android', () => {
     platform.native = 'ios';
     expect(await installBackButton(CapApp, { goHome() {}, onHome: () => true })).toBeNull();
     expect(CapApp.addListener).not.toHaveBeenCalled();
+  });
+});
+
+describe("SF-66: Home's level picker (rule f, before g)", () => {
+  const stage = () => (button('Back to categories') ? 'level' : button('Back to modes') ? 'category' : 'mode');
+  beforeEach(() => { realHome = true; });
+
+  it('at the level stage, Back steps back to categories, as "Back to categories" does', async () => {
+    await mount('/Home');
+    await act(async () => { button('Standard').click(); });
+    await act(async () => { button('Animals').click(); });
+    expect(stage(), 'control: the picker is at the level stage').toBe('level');
+    expect(ruleNow()).toBe('f');
+    await back();
+    expect(stage()).toBe('category');
+    expect(path).toBe('/Home');
+    expect(CapApp.minimizeApp).not.toHaveBeenCalled();
+  });
+
+  it('at the category stage (the picker\'s first), Back calls "Back to modes", which closes it', async () => {
+    await mount('/Home');
+    await act(async () => { button('Standard').click(); });
+    expect(stage(), 'control: the picker is at the category stage').toBe('category');
+    await back();
+    expect(stage()).toBe('mode');
+    expect(CapApp.minimizeApp).not.toHaveBeenCalled();
+  });
+
+  it('with the picker closed (the mode list), Back minimises', async () => {
+    await mount('/Home');
+    expect(stage(), 'control: the real Home is showing its mode list').toBe('mode');
+    expect(button('Standard'), 'control: the real Home rendered').toBeDefined();
+    await back();
+    expect(CapApp.minimizeApp).toHaveBeenCalledTimes(1);
+  });
+
+  it('two Backs from the level stage: categories, then modes; a third minimises', async () => {
+    await mount('/Home');
+    await act(async () => { button('Standard').click(); });
+    await act(async () => { button('Animals').click(); });
+    await back();
+    await back();
+    expect(stage()).toBe('mode');
+    expect(CapApp.minimizeApp).not.toHaveBeenCalled();
+    await back();
+    expect(CapApp.minimizeApp).toHaveBeenCalledTimes(1);
   });
 });

@@ -118,8 +118,8 @@ and `resolveBack` picks one, first match wins:
 | c | Game or Daily in play (`'game'`) | the header Back: Home |
 | d | Victory or the Daily's end (`'victory'`) | Home through `handleHome`, no ad |
 | e | the Tutorial (`'tutorial'`) | as Skip (`wf_tutorial_done`, audio stopped), always to Home |
-| f | Settings (`'page'`) / Stats | Settings' own Back (`navigate(-1)`) / Home through the router |
-| g | Home or the welcome | `App.minimizeApp()` |
+| f | Settings or Home's level picker past its mode list (`'page'`) / Stats | Settings' own Back (`navigate(-1)`); the picker's back button, one stage (CR-111) / Home through the router |
+| g | Home (picker closed) or the welcome | `App.minimizeApp()` |
 
 ⚠️ **iOS:** only Android was synced when the plugin was added. **The Mac must run
 `npx cap sync ios` before the next iOS build.**

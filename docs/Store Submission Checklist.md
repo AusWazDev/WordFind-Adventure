@@ -34,6 +34,7 @@ Do not submit until all boxes are checked. No exceptions.
 
 ## 4. Store Listing Review
 
+- [ ] **Store listing copy (added 14 Oct 2026, CR-130, brief LP-SF).** Before submitting to any store, ask the developer for the current SoundFind store listing pack (claude.ai project doc claude/SoundFind-store-listing-pack.md). Apply every field marked APPROVED for that store, and only those. A field marked CHECK FIRST is applied only if its named check has been reported. Never write or reword listing copy here. The one exception is What's New / release notes, which the build session writes from the CLI-reported contents of the build being submitted, per the pack. Everything else comes from the pack as written. Report which fields changed, so the comms session can read the live listing and log it.
 - [ ] Screenshots match current app UI
 - [ ] Description and short description proofread
 - [ ] Age rating complete

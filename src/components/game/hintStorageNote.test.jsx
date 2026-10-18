@@ -8,7 +8,7 @@ import { createRoot } from 'react-dom/client';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = { native: false };
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
 vi.mock('@/lib/admob', () => ({ showRewarded: vi.fn(async () => true) }));
 vi.mock('@/lib/purchases', () => ({
   purchaseProduct: vi.fn(),

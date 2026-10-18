@@ -9,7 +9,7 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ native: false }));
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => !!platform.windows, isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
 const voice = vi.hoisted(() => ({ calls: [] }));
 vi.mock('@/components/game/voiceUtils', () => ({
   unlockAudio: vi.fn(async () => { voice.calls.push('unlockAudio'); }),
@@ -54,7 +54,7 @@ let reduced = false;
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   localStorage.clear();
-  platform.native = false; voice.calls = []; location = null; reduced = false;
+  platform.native = false; platform.windows = false; voice.calls = []; location = null; reduced = false;
   Object.values(spies).forEach(s => s.mockClear());
   window.matchMedia = q => ({ matches: reduced && /prefers-reduced-motion: reduce/.test(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
   Element.prototype.getBoundingClientRect = () => ({ left: 0, top: 0, right: 600, bottom: 600, width: 600, height: 600, x: 0, y: 0 });
@@ -295,6 +295,17 @@ describe('Skip and finish in each mode (SF-64)', () => {
     expect(container.querySelector('[data-testid="hints-box"]').textContent).toContain('Run out? Watch a short ad to earn one, or buy a hint pack.');
     expect(container.textContent).toContain('Replay this any time from Settings.');
     for (const label of ['Audio Challenge', 'Standard', 'Anagram Hunt', 'Word Association', 'Mystery Word']) expect(container.textContent).toContain(`${label}:`);
+  });
+
+  // S25, S41 (SF-74): Windows has no ads; its line names the Daily, Daily streaks and hint packs.
+  it('first run, finish on Windows: the Windows earn line, and no ad line', async () => {
+    platform.windows = true;
+    await render('first');
+    await stepOne(); await stepTwo(); await stepThree(); await stepFour();
+    const box = container.querySelector('[data-testid="hints-box"]').textContent;
+    expect(box).toContain('Run out? Earn hints from the Daily and Daily streaks, or buy a hint pack.');
+    expect(box).not.toContain('Watch a short ad');
+    expect(box).not.toMatch(/—|–|--/);
   });
 });
 

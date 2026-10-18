@@ -11,7 +11,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = { native: false };
 const showInterstitial = vi.fn(async () => {});
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'ios' : 'web') }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => platform.native, getPlatform: () => (platform.native ? 'ios' : 'web') }));
 // SF-57: Home's native path now waits on showInterstitialUntilClosed (resolves when the
 // ad is closed); this spy stands for it and closes at once.
 vi.mock('@/lib/admob', () => ({ showInterstitialUntilClosed: (...a) => showInterstitial(...a), showRewarded: vi.fn(), initAdMob: vi.fn() }));

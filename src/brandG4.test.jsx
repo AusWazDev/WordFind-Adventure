@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('@/lib/platform', () => ({ isNative: () => false, getPlatform: () => 'web' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => false, getPlatform: () => 'web' }));
 vi.mock('@sentry/react', () => ({ captureException: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 vi.mock('@/components/game/voiceUtils', () => ({

@@ -9,7 +9,12 @@ import { renderToString } from 'react-dom/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ native: true, name: 'android' }));
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => platform.name }));
+// isWindowsApp is the REAL predicate (isElectronPage), so the Electron user agent set
+// below makes this the Windows app, as it does at runtime (SF-74).
+vi.mock('@/lib/platform', async () => {
+  const { isElectronPage } = await import('@/lib/staleServiceWorkers');
+  return { isWindowsApp: () => isElectronPage(), isNative: () => platform.native, getPlatform: () => platform.name };
+});
 const online = vi.hoisted(() => ({ value: false }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => online.value }));
 const Purchases = vi.hoisted(() => ({

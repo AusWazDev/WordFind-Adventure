@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ name: 'android' }));
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.name !== 'web', getPlatform: () => platform.name }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => platform.name !== 'web', getPlatform: () => platform.name }));
 
 const { resolveBack, registerBack, registeredHandlers, installBackButton, __resetBackButton } = await import('./backButton');
 

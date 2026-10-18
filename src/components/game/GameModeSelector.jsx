@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { ChevronRight, WifiOff, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
-import { isNative } from '@/lib/platform';
-import { isElectronPage } from '@/lib/staleServiceWorkers';
+import { isNative, isWindowsApp } from '@/lib/platform';
 import { MODE_LABELS } from '@/lib/constants';
 import { MODE_ICONS } from '@/lib/modeIcons';
+
+// S25 (SF-74): Windows has no ads; only hint packs need a connection there.
+export const WINDOWS_OFFLINE_BANNER = "You're offline. Every mode still works. Hint packs need a connection.";
 
 const REQUIRES_ONLINE  = new Set(); // No modes currently require online — reserved for future use
 const DEGRADED_OFFLINE = new Set(['audio']);
@@ -46,7 +48,8 @@ export default function GameModeSelector({ onSelectMode }) {
   const audioOffline = !isOnline;
   // Sentence clips come from the network only on the web. iOS and Android bundle
   // them, and Electron serves its bundled dist/ under app:// (CR-88).
-  const sentencesNeedNetwork = !isNative() && !isElectronPage();
+  // isWindowsApp() is isElectronPage() (platform.js), asked through the one predicate (SF-74).
+  const sentencesNeedNetwork = !isNative() && !isWindowsApp();
 
   return (
     <div className="space-y-3">
@@ -61,7 +64,9 @@ export default function GameModeSelector({ onSelectMode }) {
           {/* Native and Electron bundle all audio, so every mode works offline (CR-90). */}
           <span>{sentencesNeedNetwork
             ? "You're offline. Audio Challenge is limited — all other modes work normally."
-            : "You're offline. Every mode still works — ads and purchases need a connection."}</span>
+            : isWindowsApp()
+              ? WINDOWS_OFFLINE_BANNER
+              : "You're offline. Every mode still works — ads and purchases need a connection."}</span>
         </div>
       )}
 

@@ -98,7 +98,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | | Files |
 |---|---|
 | **Primary source** | `src/pages/DailyChallenge.jsx`, `src/components/game/DailyChallengeUtils.jsx` |
-| **Supporting source** | `src/components/game/DailyChallengeCard.jsx`, `src/components/game/GameBoard.jsx`, `src/components/game/GameHeader.jsx` |
+| **Supporting source** | `src/components/game/DailyChallengeCard.jsx`, `src/components/game/GameBoard.jsx`, `src/components/game/GameHeader.jsx`, `src/lib/streakReward.js` (the Windows-only Daily streak award, S41, CR-132) |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-22 (Daily Challenge loads), TC-23 (correct puzzle for date), TC-24 (streak tracked) |
 | **Also check when changed** | Do MODE_LABELS still match in `DailyChallengeCard.jsx`? Is orientation support intact? Do hint counts still use `hintCells` (not hardcoded 3)? |
@@ -112,7 +112,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | | Files |
 |---|---|
 | **Primary source** | `src/components/game/HintModal.jsx` |
-| **Supporting source** | `src/components/game/gameUtils.jsx`, `src/components/game/offlineStorage.jsx`, `src/pages/Game.jsx` |
+| **Supporting source** | `src/components/game/gameUtils.jsx`, `src/components/game/offlineStorage.jsx`, `src/pages/Game.jsx`, `src/lib/hintShop.js` (the shop's one door for prices and purchases, CR-132), `src/lib/windowsStore.js` (the Microsoft Store bridge; a stub until SF-75, CR-132) |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md`, `src/pages/Tutorial.jsx` (was `HowToPlayModal.jsx`, deleted in SF-64) |
 | **Beta test cases** | TC-05 (hint reveals a cell), TC-06 (hint count decrements), TC-07 (offline hint limit) |
 | **Also check when changed** | Does the 12 free hints on first launch (CR-10) still work? Are hint buttons greyed out offline? Is the penalty % shown in the tutorial's Hints box (`Tutorial.jsx`) still correct? |

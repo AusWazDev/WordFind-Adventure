@@ -12,7 +12,7 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ native: true }));
-vi.mock('@/lib/platform', () => ({ isNative: () => !!platform.native, getPlatform: () => (platform.native === 'ios' ? 'ios' : platform.native ? 'android' : 'web') }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => !!platform.native, getPlatform: () => (platform.native === 'ios' ? 'ios' : platform.native ? 'android' : 'web') }));
 vi.mock('@capacitor-community/admob', async () => (await import('@/lib/admobPluginMock.testutil')).admobModule);
 vi.mock('@sentry/react', () => ({ captureException: vi.fn(), captureMessage: vi.fn(), addBreadcrumb: vi.fn(), withProfiler: c => c }));
 vi.mock('@/lib/purchases', () => ({ initPurchases: vi.fn(), purchaseProduct: vi.fn(), restorePurchases: vi.fn(), usePrice: () => null, useLowestPrice: () => null, getPrice: () => null, PURCHASE_OPTIONS: [], REMOVE_ADS_PRODUCT_ID: 'x', HINT_PACK_MAP: {} }));

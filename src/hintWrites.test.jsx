@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const PACK = 'au.com.uniquegames.soundfind.hints_10';
 const AT = '2026-10-13T11:00:00.000Z';
-vi.mock('@/lib/platform', () => ({ isNative: () => true, getPlatform: () => 'android' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => true, getPlatform: () => 'android' }));
 vi.mock('@capacitor-community/admob', async () => (await import('@/lib/admobPluginMock.testutil')).admobModule);
 vi.mock('@sentry/react', () => ({ captureException: vi.fn(), captureMessage: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('@/lib/admob', async importOriginal => ({ ...(await importOriginal()), showRewarded: vi.fn(async () => true) }));

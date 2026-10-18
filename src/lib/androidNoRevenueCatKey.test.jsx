@@ -34,7 +34,7 @@ const AdMob = {
 };
 vi.mock('@capacitor-community/admob', () => ({ AdMob, MaxAdContentRating: { General: 'General' } }));
 
-vi.mock('@/lib/platform', () => ({ isNative: () => true, getPlatform: () => 'android' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => true, getPlatform: () => 'android' }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 const toast = { success: vi.fn(), error: vi.fn(), info: vi.fn() };
 vi.mock('sonner', () => ({ toast, Toaster: () => null }));

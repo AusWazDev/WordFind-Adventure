@@ -6,8 +6,8 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('@/lib/platform', () => ({ isNative: () => false, getPlatform: () => 'web' }));
-vi.mock('./lib/platform', () => ({ isNative: () => false, getPlatform: () => 'web' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => false, getPlatform: () => 'web' }));
+vi.mock('./lib/platform', () => ({ isWindowsApp: () => false, isNative: () => false, getPlatform: () => 'web' }));
 
 // Every mount is tracked and unmounted after its test, and each test reads only the
 // container renderAt returned to it. SF-59: these were shared module variables, so a

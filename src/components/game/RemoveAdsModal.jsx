@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { HIT_FROM_36 } from '@/lib/touchTarget';
 import { useBackHandler } from '@/lib/backButton';
 import { toast } from 'sonner';
-import { isNative } from '@/lib/platform';
+import { isNative, isWindowsApp } from '@/lib/platform';
 import * as Sentry from '@sentry/react';
 import { purchaseProduct, REMOVE_ADS_PRODUCT_ID, usePrice } from '@/lib/purchases';
 
-export default function RemoveAdsModal({ isOpen, onClose, onSuccess }) {
+export default function RemoveAdsModal({ isOpen: isOpenProp, onClose, onSuccess }) {
+  // S25 (SF-74): no Remove Ads on Windows, wherever it is mounted.
+  const isOpen = isOpenProp && !isWindowsApp();
   const [success, setSuccess] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   // The store's own price, or no figure until it has loaded (FB-1, CR-74).

@@ -7,11 +7,16 @@ import { renderToString } from 'react-dom/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ native: true }));
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
+// isWindowsApp is the REAL predicate (isElectronPage), so setting an Electron user agent
+// below makes this the Windows app, as it does at runtime (SF-74).
+vi.mock('@/lib/platform', async () => {
+  const { isElectronPage } = await import('@/lib/staleServiceWorkers');
+  return { isWindowsApp: () => isElectronPage(), isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') };
+});
 const online = vi.hoisted(() => ({ value: false }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => online.value }));
 
-const { default: GameModeSelector } = await import('./GameModeSelector');
+const { default: GameModeSelector, WINDOWS_OFFLINE_BANNER } = await import('./GameModeSelector');
 
 const NEW_TEXT = "You're offline. Every mode still works — ads and purchases need a connection.";
 const OLD_TEXT = "You're offline. Audio Challenge is limited — all other modes work normally.";
@@ -30,11 +35,15 @@ describe('offline banner and badge (CR-90)', () => {
     expect(count(h, OLD_TEXT)).toBe(0);
     expect(count(h, BADGE)).toBe(0);
   });
-  it('Electron, offline: the same as native', () => {
+  // S25 (SF-74) changed this case on purpose: Windows has no ads, so its banner names
+  // only hint packs. It read "the same as native" (NEW_TEXT) until then. Every mode
+  // still works offline, so the old text and the badge stay absent, as before.
+  it('Electron, offline: the Windows banner (every mode works; hint packs need a connection)', () => {
     platform.native = false;
     setUA(`${BROWSER_UA} Electron/41.3.0`);
     const h = html();
-    expect(count(h, NEW_TEXT)).toBe(1);
+    expect(count(h, WINDOWS_OFFLINE_BANNER)).toBe(1);
+    expect(count(h, NEW_TEXT)).toBe(0);
     expect(count(h, OLD_TEXT)).toBe(0);
     expect(count(h, BADGE)).toBe(0);
   });

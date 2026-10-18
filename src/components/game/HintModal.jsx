@@ -6,16 +6,23 @@ import { HIT_FROM_36 } from '@/lib/touchTarget';
 import { useBackHandler } from '@/lib/backButton';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { toast } from 'sonner';
-import { isNative } from '@/lib/platform';
+import { isNative, isWindowsApp } from '@/lib/platform';
 import { showRewarded } from '@/lib/admob';
 import * as Sentry from '@sentry/react';
-import { purchaseProduct, PURCHASE_OPTIONS, usePrice, useLowestPrice } from '@/lib/purchases';
+import { PURCHASE_OPTIONS } from '@/lib/purchases';
+import { hintShopStore, isHintStoreAvailable, buyHintPack, usePackPrice, useLowestPackPrice } from '@/lib/hintShop';
 
 const PACK_IDS = PURCHASE_OPTIONS.map(o => o.productId);
 
+// Windows copy (S25, S41, SF-74). Hints there come from the Daily, Daily streaks and
+// Microsoft Store hint packs; there are no ads.
+export const WINDOWS_HINT_SOURCES = 'Earn hints from the Daily and Daily streaks, or buy a hint pack';
+export const WINDOWS_BILLING = 'Billed through the Microsoft Store';
+export const WINDOWS_STORE_UNAVAILABLE = "The Microsoft Store isn't available right now. Please try again later.";
+
 // The store's price for one pack, or nothing until it has loaded (FB-1, CR-74).
 function PackPrice({ productId }) {
-  const price = usePrice(productId);
+  const price = usePackPrice(productId);
   return price ? <span className="text-lg font-bold text-slate-800 dark:text-slate-100">{price}</span> : null;
 }
 
@@ -87,20 +94,25 @@ function PurchaseView({ onPurchase }) {
   const [purchasing, setPurchasing] = useState(false);
 
   const selectedOption = PURCHASE_OPTIONS.find(o => o.productId === selected);
-  const selectedPrice = usePrice(selected);
+  const selectedPrice = usePackPrice(selected);
+  const store = hintShopStore();
+  const onWindows = store === 'windows';
+  const storeAvailable = isHintStoreAvailable();
 
   const handlePurchase = async () => {
     if (purchasing) return;
-    if (!isNative()) {
+    if (store === 'none') {
       toast.info('Coming soon', { description: 'Hint packs will be available at launch on the App Store and Google Play.' });
       return;
     }
     setPurchasing(true);
     try {
-      const result = await purchaseProduct(selected);
+      const result = await buyHintPack(selected);
       if (result.hints) onPurchase(result.hints, result.purchase);
     } catch (e) {
-      if (!e?.message?.includes('cancel')) {
+      if (e?.name === 'StoreUnavailableError') {
+        toast.info(WINDOWS_STORE_UNAVAILABLE);
+      } else if (!e?.message?.includes('cancel')) {
         toast.error('Purchase failed', { description: 'Please try again.' });
         Sentry.captureException(e, { tags: { context: 'hint_purchase' } });
       }
@@ -145,17 +157,27 @@ function PurchaseView({ onPurchase }) {
 
       <div className="flex items-center justify-center gap-2 py-1">
         <Shield className="w-4 h-4 text-slate-400" />
-        <p className="text-xs text-slate-400 dark:text-slate-500">Prices are indicative · Billed through the App Store / Google Play</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          {onWindows ? WINDOWS_BILLING : 'Prices are indicative · Billed through the App Store / Google Play'}
+        </p>
       </div>
+
+      {onWindows && !storeAvailable && (
+        <p data-testid="store-unavailable" className="text-sm text-center text-slate-500 dark:text-slate-400 px-2">
+          {WINDOWS_STORE_UNAVAILABLE}
+        </p>
+      )}
 
       <Button
         onClick={handlePurchase}
-        disabled={purchasing}
+        disabled={purchasing || (onWindows && !storeAvailable)}
         className="w-full h-12 bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white rounded-xl font-semibold"
       >
         {purchasing
           ? 'Processing…'
-          : `Buy ${selectedOption?.hints} Hints${selectedPrice ? ` — ${selectedPrice}` : ''}`}
+          : onWindows
+            ? `Buy ${selectedOption?.hints} Hints${selectedPrice ? ` (${selectedPrice})` : ''}`
+            : `Buy ${selectedOption?.hints} Hints${selectedPrice ? ` — ${selectedPrice}` : ''}`}
       </Button>
     </div>
   );
@@ -164,7 +186,8 @@ function PurchaseView({ onPurchase }) {
 export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
   const [view, setView] = useState('options');
   const isOnline = useOnlineStatus();
-  const fromPrice = useLowestPrice(PACK_IDS);
+  const fromPrice = useLowestPackPrice(PACK_IDS);
+  const onWindows = isWindowsApp(); // S25 (SF-74): no ads of any kind on Windows
 
   const handleWatchAdNative = async () => {
     handleClose();
@@ -224,7 +247,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                 {view === 'ad'       && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Watch & Earn</h2>}
                 {view === 'purchase' && <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Get More Hints</h2>}
                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                  {view === 'options'  && 'Choose how to unlock your next hint'}
+                  {view === 'options'  && (onWindows ? WINDOWS_HINT_SOURCES : 'Choose how to unlock your next hint')}
                   {view === 'ad'       && 'Watch a short ad for a free hint'}
                   {view === 'purchase' && 'One-time purchase, no subscription'}
                 </p>
@@ -243,7 +266,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                   exit={{ opacity: 0 }}
                   className="space-y-3"
                 >
-                  {isOnline ? (
+                  {onWindows ? null : isOnline ? (
                     <motion.button
                       onClick={isNative() ? handleWatchAdNative : () => setView('ad')}
                       className="w-full p-4 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-2xl text-white text-left flex items-center gap-4 hover:shadow-lg hover:shadow-violet-200 transition-shadow"
@@ -307,7 +330,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                 </motion.div>
               )}
 
-              {view === 'ad' && (
+              {view === 'ad' && !onWindows && (
                 <motion.div key="ad" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <AdPlayer onComplete={handleAdComplete} onSkip={handleAdSkip} />
                   <Button variant="ghost" className="w-full mt-2 text-slate-400" onClick={() => setView('options')}>

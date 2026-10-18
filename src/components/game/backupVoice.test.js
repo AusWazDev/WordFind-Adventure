@@ -17,7 +17,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const sentry = vi.hoisted(() => ({ captureMessage: vi.fn(), captureException: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('@sentry/react', () => sentry);
-vi.mock('@/lib/platform', () => ({ isNative: () => true, getPlatform: () => 'android' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => true, getPlatform: () => 'android' }));
 
 // ── Web Audio double ────────────────────────────────────────────────────────
 let contexts = [];

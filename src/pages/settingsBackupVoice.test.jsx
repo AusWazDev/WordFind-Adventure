@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('@/lib/platform', () => ({ isNative: () => false, getPlatform: () => 'web' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => false, getPlatform: () => 'web' }));
 vi.mock('@/lib/purchases', () => ({
   purchaseProduct: vi.fn(), restorePurchases: vi.fn(), usePrice: () => null,
   REMOVE_ADS_PRODUCT_ID: 'au.com.uniquegames.soundfind.remove_ads',

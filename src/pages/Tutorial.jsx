@@ -10,11 +10,14 @@ import { MODE_ICONS } from '@/lib/modeIcons';
 import { unlockAudio, speakWordAudio, speakSentenceAudio, stopAllAudio } from '@/components/game/voiceUtils';
 import { getSentence, hasSentence } from '@/components/game/trickySentences';
 import { MODE_LABELS } from '@/lib/constants';
-import { isNative } from '@/lib/platform';
+import { isNative, isWindowsApp } from '@/lib/platform';
 import { prefersReducedMotion } from '@/lib/motion';
 import { markTutorialDone } from '@/lib/tutorial';
 import { useBackHandler } from '@/lib/backButton';
 import { createPageUrl } from '@/utils';
+
+// S25, S41 (SF-74): on Windows hints come from the Daily, Daily streaks and hint packs.
+export const WINDOWS_EARN_LINE = 'Run out? Earn hints from the Daily and Daily streaks, or buy a hint pack.';
 
 // The guided first game (S43, SF-64). ISOLATED BY DESIGN: this page and everything it
 // imports never reach offlineStorage, adCadence, hintLedger, purchases or admob, and its
@@ -223,6 +226,7 @@ export default function Tutorial() {
               <li>Lightbulb at the top: gives a hint on a random word.</li>
               <li>Eye (Audio Challenge and Word Association): shows the word. That word scores 50% less.</li>
               {earnLine && <li>Run out? Watch a short ad to earn one, or buy a hint pack.</li>}
+              {isWindowsApp() && <li>{WINDOWS_EARN_LINE}</li>}
             </ul>
           </div>
           <button

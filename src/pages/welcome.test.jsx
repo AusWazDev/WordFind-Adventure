@@ -9,7 +9,7 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ native: true }));
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 vi.mock('@sentry/react', () => ({ captureException: vi.fn(), captureMessage: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('@/lib/purchases', () => ({ purchaseProduct: vi.fn(), usePrice: () => null, useLowestPrice: () => null, REMOVE_ADS_PRODUCT_ID: 'x', PURCHASE_OPTIONS: [] }));

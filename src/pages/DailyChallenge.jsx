@@ -5,6 +5,7 @@ import { createPageUrl } from '@/utils';
 import { loadProgress, changeProgress, hintCount, getDailyRecord, saveDailyRecord, loadSettings, getLocalProgress } from '@/components/game/offlineStorage';
 import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 import { recordCompletedGame, showInterstitialBeforeGame } from '@/lib/adCadence';
+import { claimStreakAward } from '@/lib/streakReward';
 import { useBackHandler } from '@/lib/backButton';
 import GameBoard from '@/components/game/GameBoard';
 import WordList from '@/components/game/WordList';
@@ -93,6 +94,7 @@ export default function DailyChallenge() {
   const [victory, setVictory]             = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [rewardEarned, setRewardEarned]   = useState(false); // this completion paid the day's reward (S28)
+  const [streakBonus, setStreakBonus]     = useState({ hints: 0, streak: 0 }); // S41 award, Windows only
   const timerRef = useRef(null);
 
   // Track words where the header hint was used — for score penalty (−25%)
@@ -193,6 +195,7 @@ export default function DailyChallenge() {
     setVictory(false);
     setGameOver(false);
     setRewardEarned(false);
+    setStreakBonus({ hints: 0, streak: 0 });
     const limit = dailyTimeLimit(challenge, game.words.length); // S27
     setTimeLimit(limit);
     timeLimitRef.current = limit;
@@ -316,13 +319,18 @@ export default function DailyChallenge() {
     setRewardEarned(true);
 
     if (currentProgress) {
+      // S41 (SF-74): on Windows, a Daily streak reaching 3, 6, 9 ... pays 2 more hints,
+      // once per milestone. The guard is recorded before the credit below, so it can
+      // only under-pay. Off Windows this is always 0.
+      const bonus = claimStreakAward(date, newStreak);
+      setStreakBonus({ hints: bonus, streak: newStreak });
       // The reward adds to the CURRENT balance, including hints spent this game: the
       // stored balance, which every hint action has already written (SF-66b, A4).
       const updated = changeProgress(stored => ({
         total_score:     (stored.total_score || 0) + currentScore,
         games_played:    (stored.games_played || 0) + 1,
         words_found:     (stored.words_found || 0) + wordsFoundCount,
-        hints_remaining: hintCount(stored) + reward_hints,
+        hints_remaining: hintCount(stored) + reward_hints + bonus,
         best_streak:     Math.max(stored.best_streak || 0, newStreak),
       }));
       setProgress(updated);
@@ -598,6 +606,14 @@ export default function DailyChallenge() {
                   : "Today's hints were already claimed — come back tomorrow!"}
               </span>
             </div>
+            {streakBonus.hints > 0 && (
+              <div data-testid="streak-bonus" className="flex items-center justify-center gap-2 bg-orange-100 dark:bg-orange-900/30 rounded-2xl p-3 mb-6">
+                <Flame className="w-5 h-5 text-orange-500" />
+                <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">
+                  {`${streakBonus.streak} day Daily streak! +${streakBonus.hints} bonus hints`}
+                </span>
+              </div>
+            )}
             <button
               onClick={() => navigate(createPageUrl('Home'))}
               className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg min-h-[44px]"

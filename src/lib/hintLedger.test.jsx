@@ -9,7 +9,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ native: true }));
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
 vi.mock('@revenuecat/purchases-capacitor', () => ({
   Purchases: { configure: vi.fn(), getCustomerInfo: vi.fn(), getOfferings: vi.fn(), getProducts: vi.fn(), purchaseStoreProduct: vi.fn(), restorePurchases: vi.fn() },
   PRODUCT_CATEGORY: { NON_SUBSCRIPTION: 'NON_SUBSCRIPTION' },

@@ -12,7 +12,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { readFileSync } from 'node:fs';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/platform', () => ({ isNative: () => false, getPlatform: () => 'web' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => false, getPlatform: () => 'web' }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 
 const { default: Stats } = await import('@/pages/Stats');

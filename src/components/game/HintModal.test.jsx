@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = { native: false };
 const showRewarded = vi.fn(async () => true);
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'ios' : 'web') }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => platform.native, getPlatform: () => (platform.native ? 'ios' : 'web') }));
 vi.mock('@/lib/admob', () => ({ showRewarded: (...a) => showRewarded(...a) }));
 vi.mock('@/lib/purchases', () => ({
   purchaseProduct: vi.fn(),

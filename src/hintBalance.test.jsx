@@ -10,7 +10,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const PACK = 'au.com.uniquegames.soundfind.hints_3';
-vi.mock('@/lib/platform', () => ({ isNative: () => true, getPlatform: () => 'android' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => true, getPlatform: () => 'android' }));
 vi.mock('@capacitor-community/admob', async () => (await import('@/lib/admobPluginMock.testutil')).admobModule);
 vi.mock('@sentry/react', () => ({ captureException: vi.fn(), captureMessage: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('@/lib/purchases', () => ({

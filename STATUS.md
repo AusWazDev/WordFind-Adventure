@@ -588,6 +588,10 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-93, where hints are kept (S40):** the screen that sells hint packs now says, under the packs, *"Hints are saved on this device and aren't linked to an account. Unused hints can be lost if you delete the app."*
 - **Still open from SF-43:** the flicker after buying hints (D-B, it doesn't stop by itself) and the flash when changing packs (D-A) need measuring on the tablet; nothing was changed for them.
 
+### 2026-10-18 (Windows — S25 and S41 Part 1, brief SF-74)
+
+- **CR-132, the Windows app (Electron) has no ads and a Daily streak award.** On Windows there is no between-game ad, no "Watch an Ad" and no Remove Ads; the hint shop sells the three packs through the Microsoft Store, which is a stub reporting the store unavailable until SF-75 (prices and purchases). On Windows a Daily streak reaching 3, 6, 9 ... pays 2 more hints, once per milestone. The web build, iOS and Android are unchanged. Full suite: exit 0, 64 files, 493 of 493. **Not tested in the Windows app itself:** no appx was built; the Windows behaviour is proven in jsdom with the predicate mocked, and the predicate itself with an Electron user agent. **Next:** SF-75, the Microsoft Store purchase bridge.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

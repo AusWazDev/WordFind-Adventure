@@ -13,7 +13,7 @@ const Purchases = {
   getOfferings: vi.fn(async () => { throw new Error('Network error'); }),
 };
 vi.mock('@revenuecat/purchases-capacitor', () => ({ Purchases, PRODUCT_CATEGORY: { NON_SUBSCRIPTION: 'NON_SUBSCRIPTION' } }));
-vi.mock('@/lib/platform', () => ({ isNative: () => true, getPlatform: () => 'ios' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => true, getPlatform: () => 'ios' }));
 vi.mock('@/lib/admob', () => ({ showRewarded: vi.fn(async () => false) }));
 vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));

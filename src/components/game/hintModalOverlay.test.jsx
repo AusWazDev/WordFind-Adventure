@@ -7,7 +7,7 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('@/lib/platform', () => ({ isNative: () => true, getPlatform: () => 'android' }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => true, getPlatform: () => 'android' }));
 vi.mock('@/lib/admob', () => ({ showRewarded: vi.fn(async () => true) }));
 vi.mock('@/lib/purchases', () => ({
   purchaseProduct: vi.fn(),

@@ -13,7 +13,7 @@
 //
 // The storage keys are unchanged (they are published): games_completed_count and
 // last_ad_completed_at.
-import { isNative } from '@/lib/platform';
+import { isNative, isWindowsApp } from '@/lib/platform';
 import { showInterstitialUntilClosed } from '@/lib/admob';
 
 export const AD_FREQUENCY = 6; // show interstitial after every 6th completed game (not start)
@@ -35,6 +35,7 @@ export function interstitialDue({
   adsRemoved = localStorage.getItem('ads_removed') === 'true',
   isOnline = typeof navigator === 'undefined' ? true : navigator.onLine,
 } = {}) {
+  if (isWindowsApp()) return false; // S25 (SF-74): no ads of any kind on Windows
   if (adsRemoved || !isOnline) return false;
   const completedCount = readInt(COUNT_KEY);
   const lastAdAt = readInt(LAST_AD_KEY); // 0 when no ad has been shown

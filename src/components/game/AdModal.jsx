@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import { isWindowsApp } from '@/lib/platform';
 
 const AD_IMAGES = [
   'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500&h=250&fit=crop',
@@ -12,7 +12,9 @@ const AD_IMAGES = [
 
 const AD_DURATION = 5; // seconds before skip becomes available / auto-continue
 
-export default function AdModal({ isOpen, onClose, onRemoveAds }) {
+export default function AdModal({ isOpen: isOpenProp, onClose, onRemoveAds }) {
+  // S25 (SF-74): never on Windows, wherever it is mounted.
+  const isOpen = isOpenProp && !isWindowsApp();
   const [countdown, setCountdown] = useState(AD_DURATION);
   const [canSkip, setCanSkip] = useState(false);
   const [adImage] = useState(() => AD_IMAGES[Math.floor(Math.random() * AD_IMAGES.length)]);

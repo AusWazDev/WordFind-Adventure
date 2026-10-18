@@ -10,7 +10,7 @@ import LevelSelector from '@/components/game/LevelSelector';
 import DailyChallengeCard from '@/components/game/DailyChallengeCard';
 import AdModal from '@/components/game/AdModal';
 import RemoveAdsModal from '@/components/game/RemoveAdsModal';
-import { isNative } from '@/lib/platform';
+import { isNative, isWindowsApp } from '@/lib/platform';
 import { showInterstitialBeforeGame, interstitialDue, markInterstitialShown } from '@/lib/adCadence';
 import WelcomeScreen from '@/components/game/WelcomeScreen';
 import { useWelcomeDue, settleWelcomeForPlayers, hasSeenWelcome, hasPlayed } from '@/lib/welcome';
@@ -102,6 +102,7 @@ export default function Home() {
 
   const startLevel = async (mode, category, level) => {
     const url = createPageUrl('Game') + `?mode=${mode}&category=${category}&level=${level}`;
+    if (isWindowsApp()) { navigate(url); return; } // S25 (SF-74): no ads of any kind on Windows
     if (adsRemoved || !isOnline) { navigate(url); return; } // skip ad if offline or ads removed
     // CR-15: Gate ads on completed games, not game starts. The cadence lives in
     // src/lib/adCadence.js (S41, SF-52), shared with every other start path.
@@ -136,7 +137,9 @@ export default function Home() {
   // nothing is registered, so Home minimises (rule g).
   useBackHandler('page', () => setStep(backStep), step !== 'mode');
 
-  const adModals = (
+  // S25 (SF-74): on Windows neither the placeholder ad nor Remove Ads is mounted, so
+  // neither can open and neither loads its Unsplash images.
+  const adModals = isWindowsApp() ? null : (
     <>
       <AdModal
         isOpen={showAd}

@@ -11,7 +11,7 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const platform = vi.hoisted(() => ({ native: true }));
-vi.mock('@/lib/platform', () => ({ isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
+vi.mock('@/lib/platform', () => ({ isWindowsApp: () => false, isNative: () => platform.native, getPlatform: () => (platform.native ? 'android' : 'web') }));
 // SF-57 (DEF-54): the ad SDK is the plugin as it really behaves (see
 // admobPluginMock.testutil.js): showInterstitial() resolves while the ad is still on
 // screen, and only the Dismissed event says it has closed. CR-96's original mock

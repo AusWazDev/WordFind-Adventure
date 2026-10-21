@@ -49,7 +49,7 @@ const { default: AdModal } = await import('./components/game/AdModal');
 const { default: RemoveAdsModal } = await import('./components/game/RemoveAdsModal');
 const { default: GameModeSelector, WINDOWS_OFFLINE_BANNER } = await import('./components/game/GameModeSelector');
 const { interstitialDue } = await import('./lib/adCadence');
-const { buyHintPack, hintShopStore } = await import('./lib/hintShop');
+const { buyHintPack, hintShopStore, hintPackOptions } = await import('./lib/hintShop');
 const { StoreUnavailableError } = await import('./lib/windowsStore');
 
 let container, root;
@@ -188,6 +188,7 @@ describe('HintModal on Windows (B1, B3, B5)', () => {
     expect(t).not.toContain('Watch & Earn');
     expect(t).toContain(WINDOWS_HINT_SOURCES);
     expect(button('Buy Hint Pack')).toBeDefined();
+    expect(t).toContain('5, 10 or 25 hints'); // S42
   });
   it('offline: still no "Watch an Ad" tile', async () => {
     online.value = false;
@@ -199,7 +200,8 @@ describe('HintModal on Windows (B1, B3, B5)', () => {
     await openShop();
     await toPurchaseView();
     const t = document.body.textContent;
-    for (const n of ['3 Hints', '10 Hints', '25 Hints']) expect(t).toContain(n);
+    for (const n of ['5 Hints', '10 Hints', '25 Hints']) expect(t).toContain(n); // S42
+    expect(t).not.toMatch(/(^|\D)3 Hints/);
     expect(t).toContain(WINDOWS_BILLING);
     expect(t).not.toContain('App Store / Google Play');
     expect(t).toContain(WINDOWS_STORE_UNAVAILABLE);
@@ -217,11 +219,14 @@ describe('HintModal on the web and on native (unchanged)', () => {
     expect(button('Watch an Ad')).toBeDefined();
     expect(document.body.textContent).toContain('Choose how to unlock your next hint');
     expect(document.body.textContent).not.toContain(WINDOWS_HINT_SOURCES);
+    expect(document.body.textContent).toContain('3, 10 or 25 hints'); // unchanged by S42
   });
   it('web: the purchase view keeps the App Store / Google Play line and answers "Coming soon"', async () => {
     await openShop();
     await toPurchaseView();
     expect(document.body.textContent).toContain('Prices are indicative · Billed through the App Store / Google Play');
+    for (const n of ['3 Hints', '10 Hints', '25 Hints']) expect(document.body.textContent).toContain(n); // unchanged by S42
+    expect(document.body.textContent).not.toMatch(/(^|\D)5 Hints/); // "25 Hints" contains "5 Hints"
     expect(document.body.textContent).not.toContain(WINDOWS_STORE_UNAVAILABLE);
     await act(async () => { button('Buy 10 Hints').click(); });
     expect(toast.info).toHaveBeenCalledWith('Coming soon', expect.anything());
@@ -242,8 +247,27 @@ describe('the purchase interface (A2)', () => {
   it('Windows: the store is "windows" and a purchase is refused as store-unavailable', async () => {
     platform.windows = true;
     expect(hintShopStore()).toBe('windows');
-    await expect(buyHintPack('au.com.uniquegames.soundfind.hints_3')).rejects.toBeInstanceOf(StoreUnavailableError);
+    await expect(buyHintPack('au.com.uniquegames.soundfind.hints_5')).rejects.toBeInstanceOf(StoreUnavailableError);
     expect(purchaseProduct).not.toHaveBeenCalled();
+  });
+  // S42 (21 Oct 2026): Windows sells 5, 10 and 25; iOS, Android and the web keep 3, 10 and 25.
+  it('Windows: the packs are 5, 10 and 25 hints', () => {
+    platform.windows = true;
+    expect(hintPackOptions().map(o => [o.productId, o.hints])).toEqual([
+      ['au.com.uniquegames.soundfind.hints_5', 5],
+      ['au.com.uniquegames.soundfind.hints_10', 10],
+      ['au.com.uniquegames.soundfind.hints_25', 25],
+    ]);
+  });
+  it('native and web: the packs are still 3, 10 and 25 hints, with the native product IDs', () => {
+    for (const native of [true, false]) {
+      platform.native = native;
+      expect(hintPackOptions().map(o => [o.productId, o.hints])).toEqual([
+        ['au.com.uniquegames.soundfind.hints_3', 3],
+        ['au.com.uniquegames.soundfind.hints_10', 10],
+        ['au.com.uniquegames.soundfind.hints_25', 25],
+      ]);
+    }
   });
   it('native: the store is "native" and RevenueCat is called', async () => {
     platform.native = true;

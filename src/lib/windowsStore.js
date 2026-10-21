@@ -14,9 +14,11 @@
 //                                         throws on cancel or failure
 // plus initWindowsStore(), called once at launch by App.jsx.
 //
-// productId is the shop's key (PURCHASE_OPTIONS in purchases.js). Its last segment
-// is the Partner Center product ID (hints_3, hints_10, hints_25), which the Store
-// returns as InAppOfferToken. Prices come from the Store.
+// productId is the shop's key (WINDOWS_PURCHASE_OPTIONS below). Its last segment is
+// the Partner Center product ID (hints_5, hints_10, hints_25; decision S42), which
+// the Store returns as InAppOfferToken. Prices come from the Store. Windows has NO
+// hints_3: that pack is iOS and Android only (PURCHASE_OPTIONS in purchases.js,
+// unchanged), and a Store product outside the Windows list is ignored.
 //
 // Fulfilment (the developer's ruling on SF-75, Option 1). Developer-managed
 // consumables: the Store will not sell a pack again until its fulfilment is
@@ -33,7 +35,6 @@
 // the Store dialog was open) has no saved entry; it is recovered on the next
 // attempt to buy that same pack, which the Store answers with AlreadyPurchased.
 import { toast } from 'sonner';
-import { HINT_PACK_MAP } from '@/lib/purchases';
 import { creditPurchaseNow, PROGRESS_CHANGED_EVENT } from '@/lib/hintLedger';
 
 // New keys (SF-75). Neither is cleared by Reset: a pending entry is a charge the
@@ -53,6 +54,18 @@ export class StoreUnavailableError extends Error {
 }
 
 const offerTokenFor = productId => String(productId).split('.').pop();
+
+// The Windows packs (S42): 5, 10 and 25 hints, in the shop's order and look. Its own
+// list, so the native list (PURCHASE_OPTIONS in purchases.js) is never read or changed.
+export const WINDOWS_PURCHASE_OPTIONS = [
+  { productId: 'au.com.uniquegames.soundfind.hints_5',  hints: 5,  label: 'Starter',    gradient: 'from-amber-400 to-orange-500',  shadow: 'shadow-amber-200',   popular: false },
+  { productId: 'au.com.uniquegames.soundfind.hints_10', hints: 10, label: 'Best Value', gradient: 'from-violet-500 to-indigo-600', shadow: 'shadow-violet-200',  popular: true  },
+  { productId: 'au.com.uniquegames.soundfind.hints_25', hints: 25, label: 'Power Pack', gradient: 'from-emerald-400 to-teal-500',  shadow: 'shadow-emerald-200', popular: false },
+];
+// Hints per pack, keyed by the Partner Center product ID (the Store's InAppOfferToken).
+export const WINDOWS_HINT_PACKS = Object.fromEntries(
+  WINDOWS_PURCHASE_OPTIONS.map(o => [offerTokenFor(o.productId), o.hints]),
+);
 const bridge = () => (typeof window !== 'undefined' ? window.soundfindStore : undefined);
 
 let available = false;
@@ -115,7 +128,7 @@ async function loadProducts() {
   for (const p of answer.products || []) {
     if (!p?.offerToken || !p.storeId) continue;
     ids[p.offerToken] = p.storeId;
-    const shopId = Object.keys(HINT_PACK_MAP).find(id => offerTokenFor(id) === p.offerToken);
+    const shopId = WINDOWS_PURCHASE_OPTIONS.find(o => offerTokenFor(o.productId) === p.offerToken)?.productId;
     if (shopId && p.price) next[shopId] = p.price;
   }
   writeJson(STORE_IDS_KEY, ids);
@@ -138,7 +151,7 @@ function newTrackingId() {
 // Credit (through the ledger, keyed on the tracking ID), then report. Returns the
 // hints credited now (0 if this tracking ID was credited before).
 async function finish(entry) {
-  const amount = HINT_PACK_MAP[`au.com.uniquegames.soundfind.${entry.offerToken}`] || 0;
+  const amount = WINDOWS_HINT_PACKS[entry.offerToken] ?? 0;
   const { creditedHints } = creditPurchaseNow(
     { platform: 'windows', productId: entry.offerToken, trackingId: entry.trackingId }, amount,
   );
@@ -167,8 +180,8 @@ export async function initWindowsStore() {
 }
 
 export async function purchaseWindowsHintPack(productId) {
-  const hints = HINT_PACK_MAP[productId];
   const offerToken = offerTokenFor(productId);
+  const hints = WINDOWS_HINT_PACKS[offerToken];
   const storeId = storeIds()[offerToken];
   const b = bridge();
   if (!available || !b || !hints || !storeId) throw new StoreUnavailableError();

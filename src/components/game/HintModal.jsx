@@ -9,10 +9,7 @@ import { toast } from 'sonner';
 import { isNative, isWindowsApp } from '@/lib/platform';
 import { showRewarded } from '@/lib/admob';
 import * as Sentry from '@sentry/react';
-import { PURCHASE_OPTIONS } from '@/lib/purchases';
-import { hintShopStore, isHintStoreAvailable, buyHintPack, usePackPrice, useLowestPackPrice } from '@/lib/hintShop';
-
-const PACK_IDS = PURCHASE_OPTIONS.map(o => o.productId);
+import { hintShopStore, hintPackOptions, isHintStoreAvailable, buyHintPack, usePackPrice, useLowestPackPrice } from '@/lib/hintShop';
 
 // Windows copy (S25, S41, SF-74). Hints there come from the Daily, Daily streaks and
 // Microsoft Store hint packs; there are no ads.
@@ -93,7 +90,8 @@ function PurchaseView({ onPurchase }) {
   const [selected, setSelected] = useState('au.com.uniquegames.soundfind.hints_10');
   const [purchasing, setPurchasing] = useState(false);
 
-  const selectedOption = PURCHASE_OPTIONS.find(o => o.productId === selected);
+  const packs = hintPackOptions(); // S42: 5, 10 and 25 on Windows
+  const selectedOption = packs.find(o => o.productId === selected);
   const selectedPrice = usePackPrice(selected);
   const store = hintShopStore();
   const onWindows = store === 'windows';
@@ -126,7 +124,7 @@ function PurchaseView({ onPurchase }) {
 
   return (
     <div className="space-y-3">
-      {PURCHASE_OPTIONS.map(option => (
+      {packs.map(option => (
         <motion.button
           key={option.productId}
           onClick={() => setSelected(option.productId)}
@@ -189,7 +187,8 @@ function PurchaseView({ onPurchase }) {
 export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
   const [view, setView] = useState('options');
   const isOnline = useOnlineStatus();
-  const fromPrice = useLowestPackPrice(PACK_IDS);
+  const packs = hintPackOptions();
+  const fromPrice = useLowestPackPrice(packs.map(o => o.productId));
   const onWindows = isWindowsApp(); // S25 (SF-74): no ads of any kind on Windows
 
   const handleWatchAdNative = async () => {
@@ -309,7 +308,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                       </div>
                       <div>
                         <h3 className="font-bold">Buy Hint Pack</h3>
-                        <p className="text-amber-100 text-sm">3, 10 or 25 hints</p>
+                        <p className="text-amber-100 text-sm">{onWindows ? '5, 10 or 25 hints' : '3, 10 or 25 hints'}</p>
                       </div>
                       {fromPrice && <span className="ml-auto text-white/80 text-sm font-medium">from {fromPrice}</span>}
                     </motion.button>

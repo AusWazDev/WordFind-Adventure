@@ -29,10 +29,12 @@ vi.mock('@sentry/react', () => ({ captureException: vi.fn(), addBreadcrumb: vi.f
 const W = await import('@/lib/windowsStore');
 const { default: HintModal } = await import('@/components/game/HintModal');
 
-const PACK3 = 'au.com.uniquegames.soundfind.hints_3';
+// Windows packs (S42): hints_5, hints_10, hints_25. There is no hints_3 on Windows.
+const PACK5 = 'au.com.uniquegames.soundfind.hints_5';
+const PACK3 = 'au.com.uniquegames.soundfind.hints_3'; // iOS and Android only
 const PACK10 = 'au.com.uniquegames.soundfind.hints_10';
 const PRODUCTS = [
-  { storeId: '9NBLGGH4R315', offerToken: 'hints_3', title: '3 Hints', price: '$1.49' },
+  { storeId: '9NBLGGH4R315', offerToken: 'hints_5', title: '5 Hints', price: '$1.49' },
   { storeId: '9NBLGGH4R316', offerToken: 'hints_10', title: '10 Hints', price: '$3.99' },
   { storeId: '9NBLGGH4R317', offerToken: 'hints_25', title: '25 Hints', price: '$7.99' },
 ];
@@ -66,9 +68,9 @@ describe('prices (SF-75 C)', () => {
   it('shows the Store price for each pack, keyed by the shop ID, and remembers Store IDs', async () => {
     await W.initWindowsStore();
     expect(W.isWindowsStoreAvailable()).toBe(true);
-    expect(W.getWindowsPrice(PACK3)).toBe('$1.49');
+    expect(W.getWindowsPrice(PACK5)).toBe('$1.49');
     expect(W.getWindowsPrice(PACK10)).toBe('$3.99');
-    expect(JSON.parse(localStorage.getItem('wf_ms_store_ids'))).toEqual({ hints_3: '9NBLGGH4R315', hints_10: '9NBLGGH4R316', hints_25: '9NBLGGH4R317' });
+    expect(JSON.parse(localStorage.getItem('wf_ms_store_ids'))).toEqual({ hints_5: '9NBLGGH4R315', hints_10: '9NBLGGH4R316', hints_25: '9NBLGGH4R317' });
   });
 
   it('the hint shop shows those prices and no ad', async () => {
@@ -79,11 +81,14 @@ describe('prices (SF-75 C)', () => {
     await act(async () => { root.render(<HintModal isOpen onClose={() => {}} onWatchAd={() => {}} onPurchase={() => {}} />); });
     await act(async () => { await new Promise(r => setTimeout(r, 30)); });
     expect(document.body.textContent).toContain('from $1.49');
+    expect(document.body.textContent).toContain('5, 10 or 25 hints');
     expect(document.body.textContent).not.toContain('Watch an Ad');
     const shop = [...document.querySelectorAll('button')].find(b => b.textContent.includes('Buy Hint Pack'));
     await act(async () => { shop.click(); });
     await act(async () => { await new Promise(r => setTimeout(r, 400)); });
     expect(document.body.textContent).toContain('$7.99');
+    const packs = [...document.querySelectorAll('button')].map(b => b.textContent).filter(t => / Hints/.test(t) && !t.startsWith('Buy'));
+    expect(packs.map(t => t.match(/^(\d+) Hints/)?.[1])).toEqual(['5', '10', '25']);
     expect(document.body.textContent).toContain('Buy 10 Hints ($3.99)');
     expect(document.querySelector('[data-testid="store-unavailable"]')).toBeNull();
     await act(async () => { root.unmount(); });
@@ -95,21 +100,21 @@ describe('purchase (SF-75 C)', () => {
   beforeEach(async () => { await W.initWindowsStore(); });
 
   it('succeeds: credits once, reports with the saved tracking ID, clears the entry', async () => {
-    const result = await W.purchaseWindowsHintPack(PACK3);
-    expect(result.hints).toBe(3);
-    expect(result.credited).toBe(3);
-    expect(balance()).toBe(8);
+    const result = await W.purchaseWindowsHintPack(PACK5);
+    expect(result.hints).toBe(5);
+    expect(result.credited).toBe(5);
+    expect(balance()).toBe(10);
     expect(bridge.purchase).toHaveBeenCalledWith('9NBLGGH4R315');
     const [storeId, trackingId] = bridge.reportFulfillment.mock.calls[0];
     expect(storeId).toBe('9NBLGGH4R315');
     expect(trackingId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
-    expect(records()).toEqual([`windows:hints_3:${trackingId}`]);
+    expect(records()).toEqual([`windows:hints_5:${trackingId}`]);
     expect(pending()).toEqual([]);
   });
 
   it('cancelled: no credit, no saved entry, no report', async () => {
     bridge.purchase.mockResolvedValueOnce({ ok: true, hresult: 0, status: 2 });
-    await expect(W.purchaseWindowsHintPack(PACK3)).rejects.toThrow(/cancel/);
+    await expect(W.purchaseWindowsHintPack(PACK5)).rejects.toThrow(/cancel/);
     expect(balance()).toBe(5);
     expect(pending()).toEqual([]);
     expect(bridge.reportFulfillment).not.toHaveBeenCalled();
@@ -117,7 +122,7 @@ describe('purchase (SF-75 C)', () => {
 
   it('fails (server error): throws a non-cancel error, no credit', async () => {
     bridge.purchase.mockResolvedValueOnce({ ok: true, hresult: 0, status: 4 });
-    const err = await W.purchaseWindowsHintPack(PACK3).catch(e => e);
+    const err = await W.purchaseWindowsHintPack(PACK5).catch(e => e);
     expect(err.message).not.toMatch(/cancel/);
     expect(err.name).not.toBe('StoreUnavailableError');
     expect(balance()).toBe(5);
@@ -126,23 +131,23 @@ describe('purchase (SF-75 C)', () => {
 
   it('already owned, nothing saved: credits the pack and reports it', async () => {
     bridge.purchase.mockResolvedValueOnce({ ok: true, hresult: 0, status: 1 });
-    const result = await W.purchaseWindowsHintPack(PACK3);
-    expect(result.credited).toBe(3);
-    expect(balance()).toBe(8);
+    const result = await W.purchaseWindowsHintPack(PACK5);
+    expect(result.credited).toBe(5);
+    expect(balance()).toBe(10);
     expect(bridge.reportFulfillment).toHaveBeenCalledTimes(1);
     expect(pending()).toEqual([]);
   });
 
   it('already owned with a saved, credited entry: reports it again, credits nothing more', async () => {
     bridge.reportFulfillment.mockResolvedValueOnce({ ok: true, hresult: 0, status: 2 }); // report lost
-    await W.purchaseWindowsHintPack(PACK3);
-    expect(balance()).toBe(8);
+    await W.purchaseWindowsHintPack(PACK5);
+    expect(balance()).toBe(10);
     const saved = pending();
     expect(saved).toHaveLength(1);
     bridge.purchase.mockResolvedValueOnce({ ok: true, hresult: 0, status: 1 });
-    const again = await W.purchaseWindowsHintPack(PACK3);
+    const again = await W.purchaseWindowsHintPack(PACK5);
     expect(again.credited).toBe(0);
-    expect(balance()).toBe(8);
+    expect(balance()).toBe(10);
     expect(bridge.reportFulfillment.mock.calls[1][1]).toBe(saved[0].trackingId);
     expect(pending()).toEqual([]);
   });
@@ -159,12 +164,30 @@ describe('purchase (SF-75 C)', () => {
       atReport = { balance: balance(), pending: pending().map(p => p.trackingId), trackingId };
       return { ok: true, hresult: 0, status: 0 };
     });
-    await W.purchaseWindowsHintPack(PACK3);
+    await W.purchaseWindowsHintPack(PACK5);
     spy.mockRestore();
     expect(writes.indexOf('wf_ms_store_pending')).toBeGreaterThanOrEqual(0);
     expect(writes.indexOf('wf_ms_store_pending')).toBeLessThan(writes.indexOf('wf_progress'));
-    expect(atReport.balance).toBe(8);
+    expect(atReport.balance).toBe(10);
     expect(atReport.pending).toEqual([atReport.trackingId]);
+  });
+});
+
+describe('Windows packs are 5, 10 and 25 (S42)', () => {
+  it('maps each Partner Center product to its hint count; no hints_3', () => {
+    expect(W.WINDOWS_HINT_PACKS).toEqual({ hints_5: 5, hints_10: 10, hints_25: 25 });
+    expect(W.WINDOWS_PURCHASE_OPTIONS.map(o => o.productId)).toEqual([PACK5, PACK10, 'au.com.uniquegames.soundfind.hints_25']);
+  });
+
+  it('a hints_3 product from the Store is ignored, and hints_3 is never bought on Windows', async () => {
+    window.soundfindStore = bridge = makeBridge({
+      products: { ok: true, hresult: 0, status: 0, products: [...PRODUCTS, { storeId: '9NBLGGH4R399', offerToken: 'hints_3', title: '3 Hints', price: '$0.99' }] },
+    });
+    await W.initWindowsStore();
+    expect(W.getWindowsPrice(PACK3)).toBeNull();
+    await expect(W.purchaseWindowsHintPack(PACK3)).rejects.toBeInstanceOf(W.StoreUnavailableError);
+    expect(bridge.purchase).not.toHaveBeenCalled();
+    expect(balance()).toBe(5);
   });
 });
 
@@ -201,15 +224,15 @@ describe('store unavailable (SF-75 C)', () => {
     delete window.soundfindStore;
     await W.initWindowsStore();
     expect(W.isWindowsStoreAvailable()).toBe(false);
-    await expect(W.purchaseWindowsHintPack(PACK3)).rejects.toBeInstanceOf(W.StoreUnavailableError);
+    await expect(W.purchaseWindowsHintPack(PACK5)).rejects.toBeInstanceOf(W.StoreUnavailableError);
   });
 
   it('0x803F6107 (the Store does not know the app): unavailable, no prices', async () => {
     window.soundfindStore = makeBridge({ products: { ok: true, hresult: STORE_UNKNOWN_APP, status: 0, products: [] } });
     await W.initWindowsStore();
     expect(W.isWindowsStoreAvailable()).toBe(false);
-    expect(W.getWindowsPrice(PACK3)).toBeNull();
-    await expect(W.purchaseWindowsHintPack(PACK3)).rejects.toBeInstanceOf(W.StoreUnavailableError);
+    expect(W.getWindowsPrice(PACK5)).toBeNull();
+    await expect(W.purchaseWindowsHintPack(PACK5)).rejects.toBeInstanceOf(W.StoreUnavailableError);
   });
 
   it('a failed call (addon not loaded, ok false): unavailable', async () => {
@@ -221,7 +244,7 @@ describe('store unavailable (SF-75 C)', () => {
   it('a purchase answered ok false: StoreUnavailableError, no credit', async () => {
     await W.initWindowsStore();
     bridge.purchase.mockResolvedValueOnce({ ok: false, hresult: 0, status: -1 });
-    await expect(W.purchaseWindowsHintPack(PACK3)).rejects.toBeInstanceOf(W.StoreUnavailableError);
+    await expect(W.purchaseWindowsHintPack(PACK5)).rejects.toBeInstanceOf(W.StoreUnavailableError);
     expect(balance()).toBe(5);
   });
 });

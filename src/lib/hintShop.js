@@ -6,9 +6,10 @@
 //   web:                   no store; buying is answered "coming soon", as before.
 import { useSyncExternalStore } from 'react';
 import { isNative, isWindowsApp } from '@/lib/platform';
-import { purchaseProduct, usePrice, useLowestPrice } from '@/lib/purchases';
+import { purchaseProduct, usePrice, useLowestPrice, PURCHASE_OPTIONS } from '@/lib/purchases';
 import {
   isWindowsStoreAvailable, getWindowsPrice, subscribeWindowsPrices, purchaseWindowsHintPack,
+  WINDOWS_PURCHASE_OPTIONS,
 } from '@/lib/windowsStore';
 
 // Which store sells hint packs here: 'native', 'windows' or 'none' (web).
@@ -16,6 +17,12 @@ export function hintShopStore() {
   if (isNative()) return 'native';
   if (isWindowsApp()) return 'windows';
   return 'none';
+}
+
+// The packs this shop sells, smallest first: 5, 10 and 25 hints on Windows (S42);
+// 3, 10 and 25 on iOS, Android and the web, unchanged.
+export function hintPackOptions() {
+  return hintShopStore() === 'windows' ? WINDOWS_PURCHASE_OPTIONS : PURCHASE_OPTIONS;
 }
 
 // The price of the first pack that has one, in the shop's order (smallest pack first).

@@ -603,7 +603,7 @@ export default function DailyChallenge() {
               <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">
                 {rewardEarned
                   ? `+${reward_hints} hints added to your account!`
-                  : "Today's hints were already claimed — come back tomorrow!"}
+                  : "Today's hints were already claimed. Come back tomorrow!"}
               </span>
             </div>
             {streakBonus.hints > 0 && (
@@ -657,7 +657,7 @@ export default function DailyChallenge() {
       {alreadyCompleted && !victory && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2 text-sm font-medium z-40">
-          <Flame className="w-4 h-4" /> You already completed today's challenge — playing for fun!
+          <Flame className="w-4 h-4" /> You already completed today's challenge. Playing for fun!
         </motion.div>
       )}
     </div>

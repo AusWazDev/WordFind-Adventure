@@ -26,7 +26,7 @@ const OTHER_MODES = [
   {
     id: 'association',
     name: MODE_LABELS.association,
-    description: 'Find words using hand-crafted clues — works fully offline',
+    description: 'Find words using hand-crafted clues. Works fully offline',
     icon: MODE_ICONS.association,
     gradient: 'from-cyan-500 to-blue-600',
     bgGradient: 'from-cyan-50 to-blue-50',
@@ -35,7 +35,7 @@ const OTHER_MODES = [
   {
     id: 'anagram',
     name: MODE_LABELS.anagram,
-    description: 'Words shown scrambled — unscramble then find them',
+    description: 'Words shown scrambled. Unscramble then find them',
     icon: MODE_ICONS.anagram,
     gradient: 'from-pink-500 to-rose-600',
     bgGradient: 'from-pink-50 to-rose-50',
@@ -63,10 +63,10 @@ export default function GameModeSelector({ onSelectMode }) {
           <WifiOff className="w-4 h-4 shrink-0" />
           {/* Native and Electron bundle all audio, so every mode works offline (CR-90). */}
           <span>{sentencesNeedNetwork
-            ? "You're offline. Audio Challenge is limited — all other modes work normally."
+            ? "You're offline. Audio Challenge is limited, and all other modes work normally."
             : isWindowsApp()
               ? WINDOWS_OFFLINE_BANNER
-              : "You're offline. Every mode still works — ads and purchases need a connection."}</span>
+              : "You're offline. Every mode still works. Ads and purchases need a connection."}</span>
         </div>
       )}
 
@@ -106,7 +106,7 @@ export default function GameModeSelector({ onSelectMode }) {
                 </div>
                 <p className="text-white/90 text-xs mt-1 leading-snug">
                   {audioOffline && sentencesNeedNetwork
-                    ? 'Words spoken only — example sentences need internet'
+                    ? 'Words spoken only (example sentences need internet)'
                     : 'Hear the word, find its spelling. Great for tricky words like KNIGHT, YACHT and RECEIPT'}
                 </p>
               </div>
@@ -148,7 +148,7 @@ export default function GameModeSelector({ onSelectMode }) {
                   </span>
                 </div>
                 <p className="text-white/85 text-xs mt-1 leading-snug">
-                  Find every word in the grid — the remaining letters reveal a hidden mystery word
+                  Find every word in the grid. The remaining letters reveal a hidden mystery word
                 </p>
               </div>
             </div>

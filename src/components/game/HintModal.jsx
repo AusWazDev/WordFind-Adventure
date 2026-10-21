@@ -178,7 +178,7 @@ function PurchaseView({ onPurchase }) {
           ? 'Processing…'
           : onWindows
             ? `Buy ${selectedOption?.hints} Hints${selectedPrice ? ` (${selectedPrice})` : ''}`
-            : `Buy ${selectedOption?.hints} Hints${selectedPrice ? ` — ${selectedPrice}` : ''}`}
+            : `Buy ${selectedOption?.hints} Hints${selectedPrice ? ` (${selectedPrice})` : ''}`}
       </Button>
     </div>
   );
@@ -280,7 +280,7 @@ export default function HintModal({ isOpen, onClose, onWatchAd, onPurchase }) {
                       </div>
                       <div>
                         <h3 className="font-bold">Watch an Ad</h3>
-                        <p className="text-violet-200 text-sm">Get 1 free hint — ~15 seconds</p>
+                        <p className="text-violet-200 text-sm">Get 1 free hint (~15 seconds)</p>
                       </div>
                       <span className="ml-auto text-white/60 text-sm font-medium">FREE</span>
                     </motion.button>

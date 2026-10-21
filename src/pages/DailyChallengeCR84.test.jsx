@@ -108,7 +108,7 @@ describe('S28: the reward is once per day', () => {
     localStorage.setItem('wf_daily', JSON.stringify({ '2026-09-29': { completed: true, streak: 2 }, '2026-09-30': first }));
     localStorage.setItem('wf_progress', JSON.stringify({ ...SEED_PROGRESS, best_streak: 3 }));
     await renderPage(T('standard', 2, 90), 3);
-    expect(container.textContent).toContain('playing for fun');   // control: the page knows the day is done
+    expect(container.textContent).toContain('Playing for fun');   // control: the page knows the day is done
     await findAll();
     const p = store('wf_progress');
     expect(p.hints_remaining).toBe(5);                           // no reward

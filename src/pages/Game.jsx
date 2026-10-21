@@ -425,7 +425,7 @@ export default function Game() {
       toast.success(`🌟 ${gameData.bonusWord}! +${bPts} bonus points!`, { duration: 3000 });
       setTimeout(() => { setShowVictory(true); saveProgress(foundWords.length); }, 900);
     } else {
-      toast.error('Not quite — keep reading the grid!', { duration: 2000 });
+      toast.error('Not quite. Keep reading the grid!', { duration: 2000 });
     }
   };
 

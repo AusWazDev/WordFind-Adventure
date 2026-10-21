@@ -293,11 +293,11 @@ describe('the offline banner', () => {
   it('native: the original line (native unchanged)', async () => {
     platform.native = true;
     await mount(<GameModeSelector onSelectMode={() => {}} />);
-    expect(container.textContent).toContain("You're offline. Every mode still works — ads and purchases need a connection.");
+    expect(container.textContent).toContain("You're offline. Every mode still works. Ads and purchases need a connection.");
   });
   it('web: the original Audio Challenge line (web unchanged)', async () => {
     await mount(<GameModeSelector onSelectMode={() => {}} />);
-    expect(container.textContent).toContain("You're offline. Audio Challenge is limited — all other modes work normally.");
+    expect(container.textContent).toContain("You're offline. Audio Challenge is limited, and all other modes work normally.");
   });
 });
 

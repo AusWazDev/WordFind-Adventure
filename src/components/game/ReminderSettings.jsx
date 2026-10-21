@@ -74,7 +74,7 @@ function scheduleNextNotification(time) {
   const timerId = setTimeout(() => {
     if (Notification.permission === 'granted') {
       new Notification("⏰ SoundFind Daily Challenge!", {
-        body: "Your daily challenge is waiting — keep your streak alive! 🔥",
+        body: "Your daily challenge is waiting. Keep your streak alive! 🔥",
         icon: "/favicon.ico",
       });
     }
@@ -149,7 +149,7 @@ export default function ReminderSettings() {
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Daily Reminder</p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
             {notificationsBlocked
-              ? 'Blocked — enable notifications in browser settings'
+              ? 'Blocked. Enable notifications in browser settings'
               : reminder.enabled
               ? `Reminder set for ${reminder.time} every day`
               : 'Get notified to play the daily challenge'}

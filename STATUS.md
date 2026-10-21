@@ -596,6 +596,10 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 
 - **CR-133, the Windows app sells hint packs through the Microsoft Store.** Three packs (5, 10 and 25 hints, decision S42; iOS and Android keep 3, 10 and 25), priced by the Store. Each purchase is saved, credited once, then reported to the Store; anything left unreported is finished at the next launch, never credited twice. Where the Store isn't reachable (an unpackaged run, or the Store not knowing the app) the shop says so and Buy is disabled. The Daily streak line now reads "3-day Daily streak!". Full suite: exit 0, 65 files, 511 of 511. **Built:** a local `electron-dist/SoundFind 1.2.0.appx` (1.2.0.0, unsigned, not uploaded). **Not yet proven:** a real Store purchase. That needs the developer's add-ons `hints_5`, `hints_10` and `hints_25` in Partner Center and a package flight. **Known limit:** a charge the app never heard back about is recovered the next time that same pack is bought.
 
+### 2026-10-21 (all platforms — dash removal, brief SF-76)
+
+- **CR-134, no dashes in anything a player reads.** 416 strings changed on every platform: 29 screens and messages, the 3 Daily descriptions, and 384 word clues and mystery-word hints. Each dash became a full stop, comma, colon or brackets; the words are unchanged. The price buttons on iPhone and Android now read like Windows: "Buy 10 Hints (A$2.99)". A new test fails if a dash comes back anywhere a player can see it. Full suite: exit 0, 66 files, 514 of 514. Every change is listed in `docs/SF-76 dash changes.md`. **Not yet on devices:** iOS and Android pick this up with their next builds.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

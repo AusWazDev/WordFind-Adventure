@@ -324,7 +324,7 @@ export default function Settings() {
                 </div>
                 <div className="flex-1 text-left">
                   <p className="font-bold">Go Ad-Free</p>
-                  <p className="text-amber-100 text-sm">One-time purchase — no subscription</p>
+                  <p className="text-amber-100 text-sm">One-time purchase, no subscription</p>
                 </div>
               </button>
             </motion.div>

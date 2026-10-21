@@ -335,6 +335,7 @@ These apply to **every** code commit, regardless of feature area:
 | Game mode added or removed | Update `README.md`, `WelcomeScreen.jsx`, `src/pages/Tutorial.jsx` (`MODE_LINES`; `HowToPlayModal.jsx` was deleted in SF-64), beta test sheet |
 | Live URL changes | Update `README.md`, `docs/Beta Tester Invite Message.md`, `docs/Launch Plan.md` |
 | Voice loading logic changes | Update `docs/Safari Voice Investigation.md` to reflect current strategy |
+| Any player-facing string added or changed, on any platform (CR-134, SF-76) | No em dash, en dash, double hyphen or spaced hyphen; restructure the sentence instead (hyphenated words, set names such as -OUGH, number ranges and minus signs are not dashes). `src/noDashes.test.js` scans every string value in `src/` (tests excluded), the Electron main and preload, `vite.config.js`, `index.html`, Android resources and manifest, iOS Info.plist and storyboards, and `capacitor.config.json`; console and Sentry messages are skipped. A new source of player-facing text (a JSON word list, a new native string file) must be added to that test's lists |
 
 ---
 

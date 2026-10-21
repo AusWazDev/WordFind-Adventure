@@ -106,7 +106,7 @@ export default function AdModal({ isOpen: isOpenProp, onClose, onRemoveAds }) {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-sm">Remove Ads Forever</h3>
-                  <p className="text-amber-100 text-xs">One-time purchase — play ad-free!</p>
+                  <p className="text-amber-100 text-xs">One-time purchase. Play ad-free!</p>
                 </div>
                 <Sparkles className="w-4 h-4 text-white/70" />
               </motion.button>

@@ -99,7 +99,7 @@ export default function AnagramWordList({ words, foundWords, hintWord, onHintCel
           })}
         </AnimatePresence>
       </div>
-      <p className="text-xs text-muted-foreground mt-3 text-center">Letters are scrambled — figure out the word, then find it in the grid!</p>
+      <p className="text-xs text-muted-foreground mt-3 text-center">Letters are scrambled. Figure out the word, then find it in the grid!</p>
     </div>
   );
 }

@@ -18,8 +18,8 @@ vi.mock('@/hooks/useOnlineStatus', () => ({ useOnlineStatus: () => online.value 
 
 const { default: GameModeSelector, WINDOWS_OFFLINE_BANNER } = await import('./GameModeSelector');
 
-const NEW_TEXT = "You're offline. Every mode still works — ads and purchases need a connection.";
-const OLD_TEXT = "You're offline. Audio Challenge is limited — all other modes work normally.";
+const NEW_TEXT = "You're offline. Every mode still works. Ads and purchases need a connection.";
+const OLD_TEXT = "You're offline. Audio Challenge is limited, and all other modes work normally.";
 const BADGE = 'Limited offline';
 const BROWSER_UA = navigator.userAgent;
 const setUA = ua => Object.defineProperty(navigator, 'userAgent', { configurable: true, get: () => ua });

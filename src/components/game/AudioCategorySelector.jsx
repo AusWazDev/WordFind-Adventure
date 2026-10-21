@@ -11,7 +11,7 @@ const trickyCategories = [
   {
     id: 'tricky_mix',
     name: 'Tricky Mix',
-    description: 'A blend of all tricky word types — the ultimate challenge',
+    description: 'A blend of all tricky word types: the ultimate challenge',
     tagline: 'Recommended',
     icon: Sparkles,
     gradient: 'from-amber-400 to-orange-500',
@@ -22,7 +22,7 @@ const trickyCategories = [
   {
     id: 'tricky_silent',
     name: 'Silent Letters',
-    description: 'KNIGHT, YACHT, LAMB, DEBT — letters that hide in plain sight',
+    description: 'KNIGHT, YACHT, LAMB, DEBT: letters that hide in plain sight',
     tagline: 'Popular',
     icon: Volume2,
     gradient: 'from-violet-500 to-indigo-600',
@@ -32,7 +32,7 @@ const trickyCategories = [
   {
     id: 'tricky_homophones',
     name: 'Homophones',
-    description: 'FLOUR / FLOWER, KNIGHT / NIGHT — same sound, different spelling',
+    description: 'FLOUR / FLOWER, KNIGHT / NIGHT: same sound, different spelling',
     icon: Link,
     gradient: 'from-pink-500 to-rose-600',
     bgGradient: 'from-pink-50 to-rose-50',
@@ -41,7 +41,7 @@ const trickyCategories = [
   {
     id: 'tricky_ough',
     name: '-OUGH Words',
-    description: 'TOUGH, THROUGH, THOUGH, COUGH — seven different sounds, one spelling',
+    description: 'TOUGH, THROUGH, THOUGH, COUGH: seven different sounds, one spelling',
     icon: AlignJustify,
     gradient: 'from-teal-500 to-cyan-600',
     bgGradient: 'from-teal-50 to-cyan-50',
@@ -50,7 +50,7 @@ const trickyCategories = [
   {
     id: 'tricky_double',
     name: 'Double Letters',
-    description: 'OCCASION, NECESSARY, EMBARRASS — spot the hidden doubles',
+    description: 'OCCASION, NECESSARY, EMBARRASS: spot the hidden doubles',
     icon: Type,
     gradient: 'from-blue-500 to-indigo-600',
     bgGradient: 'from-blue-50 to-indigo-50',
@@ -59,7 +59,7 @@ const trickyCategories = [
   {
     id: 'tricky_misspelled',
     name: 'Commonly Misspelled',
-    description: 'DEFINITELY, WEDNESDAY, RHYTHM — words that trip everyone up',
+    description: 'DEFINITELY, WEDNESDAY, RHYTHM: words that trip everyone up',
     icon: BookOpen,
     gradient: 'from-emerald-500 to-green-600',
     bgGradient: 'from-emerald-50 to-green-50',
@@ -68,7 +68,7 @@ const trickyCategories = [
   {
     id: 'tricky_ise_ize',
     name: '-ISE or -IZE?',
-    description: 'REALISE / REALIZE, ORGANISE / ORGANIZE — UK vs US spelling',
+    description: 'REALISE / REALIZE, ORGANISE / ORGANIZE: UK vs US spelling',
     icon: PenLine,
     gradient: 'from-fuchsia-500 to-purple-600',
     bgGradient: 'from-fuchsia-50 to-purple-50',
@@ -77,7 +77,7 @@ const trickyCategories = [
   {
     id: 'tricky_our_or',
     name: '-OUR or -OR?',
-    description: 'COLOUR / COLOR, HONOUR / HONOR — British vs American English',
+    description: 'COLOUR / COLOR, HONOUR / HONOR: British vs American English',
     icon: BookOpen,
     gradient: 'from-orange-500 to-red-600',
     bgGradient: 'from-orange-50 to-red-50',
@@ -100,7 +100,7 @@ export default function AudioCategorySelector({ onSelectCategory }) {
           Choose Your Challenge
         </h3>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Listen carefully — find the word by its spelling, not just its sound
+          Listen carefully. Find the word by its spelling, not just its sound
         </p>
       </div>
 

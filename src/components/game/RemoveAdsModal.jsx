@@ -50,7 +50,7 @@ export default function RemoveAdsModal({ isOpen: isOpenProp, onClose, onSuccess 
     'No ads between games',
     'Smoother, uninterrupted gameplay',
     'Support the developer ♥',
-    'Instant & permanent — no subscription',
+    'Instant & permanent, no subscription',
   ];
 
   return (
@@ -101,7 +101,7 @@ export default function RemoveAdsModal({ isOpen: isOpenProp, onClose, onSuccess 
                 <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-center text-white mb-5 shadow-lg shadow-amber-200">
                   <p className="text-amber-100 text-sm mb-1">One-time price</p>
                   {price && <p className="text-5xl font-bold">{price}</p>}
-                  <p className="text-amber-100 text-sm mt-1">Forever — not a subscription</p>
+                  <p className="text-amber-100 text-sm mt-1">Forever, not a subscription</p>
                 </div>
 
                 {/* Perks */}
@@ -124,7 +124,7 @@ export default function RemoveAdsModal({ isOpen: isOpenProp, onClose, onSuccess 
                   disabled={purchasing}
                   className="w-full h-12 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl font-semibold shadow-md shadow-amber-200"
                 >
-                  {purchasing ? 'Processing…' : `Remove Ads${price ? ` — ${price}` : ''}`}
+                  {purchasing ? 'Processing…' : `Remove Ads${price ? ` (${price})` : ''}`}
                 </Button>
                 <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-1">Billed through the App Store / Google Play</p>
 

@@ -69,7 +69,7 @@ describe('store prices (FB-1)', () => {
     expect(text()).toContain('A$1.49');
     expect(text()).toContain('A$2.99');
     expect(text()).toContain('A$5.99');
-    expect(button('Buy 10 Hints').textContent).toContain('Buy 10 Hints — A$2.99');
+    expect(button('Buy 10 Hints').textContent).toContain('Buy 10 Hints (A$2.99)');
   });
 
   it('the hint options show "from" the cheapest store price', async () => {
@@ -82,6 +82,6 @@ describe('store prices (FB-1)', () => {
     await act(async () => { root.render(<RemoveAdsModal isOpen onClose={() => {}} onSuccess={() => {}} />); });
     await settle();
     expect(text()).toContain('A$4.49');
-    expect(button('Remove Ads').textContent).toContain('Remove Ads — A$4.49');
+    expect(button('Remove Ads').textContent).toContain('Remove Ads (A$4.49)');
   });
 });

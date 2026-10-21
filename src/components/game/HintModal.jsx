@@ -109,6 +109,9 @@ function PurchaseView({ onPurchase }) {
     try {
       const result = await buyHintPack(selected);
       if (result.hints) onPurchase(result.hints, result.purchase);
+      // Windows (SF-75): windowsStore.js has already credited the pack, before reporting
+      // it to the Store, so the page's own credit adds nothing and shows no toast.
+      if (onWindows && result.credited > 0) toast.success(`You purchased ${result.credited} hints!`);
     } catch (e) {
       if (e?.name === 'StoreUnavailableError') {
         toast.info(WINDOWS_STORE_UNAVAILABLE);

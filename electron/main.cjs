@@ -1,5 +1,20 @@
-const { app, BrowserWindow, Menu, protocol, net, shell } = require('electron')
+const { app, BrowserWindow, Menu, protocol, net, shell, ipcMain } = require('electron')
 const path = require('path')
+
+// Microsoft Store purchases (S25, SF-75): a C++/WinRT addon, loaded here in the main
+// process only. If it is missing or fails to load (an unpackaged dev run without the
+// build, any other platform), every store call answers "unavailable" and the hint shop
+// says the store isn't available. The page reaches it only through preload.cjs.
+let store = null
+try {
+  store = require('./native/windows_store.node')
+} catch {
+  store = null
+}
+let storeReady = false // init succeeded: a StoreContext with the window as its owner
+const UNAVAILABLE = { ok: false, hresult: 0, status: -1 }
+const STORE_ID = /^[0-9A-Z]{12}$/i // a Store ID: 12 letters and digits
+const TRACKING_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // Register before app is ready — required by Electron
 protocol.registerSchemesAsPrivileged([
@@ -44,6 +59,7 @@ if (!app.requestSingleInstanceLock()) {
       return net.fetch('file:///' + filePath.replace(/\\/g, '/'))
     })
 
+    registerStoreIpc()
     createWindow()
 
     app.on('activate', () => {
@@ -64,8 +80,20 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      preload: path.join(__dirname, 'preload.cjs'),
     },
   })
+
+  // The Store's purchase dialogs are owned by this window (Microsoft: a desktop app
+  // must set the owner window on StoreContext). Set once, right after GetDefault().
+  if (store) {
+    try {
+      storeReady = !!store.init(win.getNativeWindowHandle()).ok
+    } catch {
+      storeReady = false
+    }
+  }
 
   // target="_blank" links and window.open: open in the browser, deny the window.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -86,6 +114,32 @@ function createWindow() {
 
   win.once('ready-to-show', () => {
     win.show()
+  })
+}
+
+// Only the app's own page may call the store, and only with well-formed arguments.
+function fromApp(event) {
+  const url = event?.senderFrame?.url || ''
+  return url.startsWith(APP_ORIGIN + '/')
+}
+
+// The three store calls the hint shop needs (S25, SF-75), and nothing else. Each
+// resolves to the addon's own { ok, hresult, status } answer, or UNAVAILABLE.
+function registerStoreIpc() {
+  ipcMain.handle('soundfind-store:getProducts', async (event) => {
+    if (!fromApp(event) || !store || !storeReady) return { ...UNAVAILABLE, products: [] }
+    return store.getProducts()
+  })
+  ipcMain.handle('soundfind-store:purchase', async (event, storeId) => {
+    if (!fromApp(event) || !store || !storeReady) return UNAVAILABLE
+    if (typeof storeId !== 'string' || !STORE_ID.test(storeId)) return UNAVAILABLE
+    return store.purchase(storeId)
+  })
+  ipcMain.handle('soundfind-store:reportFulfillment', async (event, storeId, trackingId) => {
+    if (!fromApp(event) || !store || !storeReady) return UNAVAILABLE
+    if (typeof storeId !== 'string' || !STORE_ID.test(storeId)) return UNAVAILABLE
+    if (typeof trackingId !== 'string' || !TRACKING_ID.test(trackingId)) return UNAVAILABLE
+    return store.reportFulfillment(storeId, trackingId)
   })
 }
 

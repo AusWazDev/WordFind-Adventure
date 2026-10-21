@@ -2,8 +2,7 @@
 //
 // HintModal asks this module, never a store directly:
 //   native (iOS, Android): RevenueCat, through purchases.js, exactly as before.
-//   Windows app:           the Microsoft Store, through windowsStore.js (SF-75;
-//                          a stub that reports the store unavailable until then).
+//   Windows app:           the Microsoft Store, through windowsStore.js (SF-75).
 //   web:                   no store; buying is answered "coming soon", as before.
 import { useSyncExternalStore } from 'react';
 import { isNative, isWindowsApp } from '@/lib/platform';
@@ -20,7 +19,7 @@ export function hintShopStore() {
 }
 
 // The price of the first pack that has one, in the shop's order (smallest pack first).
-// The stub has no numeric amounts to compare; SF-75 can compare real amounts here.
+// The Store returns formatted prices only, so the order is the comparison.
 function windowsLowest(productIds) {
   for (const id of productIds) {
     const p = getWindowsPrice(id);
@@ -53,7 +52,7 @@ export function isHintStoreAvailable() {
 }
 
 // Buys one pack. Resolves to purchaseProduct's own result on native ({ hints, purchase }),
-// { hints } on Windows, or { comingSoon: true } on the web. Throws on cancel or failure,
+// { hints, purchase, credited } on Windows (already credited), or { comingSoon: true } on the web. Throws on cancel or failure,
 // and on Windows with StoreUnavailableError while the store is unavailable.
 export async function buyHintPack(productId) {
   const store = hintShopStore();

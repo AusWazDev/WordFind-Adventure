@@ -592,6 +592,10 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 
 - **CR-132, the Windows app (Electron) has no ads and a Daily streak award.** On Windows there is no between-game ad, no "Watch an Ad" and no Remove Ads; the hint shop sells the three packs through the Microsoft Store, which is a stub reporting the store unavailable until SF-75 (prices and purchases). On Windows a Daily streak reaching 3, 6, 9 ... pays 2 more hints, once per milestone. The web build, iOS and Android are unchanged. Full suite: exit 0, 64 files, 493 of 493. **Not tested in the Windows app itself:** no appx was built; the Windows behaviour is proven in jsdom with the predicate mocked, and the predicate itself with an Electron user agent. **Next:** SF-75, the Microsoft Store purchase bridge.
 
+### 2026-10-21 (Windows — S25 Part 2, brief SF-75)
+
+- **CR-133, the Windows app sells hint packs through the Microsoft Store.** Three packs (3, 10 and 25 hints), priced by the Store. Each purchase is saved, credited once, then reported to the Store; anything left unreported is finished at the next launch, never credited twice. Where the Store isn't reachable (an unpackaged run, or the Store not knowing the app) the shop says so and Buy is disabled. The Daily streak line now reads "3-day Daily streak!". Full suite: exit 0, 65 files, 507 of 507. **Built:** a local `electron-dist/SoundFind 1.2.0.appx` (1.2.0.0, unsigned, not uploaded). **Not yet proven:** a real Store purchase. That needs the developer's add-ons `hints_3`, `hints_10` and `hints_25` in Partner Center and a package flight. **Known limit:** a charge the app never heard back about is recovered the next time that same pack is bought.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

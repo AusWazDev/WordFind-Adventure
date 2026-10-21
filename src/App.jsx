@@ -6,7 +6,8 @@ import { App as CapApp } from '@capacitor/app';
 import * as Sentry from '@sentry/react';
 import PageNotFound from './lib/PageNotFound';
 import SplashScreen from './components/game/SplashScreen';
-import { isNative } from './lib/platform';
+import { isNative, isWindowsApp } from './lib/platform';
+import { initWindowsStore } from './lib/windowsStore';
 import { initAdMob } from './lib/admob';
 import { initPurchases } from './lib/purchases';
 import { installBackButton } from './lib/backButton';
@@ -59,6 +60,8 @@ function App() {
     if (isNative()) {
       initAdMob();
       initPurchases();
+    } else if (isWindowsApp()) {
+      initWindowsStore(); // S25 (SF-75): prices, then finish any saved purchase
     }
   }, []);
 

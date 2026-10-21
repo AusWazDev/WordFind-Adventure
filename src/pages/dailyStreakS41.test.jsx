@@ -77,7 +77,7 @@ describe('S41 on Windows', () => {
     await playToday();
     expect(store('wf_daily')['2026-09-30'].streak, 'control: today is day 3 of the streak').toBe(3);
     expect(store('wf_progress').hints_remaining).toBe(5 + 2 + 2);
-    expect(container.querySelector('[data-testid="streak-bonus"]').textContent).toBe('3 day Daily streak! +2 bonus hints');
+    expect(container.querySelector('[data-testid="streak-bonus"]').textContent).toBe('3-day Daily streak! +2 bonus hints');
     expect(store(STREAK_AWARD_KEY)).toEqual({ run_start: '2026-09-28', paid_through: 3 });
   });
 

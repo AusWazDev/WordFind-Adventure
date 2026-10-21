@@ -610,7 +610,7 @@ export default function DailyChallenge() {
               <div data-testid="streak-bonus" className="flex items-center justify-center gap-2 bg-orange-100 dark:bg-orange-900/30 rounded-2xl p-3 mb-6">
                 <Flame className="w-5 h-5 text-orange-500" />
                 <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">
-                  {`${streakBonus.streak} day Daily streak! +${streakBonus.hints} bonus hints`}
+                  {`${streakBonus.streak}-day Daily streak! +${streakBonus.hints} bonus hints`}
                 </span>
               </div>
             )}

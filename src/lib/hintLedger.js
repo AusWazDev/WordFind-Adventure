@@ -76,10 +76,25 @@ export function findListedEntry(progress, purchase) {
     .sort((a, b) => Date.parse(b.purchaseDate) - Date.parse(a.purchaseDate))[0] || null;
 }
 
+// Windows purchases (S25, SF-75). The Microsoft Store returns no transaction ID, so a
+// Windows purchase is keyed on the app's own tracking ID: a GUID saved BEFORE the
+// credit and passed to the Store when fulfilment is reported. The record lives in
+// credited_txn_ids like every other, as "windows:<productId>:<trackingId>", and a
+// credit for a tracking ID already recorded adds nothing.
+export const windowsRecordId = (productId, trackingId) => `windows:${productId}:${trackingId}`;
+export function hasWindowsRecord(progress, trackingId) {
+  return !!trackingId && ids(progress).some(r => r.startsWith('windows:') && r.endsWith(`:${trackingId}`));
+}
+
 // Pure. The purchase path. `purchase` is { productId, purchaseDate, listed } from
-// purchaseProduct. Always credits once; records RevenueCat's ID for the purchase, or
-// a pending claim when the entry is not listed, so a reconcile never credits it again.
+// purchaseProduct, or a Windows record { platform: 'windows', productId, trackingId }.
+// Always credits once; records RevenueCat's ID for the purchase, or a pending claim
+// when the entry is not listed, so a reconcile never credits it again.
 export function creditPurchase(progress, purchase, amount, now = Date.now()) {
+  if (purchase?.platform === 'windows') {
+    if (!purchase.trackingId || hasWindowsRecord(progress, purchase.trackingId)) return { progress, creditedHints: 0 };
+    return recordAndCredit(progress, windowsRecordId(purchase.productId, purchase.trackingId), amount);
+  }
   const entry = findListedEntry(progress, purchase);
   if (entry) return recordAndCredit(progress, entry.transactionIdentifier, amount);
   const at = Date.parse(purchase?.purchaseDate);
@@ -150,7 +165,8 @@ export function reconcileHintPurchases(customerInfo, now = Date.now()) {
 }
 
 // Wiring. The pages' purchase path: credit from the stored progress, in one write.
-// `purchase` is purchaseProduct's { productId, purchaseDate, listed }.
+// `purchase` is purchaseProduct's { productId, purchaseDate, listed }, or a Windows
+// record (see windowsRecordId), which windowsStore.js credits before reporting it.
 export function creditPurchaseNow(purchase, amount) {
   const current = getLocalProgress() || {};
   const { progress, creditedHints } = creditPurchase(current, purchase, amount);

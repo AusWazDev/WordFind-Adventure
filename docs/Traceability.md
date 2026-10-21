@@ -112,7 +112,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | | Files |
 |---|---|
 | **Primary source** | `src/components/game/HintModal.jsx` |
-| **Supporting source** | `src/components/game/gameUtils.jsx`, `src/components/game/offlineStorage.jsx`, `src/pages/Game.jsx`, `src/lib/hintShop.js` (the shop's one door for prices and purchases, CR-132), `src/lib/windowsStore.js` (the Microsoft Store bridge; a stub until SF-75, CR-132) |
+| **Supporting source** | `src/components/game/gameUtils.jsx`, `src/components/game/offlineStorage.jsx`, `src/pages/Game.jsx`, `src/lib/hintShop.js` (the shop's one door for prices and purchases, CR-132), `src/lib/windowsStore.js` (the Microsoft Store bridge, CR-132; real since CR-133: tracking ID saved, then the ledger credit, then the report) |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md`, `src/pages/Tutorial.jsx` (was `HowToPlayModal.jsx`, deleted in SF-64) |
 | **Beta test cases** | TC-05 (hint reveals a cell), TC-06 (hint count decrements), TC-07 (offline hint limit) |
 | **Also check when changed** | Does the 12 free hints on first launch (CR-10) still work? Are hint buttons greyed out offline? Is the penalty % shown in the tutorial's Hints box (`Tutorial.jsx`) still correct? |
@@ -302,7 +302,8 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | | Files |
 |---|---|
 | **Primary source** | `electron/main.cjs` (window, `app://` protocol, link and navigation guards, menu, single-instance lock), `package.json` `build` block (`files` excludes `node_modules`) |
-| **Supporting source** | `scripts/patch-appx-assets.mjs` (branded tiles), `electron/appx-assets/`, `vite.config.js` (`--mode electron`) |
+| **Supporting source** | `scripts/patch-appx-assets.mjs` (branded tiles), `electron/appx-assets/`, `vite.config.js` (`--mode electron`); Microsoft Store purchases (CR-133): `electron/preload.cjs` (the page's only three store calls), `native/windows-store/` (the C++/WinRT addon), `scripts/build-windows-store.mjs` (`npm run electron:addon`, needs Visual Studio's C++ tools and the Windows SDK) |
+| **Also check (CR-133)** | The one non-built-in `require` in `main.cjs` is the addon, loaded in a try so a missing addon means "store unavailable", never a launch error; keep it that way. Does the preload still expose exactly three calls, and does each IPC handler still check the sender is `app://localhost/` and validate its arguments? Is the addon rebuilt before packaging (`electron:dist` does it) and present in the appx at `app/resources/app/electron/native/windows_store.node`? Tests: `src/lib/windowsStoreSF75.test.jsx` |
 | **Related docs** | `docs/Store Submission Checklist.md`, `docs/Change Register.md`, `STATUS.md` |
 | **Also check when changed** | Does the main process still require only Electron built-ins? A new `require` of a package would fail at launch now that `node_modules` is excluded, and it shows only as an "Error" dialog, never on stderr. Do external links still open in the system browser (`setWindowOpenHandler`, `will-navigate`)? Run the full smoke test in `docs/Store Submission Checklist.md` §3 on the packaged build, not just a launch |
 

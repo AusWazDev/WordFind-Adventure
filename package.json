@@ -16,8 +16,9 @@
     "build:ios": "vite build --mode capacitor",
     "build:android": "vite build --mode capacitor",
     "electron:build-web": "vite build --mode electron",
-    "electron:test": "npm run electron:build-web && electron .",
-    "electron:dist": "npm run electron:build-web && electron-builder --win appx && node scripts/patch-appx-assets.mjs"
+    "electron:addon": "node scripts/build-windows-store.mjs",
+    "electron:test": "npm run electron:addon && npm run electron:build-web && electron .",
+    "electron:dist": "npm run electron:addon && npm run electron:build-web && electron-builder --win appx && node scripts/patch-appx-assets.mjs"
   },
   "build": {
     "appId": "au.com.uniquegames.soundfind",
@@ -25,6 +26,8 @@
     "asar": false,
     "files": [
       "electron/main.cjs",
+      "electron/preload.cjs",
+      "electron/native/windows_store.node",
       "dist/**/*",
       "!dist/**/*.map",
       "!node_modules/**/*"

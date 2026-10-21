@@ -600,6 +600,10 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 
 - **CR-134, no dashes in anything a player reads.** 416 strings changed on every platform: 29 screens and messages, the 3 Daily descriptions, and 384 word clues and mystery-word hints. Each dash became a full stop, comma, colon or brackets; the words are unchanged. The price buttons on iPhone and Android now read like Windows: "Buy 10 Hints (A$2.99)". A new test fails if a dash comes back anywhere a player can see it. Full suite: exit 0, 66 files, 514 of 514. Every change is listed in `docs/SF-76 dash changes.md`. **Not yet on devices:** iOS and Android pick this up with their next builds.
 
+### 2026-10-21 (Windows — iOS 1.2.0 (9), brief SF-78)
+
+- **CR-135, the iPhone version is now 1.2.0, build 9.** Build 8 (1.1.1) is the highest ever uploaded, confirmed in App Store Connect. The Xcode project's two configurations were changed and nothing else. The iPhone test list for 1.2.0 is `docs/iPhone Test List 1.2.0.md`: welcome and guided first game, Daily, hints, all four purchases and Restore in the sandbox, ads, audio after lock and sleep, offline, dash-free text, and the version in Settings. **Next, on the Mac:** `npm install`, `npm run build:ios`, `npx cap sync ios` (this adds `@capacitor/app` to the iOS project), then archive and upload to TestFlight.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

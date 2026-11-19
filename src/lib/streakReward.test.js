@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// S41 (SF-74): the Daily streak award, Windows only. 2 hints each time the streak
+// S41 [S46 since 19 Nov 2026; recorded as S41] (SF-74): the Daily streak award, Windows only. 2 hints each time the streak
 // reaches a multiple of 3, once per milestone, per run of the streak.
 // The predicate here is the REAL one (no platform mock): jsdom is not Electron, so a
 // claim without an explicit `windows` option must pay nothing, as on the web.
@@ -22,6 +22,7 @@ describe('the run a streak belongs to', () => {
   });
 });
 
+// [S46 since 19 Nov 2026; recorded as S41]
 describe('S41 behaviour', () => {
   it('reaching 3 pays 2, once; claiming 3 again pays nothing', () => {
     expect(claimStreakAward('2026-09-30', 3, WIN)).toBe(STREAK_AWARD_HINTS);

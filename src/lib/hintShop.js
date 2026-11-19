@@ -19,7 +19,7 @@ export function hintShopStore() {
   return 'none';
 }
 
-// The packs this shop sells, smallest first: 5, 10 and 25 hints on Windows (S42);
+// The packs this shop sells, smallest first: 5, 10 and 25 hints on Windows (S42 [S47 since 19 Nov 2026; recorded as S42]);
 // 3, 10 and 25 on iOS, Android and the web, unchanged.
 export function hintPackOptions() {
   return hintShopStore() === 'windows' ? WINDOWS_PURCHASE_OPTIONS : PURCHASE_OPTIONS;

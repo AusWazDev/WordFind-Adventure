@@ -282,7 +282,11 @@ The hint shop (`HintModal.jsx`) opens when a hint is asked for at a balance of 0
 offers "Watch an Ad" (a rewarded ad for 1 hint, `showRewarded` in `admob.js`) and the
 three packs. Off native (`!isNative()`: web and Electron) the packs show a "Coming
 soon" toast and the ad is a placeholder; as at 13 Oct 2026 the Windows model of
-decision S25 (Store packs, non-ad free hints, no ads) is **not built**. The purchase
+decision S25 (Store packs, non-ad free hints, no ads) is **not built**. ➜ *Annotated
+19 Nov 2026 (SF-81, CR-137): S25 has since been built for Windows by CR-132 and CR-133
+(no ads, Microsoft Store hint packs, the Daily streak award); its optional promotion
+slot is out for that release. The "Off native (web and Electron)" sentence above
+therefore now holds for the web only.* The purchase
 view tells the player that hints are kept on the device, not in an account (SF-46).
 
 ### Hint-pack ledger (`src/lib/hintLedger.js`; CR-98, CR-100; decision S40-C)

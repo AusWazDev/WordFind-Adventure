@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// S41 (SF-74): the Daily page, rendered for real as in DailyChallengeCR84.test.jsx, with
+// S41 [S46 since 19 Nov 2026; recorded as S41] (SF-74): the Daily page, rendered for real as in DailyChallengeCR84.test.jsx, with
 // the streak award. Windows only: a streak reaching 3 pays 2 hints on top of the day's
 // reward, once; a same-day replay pays nothing more (S28); the web never pays it.
 process.env.TZ = 'Australia/Melbourne';
@@ -69,6 +69,7 @@ beforeEach(() => {
 });
 afterEach(async () => { await unmount(); vi.useRealTimers(); });
 
+// [S46 since 19 Nov 2026; recorded as S41]
 describe('S41 on Windows', () => {
   beforeEach(() => { platform.windows = true; });
 
@@ -108,6 +109,7 @@ describe('S41 on Windows', () => {
   });
 });
 
+// [S46 since 19 Nov 2026; recorded as S41]
 describe('S41 off Windows (the web here; iOS and Android take the same path)', () => {
   it('streak reaches 3: the day\'s reward only, no bonus, nothing recorded', async () => {
     seed(2);

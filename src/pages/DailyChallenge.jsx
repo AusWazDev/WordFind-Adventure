@@ -94,7 +94,7 @@ export default function DailyChallenge() {
   const [victory, setVictory]             = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [rewardEarned, setRewardEarned]   = useState(false); // this completion paid the day's reward (S28)
-  const [streakBonus, setStreakBonus]     = useState({ hints: 0, streak: 0 }); // S41 award, Windows only
+  const [streakBonus, setStreakBonus]     = useState({ hints: 0, streak: 0 }); // S41 [S46 since 19 Nov 2026; recorded as S41] award, Windows only
   const timerRef = useRef(null);
 
   // Track words where the header hint was used — for score penalty (−25%)
@@ -319,7 +319,7 @@ export default function DailyChallenge() {
     setRewardEarned(true);
 
     if (currentProgress) {
-      // S41 (SF-74): on Windows, a Daily streak reaching 3, 6, 9 ... pays 2 more hints,
+      // S41 [S46 since 19 Nov 2026; recorded as S41] (SF-74): on Windows, a Daily streak reaching 3, 6, 9 ... pays 2 more hints,
       // once per milestone. The guard is recorded before the credit below, so it can
       // only under-pay. Off Windows this is always 0.
       const bonus = claimStreakAward(date, newStreak);

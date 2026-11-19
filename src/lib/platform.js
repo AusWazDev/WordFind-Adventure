@@ -4,7 +4,7 @@ import { isElectronPage } from '@/lib/staleServiceWorkers';
 export const isNative = () => Capacitor.isNativePlatform();
 export const getPlatform = () => Capacitor.getPlatform(); // 'android' | 'ios' | 'web'
 
-// The Windows app (S25, S41, SF-74): the Electron build, which ships only to the
+// The Windows app (S25, S41 [S46 since 19 Nov 2026; recorded as S41], SF-74): the Electron build, which ships only to the
 // Microsoft Store as an appx. Decided at RUNTIME from what is actually running, not
 // from the build mode: Electron always loads app://localhost (electron/main.cjs),
 // which no web or Capacitor page ever is, and its user agent carries "Electron/".

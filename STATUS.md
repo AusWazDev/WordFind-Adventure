@@ -505,7 +505,7 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - **Reward once per day (S28):** finishing the Daily again on the same day still counts the game and its score, but gives no hints and doesn't change the day's record or the streak. The victory card says the hints were already claimed.
   - **Audio Daily (FB-19):** finding a word now says "Great! You found…" and the word, and the last word says the game-complete phrase, as in normal Audio Challenge. Other modes are unchanged.
   - **Still to do, on an iPhone and the Android tablet:** play a timed Daily, finish one twice, and play Sound Check.
-  - ⚠️ S27 and S28 are not yet rows in the CURRENT DECISIONS block (`C:\dev\CLAUDE.md` and its copies); adding them is a separate, byte-identical edit.
+  - ⚠️ S27 and S28 are not yet rows in the CURRENT DECISIONS block (`C:\dev\CLAUDE.md` and its copies); adding them is a separate, byte-identical edit. ➜ *Annotated 19 Nov 2026 (SF-81, CR-137): S27 and S28 are now rows in that block, which now lives in `C:\dev\docs\current-decisions.md`; look there.*
 
 ### 2026-10-02, evening (Windows — Daily floor and hint fixes, brief SF-32)
 
@@ -515,7 +515,7 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - **Stale hint (FB-22):** if you find a different word that runs through the hint letter, the hint now goes away, in normal games and in the Daily. Finding the hinted word itself clears it, as before.
   - **Hint pill (FB-21, a trial):** the two hint buttons in the game header only animate their colour through CSS now; framer still does their tap and hover scale. The cause of FB-21 isn't proven; this is a trial pending a device check.
   - **Still to do, on an iPhone and the Android tablet:** tap the hint pill, use a hint whose letter sits inside another word and then find that word, and play a timed Daily.
-  - ⚠️ S27 and S28 are queued with the MER session for the CURRENT DECISIONS block. That session holds the pen for those files; this one doesn't edit them.
+  - ⚠️ S27 and S28 are queued with the MER session for the CURRENT DECISIONS block. That session holds the pen for those files; this one doesn't edit them. ➜ *Annotated 19 Nov 2026 (SF-81, CR-137): no longer queued; S27 and S28 are now rows in that block, in `C:\dev\docs\current-decisions.md`.*
 
 ### 2026-10-02, evening (Windows — Sentry SOUNDFIND-6, brief SF-33)
 
@@ -588,13 +588,13 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-93, where hints are kept (S40):** the screen that sells hint packs now says, under the packs, *"Hints are saved on this device and aren't linked to an account. Unused hints can be lost if you delete the app."*
 - **Still open from SF-43:** the flicker after buying hints (D-B, it doesn't stop by itself) and the flash when changing packs (D-A) need measuring on the tablet; nothing was changed for them.
 
-### 2026-10-18 (Windows — S25 and S41 Part 1, brief SF-74)
+### 2026-10-18 (Windows — S25 and S41 [S46 since 19 Nov 2026; recorded as S41] Part 1, brief SF-74)
 
 - **CR-132, the Windows app (Electron) has no ads and a Daily streak award.** On Windows there is no between-game ad, no "Watch an Ad" and no Remove Ads; the hint shop sells the three packs through the Microsoft Store, which is a stub reporting the store unavailable until SF-75 (prices and purchases). On Windows a Daily streak reaching 3, 6, 9 ... pays 2 more hints, once per milestone. The web build, iOS and Android are unchanged. Full suite: exit 0, 64 files, 493 of 493. **Not tested in the Windows app itself:** no appx was built; the Windows behaviour is proven in jsdom with the predicate mocked, and the predicate itself with an Electron user agent. **Next:** SF-75, the Microsoft Store purchase bridge.
 
 ### 2026-10-21 (Windows — S25 Part 2, brief SF-75)
 
-- **CR-133, the Windows app sells hint packs through the Microsoft Store.** Three packs (5, 10 and 25 hints, decision S42; iOS and Android keep 3, 10 and 25), priced by the Store. Each purchase is saved, credited once, then reported to the Store; anything left unreported is finished at the next launch, never credited twice. Where the Store isn't reachable (an unpackaged run, or the Store not knowing the app) the shop says so and Buy is disabled. The Daily streak line now reads "3-day Daily streak!". Full suite: exit 0, 65 files, 511 of 511. **Built:** a local `electron-dist/SoundFind 1.2.0.appx` (1.2.0.0, unsigned, not uploaded). **Not yet proven:** a real Store purchase. That needs the developer's add-ons `hints_5`, `hints_10` and `hints_25` in Partner Center and a package flight. **Known limit:** a charge the app never heard back about is recovered the next time that same pack is bought.
+- **CR-133, the Windows app sells hint packs through the Microsoft Store.** Three packs (5, 10 and 25 hints, decision S42 [S47 since 19 Nov 2026; recorded as S42]; iOS and Android keep 3, 10 and 25), priced by the Store. Each purchase is saved, credited once, then reported to the Store; anything left unreported is finished at the next launch, never credited twice. Where the Store isn't reachable (an unpackaged run, or the Store not knowing the app) the shop says so and Buy is disabled. The Daily streak line now reads "3-day Daily streak!". Full suite: exit 0, 65 files, 511 of 511. **Built:** a local `electron-dist/SoundFind 1.2.0.appx` (1.2.0.0, unsigned, not uploaded). **Not yet proven:** a real Store purchase. That needs the developer's add-ons `hints_5`, `hints_10` and `hints_25` in Partner Center and a package flight. **Known limit:** a charge the app never heard back about is recovered the next time that same pack is bought.
 
 ### 2026-10-21 (all platforms — dash removal, brief SF-76)
 
@@ -603,6 +603,14 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 ### 2026-10-21 (Windows — iOS 1.2.0 (9), brief SF-78)
 
 - **CR-135, the iPhone version is now 1.2.0, build 9.** Build 8 (1.1.1) is the highest ever uploaded, confirmed in App Store Connect. The Xcode project's two configurations were changed and nothing else. The iPhone test list for 1.2.0 is `docs/iPhone Test List 1.2.0.md`: welcome and guided first game, Daily, hints, all four purchases and Restore in the sandbox, ads, audio after lock and sleep, offline, dash-free text, and the version in Settings. **Next, on the Mac:** `npm install`, `npm run build:ios`, `npx cap sync ios` (this adds `@capacitor/app` to the iOS project), then archive and upload to TestFlight.
+
+### 2026-11-19 (Windows — S-number renumbering, brief SF-81)
+
+- **CR-137, four decision numbers that had been used twice now have one meaning each.** The earlier decision keeps its number; the later one moves. S39 (footer icons full white), S40 (hint retention), S41 (ad cadence), S42 (the welcome screen) and S43 (the guided first game) keep their numbers. The 12 Oct "one price list on every store" is now **S44**, the 18 Oct "Windows and web work start now" is **S45**, the 18 Oct Windows free-hint rules (the Daily streak award) are **S46**, and the 21 Oct Windows hint packs (5, 10 and 25) are **S47**. The next free number is **S48**.
+  - The 36 places that used S41 or S42 for a Windows decision now carry a note such as "[S46 since 19 Nov 2026; recorded as S41]". Nothing was rewritten: the old number stays beside the note, test names and the `dailyStreakS41.test.jsx` file name are unchanged, and commit messages are untouched.
+  - S44 and S45 were not in this repo before; CR-137 records them. S47 replaces S44 on Windows only; iOS and Android keep S44's price list.
+  - Nothing a player sees changed, and no code behaves differently: only comments and docs.
+  - Rows S40 to S47 are not yet in the CURRENT DECISIONS block (`C:\dev\docs\current-decisions.md`); the MER session holds that pen.
 
 ## Next Steps (Priority Order)
 

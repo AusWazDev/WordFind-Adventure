@@ -1,4 +1,4 @@
-// The Daily streak award, Windows only (S41, SF-74).
+// The Daily streak award, Windows only (S41 [S46 since 19 Nov 2026; recorded as S41], SF-74).
 //
 // A Daily streak pays STREAK_AWARD_HINTS each time it reaches a multiple of
 // STREAK_MILESTONE (3, 6, 9 ...), once per milestone. The streak is the existing

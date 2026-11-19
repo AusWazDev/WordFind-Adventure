@@ -11,7 +11,7 @@ import { showRewarded } from '@/lib/admob';
 import * as Sentry from '@sentry/react';
 import { hintShopStore, hintPackOptions, isHintStoreAvailable, buyHintPack, usePackPrice, useLowestPackPrice } from '@/lib/hintShop';
 
-// Windows copy (S25, S41, SF-74). Hints there come from the Daily, Daily streaks and
+// Windows copy (S25, S41 [S46 since 19 Nov 2026; recorded as S41], SF-74). Hints there come from the Daily, Daily streaks and
 // Microsoft Store hint packs; there are no ads.
 export const WINDOWS_HINT_SOURCES = 'Earn hints from the Daily and Daily streaks, or buy a hint pack';
 export const WINDOWS_BILLING = 'Billed through the Microsoft Store';
@@ -90,7 +90,7 @@ function PurchaseView({ onPurchase }) {
   const [selected, setSelected] = useState('au.com.uniquegames.soundfind.hints_10');
   const [purchasing, setPurchasing] = useState(false);
 
-  const packs = hintPackOptions(); // S42: 5, 10 and 25 on Windows
+  const packs = hintPackOptions(); // S42 [S47 since 19 Nov 2026; recorded as S42]: 5, 10 and 25 on Windows
   const selectedOption = packs.find(o => o.productId === selected);
   const selectedPrice = usePackPrice(selected);
   const store = hintShopStore();

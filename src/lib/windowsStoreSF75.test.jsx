@@ -29,7 +29,7 @@ vi.mock('@sentry/react', () => ({ captureException: vi.fn(), addBreadcrumb: vi.f
 const W = await import('@/lib/windowsStore');
 const { default: HintModal } = await import('@/components/game/HintModal');
 
-// Windows packs (S42): hints_5, hints_10, hints_25. There is no hints_3 on Windows.
+// Windows packs (S42 [S47 since 19 Nov 2026; recorded as S42]): hints_5, hints_10, hints_25. There is no hints_3 on Windows.
 const PACK5 = 'au.com.uniquegames.soundfind.hints_5';
 const PACK3 = 'au.com.uniquegames.soundfind.hints_3'; // iOS and Android only
 const PACK10 = 'au.com.uniquegames.soundfind.hints_10';
@@ -173,6 +173,7 @@ describe('purchase (SF-75 C)', () => {
   });
 });
 
+// [S47 since 19 Nov 2026; recorded as S42]
 describe('Windows packs are 5, 10 and 25 (S42)', () => {
   it('maps each Partner Center product to its hint count; no hints_3', () => {
     expect(W.WINDOWS_HINT_PACKS).toEqual({ hints_5: 5, hints_10: 10, hints_25: 25 });

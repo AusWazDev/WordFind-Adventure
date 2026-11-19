@@ -16,7 +16,7 @@ import { markTutorialDone } from '@/lib/tutorial';
 import { useBackHandler } from '@/lib/backButton';
 import { createPageUrl } from '@/utils';
 
-// S25, S41 (SF-74): on Windows hints come from the Daily, Daily streaks and hint packs.
+// S25, S41 [S46 since 19 Nov 2026; recorded as S41] (SF-74): on Windows hints come from the Daily, Daily streaks and hint packs.
 export const WINDOWS_EARN_LINE = 'Run out? Earn hints from the Daily and Daily streaks, or buy a hint pack.';
 
 // The guided first game (S43, SF-64). ISOLATED BY DESIGN: this page and everything it

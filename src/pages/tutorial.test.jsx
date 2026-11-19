@@ -297,7 +297,7 @@ describe('Skip and finish in each mode (SF-64)', () => {
     for (const label of ['Audio Challenge', 'Standard', 'Anagram Hunt', 'Word Association', 'Mystery Word']) expect(container.textContent).toContain(`${label}:`);
   });
 
-  // S25, S41 (SF-74): Windows has no ads; its line names the Daily, Daily streaks and hint packs.
+  // S25, S41 [S46 since 19 Nov 2026; recorded as S41] (SF-74): Windows has no ads; its line names the Daily, Daily streaks and hint packs.
   it('first run, finish on Windows: the Windows earn line, and no ad line', async () => {
     platform.windows = true;
     await render('first');

@@ -98,7 +98,7 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 | | Files |
 |---|---|
 | **Primary source** | `src/pages/DailyChallenge.jsx`, `src/components/game/DailyChallengeUtils.jsx` |
-| **Supporting source** | `src/components/game/DailyChallengeCard.jsx`, `src/components/game/GameBoard.jsx`, `src/components/game/GameHeader.jsx`, `src/lib/streakReward.js` (the Windows-only Daily streak award, S41, CR-132) |
+| **Supporting source** | `src/components/game/DailyChallengeCard.jsx`, `src/components/game/GameBoard.jsx`, `src/components/game/GameHeader.jsx`, `src/lib/streakReward.js` (the Windows-only Daily streak award, S41 [S46 since 19 Nov 2026; recorded as S41], CR-132) |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md` |
 | **Beta test cases** | TC-22 (Daily Challenge loads), TC-23 (correct puzzle for date), TC-24 (streak tracked) |
 | **Also check when changed** | Do MODE_LABELS still match in `DailyChallengeCard.jsx`? Is orientation support intact? Do hint counts still use `hintCells` (not hardcoded 3)? |
@@ -336,6 +336,7 @@ These apply to **every** code commit, regardless of feature area:
 | Live URL changes | Update `README.md`, `docs/Beta Tester Invite Message.md`, `docs/Launch Plan.md` |
 | Voice loading logic changes | Update `docs/Safari Voice Investigation.md` to reflect current strategy |
 | Any player-facing string added or changed, on any platform (CR-134, SF-76) | No em dash, en dash, double hyphen or spaced hyphen; restructure the sentence instead (hyphenated words, set names such as -OUGH, number ranges and minus signs are not dashes). `src/noDashes.test.js` scans every string value in `src/` (tests excluded), the Electron main and preload, `vite.config.js`, `index.html`, Android resources and manifest, iOS Info.plist and storyboards, and `capacitor.config.json`; console and Sentry messages are skipped. A new source of player-facing text (a JSON word list, a new native string file) must be added to that test's lists |
+| A SoundFind decision number (S-number) cited in code, tests or docs (CR-137, SF-81) | Before giving a decision a number, check the CURRENT DECISIONS block (`C:\dev\docs\current-decisions.md`) and CR-137 for the next free number. When two decisions share a number, the earlier-dated one keeps it and the later one is annotated in place, never rewritten: "[S46 since 19 Nov 2026; recorded as S41]". As renumbered 19 Nov 2026: S44 one price list (12 Oct; Windows superseded by S47), S45 Windows and web work start (18 Oct), S46 Windows free-hint rules (`src/lib/streakReward.js`, CR-132), S47 Windows hint packs 5, 10 and 25 (`src/lib/windowsStore.js`, `src/lib/hintShop.js`, CR-133). Bare "S41" in the cadence files (`src/lib/adCadence.js` and its callers) and bare "S42" in the welcome files (`src/lib/welcome.js`, `WelcomeScreen.jsx`) mean the earlier decisions and carry no note |
 
 ---
 

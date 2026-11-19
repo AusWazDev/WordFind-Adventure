@@ -15,7 +15,7 @@
 // plus initWindowsStore(), called once at launch by App.jsx.
 //
 // productId is the shop's key (WINDOWS_PURCHASE_OPTIONS below). Its last segment is
-// the Partner Center product ID (hints_5, hints_10, hints_25; decision S42), which
+// the Partner Center product ID (hints_5, hints_10, hints_25; decision S42 [S47 since 19 Nov 2026; recorded as S42]), which
 // the Store returns as InAppOfferToken. Prices come from the Store. Windows has NO
 // hints_3: that pack is iOS and Android only (PURCHASE_OPTIONS in purchases.js,
 // unchanged), and a Store product outside the Windows list is ignored.
@@ -55,7 +55,7 @@ export class StoreUnavailableError extends Error {
 
 const offerTokenFor = productId => String(productId).split('.').pop();
 
-// The Windows packs (S42): 5, 10 and 25 hints, in the shop's order and look. Its own
+// The Windows packs (S42 [S47 since 19 Nov 2026; recorded as S42]): 5, 10 and 25 hints, in the shop's order and look. Its own
 // list, so the native list (PURCHASE_OPTIONS in purchases.js) is never read or changed.
 export const WINDOWS_PURCHASE_OPTIONS = [
   { productId: 'au.com.uniquegames.soundfind.hints_5',  hints: 5,  label: 'Starter',    gradient: 'from-amber-400 to-orange-500',  shadow: 'shadow-amber-200',   popular: false },

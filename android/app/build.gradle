@@ -1,5 +1,26 @@
 apply plugin: 'com.android.application'
 
+// Release signing (CR-138, decision S48 as amended 24 Nov 2026): credentials come from a
+// properties file OUTSIDE the repo, at the path in SOUNDFIND_SIGNING_PROPERTIES if set,
+// otherwise C:/Users/wjl25/.signing/soundfind.properties. Keys: storePassword,
+// keyPassword, keyAlias, storeFile. With no file the release build fails to sign;
+// it never falls back to the debug key.
+def signingPropertiesPath = System.getenv('SOUNDFIND_SIGNING_PROPERTIES') ?: 'C:/Users/wjl25/.signing/soundfind.properties'
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = file(signingPropertiesPath)
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+// Refuse, rather than rely on AGP: any release package, bundle or sign task with no
+// signing file stops the build before it runs.
+gradle.taskGraph.whenReady { graph ->
+    if (!keystorePropertiesFile.exists() && graph.allTasks.any { t ->
+            t.project.name == 'app' && t.name.contains('Release') &&
+            ['sign', 'package', 'bundle', 'assemble'].any { t.name.startsWith(it) } }) {
+        throw new GradleException("Release signing file not found: ${signingPropertiesPath}")
+    }
+}
+
 android {
     namespace = "au.com.uniquegames.soundfind"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,7 +28,7 @@ android {
         applicationId "au.com.uniquegames.soundfind"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
+        versionCode 7
         versionName "1.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -16,8 +37,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystoreProperties['storeFile']) {
+                storeFile file(keystoreProperties['storeFile'])
+            }
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

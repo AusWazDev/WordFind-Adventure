@@ -320,6 +320,7 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - Completed store listing: title, short description, full description, screenshots (4 × 1080×1920 phone), feature graphic (1024×500), icon (512×512)
 - Content rating (IARC), data safety, privacy policy, ads declaration (no ads) all completed
 - Created upload keystore: `C:\dev\keystores\soundfind-upload-keystore.jks` (alias: soundfind-upload)
+  - ⚠️ ANNOTATED 24 Nov 2026 (CR-138, SF-83): the line above is kept as written. The keystore that signs SoundFind's Android bundles is `C:\dev\keystores\soundfind-upload-keystore_26_10.jks`, alias `upload`, as shown by Android Studio's Generate Signed Bundle wizard (confirmed by the developer, 24 Nov 2026). Its certificate SHA-256 is `87:28:80:1F:0C:C5:59:20:DC:0D:5A:7E:6D:7B:C8:DD:37:64:F7:60:E2:44:A9:65:F8:D3:9B:33:89:FE:2E:47`, the same as vc5's and vc6's signer.
 - Built signed release AAB v1 (99.2MB) — audio verified working on emulator
 - Uploaded AAB to internal testing track
 - Discovered closed testing requirement: 12 testers opted-in for 14 days before production access
@@ -611,6 +612,13 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - S44 and S45 were not in this repo before; CR-137 records them. S47 replaces S44 on Windows only; iOS and Android keep S44's price list.
   - Nothing a player sees changed, and no code behaves differently: only comments and docs.
   - Rows S40 to S47 are not yet in the CURRENT DECISIONS block (`C:\dev\docs\current-decisions.md`); the MER session holds that pen.
+
+### 2026-11-24 (Windows — Android 1.2.0 (7) bundle, brief SF-83)
+
+- **CR-138, Android 1.2.0 (versionCode 7) release bundle signed and verified; not uploaded.** versionCode 6 → 7 in `android/app/build.gradle`. Release signing now reads a properties file outside the repo (`C:\Users\wjl25\.signing\soundfind.properties`, or the path in `SOUNDFIND_SIGNING_PROPERTIES`), and the build refuses any release package, bundle or sign task when that file is missing rather than fall back to another key (decision S48 as amended 24 Nov 2026). `.gitignore` and `android/.gitignore` now ignore `key.properties`, `*.jks`, `*.keystore` and `*.p12`.
+  - **This bundle was signed in Android Studio** (Generate Signed Bundle, stored passwords), because the stored password isn't otherwise known. The wizard showed keystore `C:\dev\keystores\soundfind-upload-keystore_26_10.jks`, alias `upload`. The CLI did not build and opened no signing file.
+  - `android/app/release/app-release.aab`, 111,136,750 bytes, SHA-256 `2eec7c00597233810d049ec095ff218a33c2496d8b8e04808fc65548e7e63886`. Signer certificate identical to vc6's; versionCode 7, versionName 1.2.0, not debuggable, no AD_ID or ADSERVICES permission; web assets identical to a fresh build at `3c87c77`. Details in CR-138.
+  - **Next:** the developer uploads it to Google Play closed testing.
 
 ## Next Steps (Priority Order)
 

@@ -56,6 +56,11 @@ captures/
 # Uncomment the following lines if you do not want to check your keystore files in.
 #*.jks
 #*.keystore
+# CR-138 (S48): signing secrets never enter the repo
+key.properties
+*.jks
+*.keystore
+*.p12
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild

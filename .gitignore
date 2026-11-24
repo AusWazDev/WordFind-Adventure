@@ -48,3 +48,8 @@ android/app/src/main/assets/public
 ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 test
 android/app/release/
+# CR-138 (S48): signing secrets never enter the repo
+key.properties
+*.jks
+*.keystore
+*.p12

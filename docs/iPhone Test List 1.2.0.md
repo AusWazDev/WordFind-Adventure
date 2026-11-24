@@ -98,6 +98,7 @@ Turn on Airplane Mode (Wi-Fi off too).
 Spot-check these screens for any em dash (—), en dash (–) or " - " between words. None should appear; hyphenated words (3-day, ad-free) and "−25%" are fine.
 
 - [ ] 9.1 Home: mode tiles ("Find words using hand-crafted clues. Works fully offline", "Words shown scrambled. Unscramble then find them", "Find every word in the grid. The remaining letters reveal a hidden mystery word").
+  - [CR-140, 24 Nov 2026: kept as written, because 1.2.0 (9) shows this text. From the build after 1.2.0 the Mystery Word tile reads "Find every word in the grid, then use the gold letters to discover the hidden mystery word".]
 - [ ] 9.2 Audio Challenge category list (e.g. "KNIGHT, YACHT, LAMB, DEBT: letters that hide in plain sight").
 - [ ] 9.3 Word Association clues (e.g. "Powerful bird of prey, national symbol of the USA"; silent letter clues end ". The K is silent").
 - [ ] 9.4 Hint shop and Remove Ads buttons (prices in brackets), Settings (Go Ad-Free: "One-time purchase, no subscription").

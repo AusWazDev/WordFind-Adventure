@@ -1,5 +1,7 @@
 // CR-139 (brief SF-85; decisions S49 and S50): Mystery Word picks its word first, in
 // category, always; listed words obey the level's length rule and word count.
+// CR-140 (brief SF-86; S51): the word may come from the category's bonus pairs or its
+// full word list.
 //
 // Sweeps every combination Mystery Word can be played in (the SF-84 denominator):
 // the 14 categories in CategorySelector.jsx at levels 1 to 3 (LevelSelector.jsx caps a
@@ -88,6 +90,25 @@ describe('Mystery Word (CR-139, S49 and S50)', () => {
     for (const g of games) {
       const w = g.game.bonusWord;
       if (w && !poolFor(g.category).has(w)) bad.push(`${label(g)}: ${w} is not in ${g.category}`);
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it("draws mystery words from the category's word list too, never from outside it (S51, CR-140)", () => {
+    const bad = [];
+    const listSourced = {};
+    for (const g of games) {
+      const w = g.game.bonusWord;
+      if (!w) continue;
+      const pairs = new Set(upper((categoryBonusWordPairs[g.category] || []).map(e => e.word)));
+      if (pairs.has(w)) continue;
+      const lists = g.category === 'random' ? new Set(upper(Object.values(wordLists).flat())) : new Set(upper(wordLists[g.category]));
+      if (!lists.has(w)) bad.push(`${label(g)}: ${w} is neither a bonus pair nor a list word of ${g.category}`);
+      const key = `${g.category}/${g.level}`;
+      listSourced[key] = (listSourced[key] || 0) + 1;
+    }
+    for (const [category, level] of COMBOS) {
+      if (!listSourced[`${category}/${level}`]) bad.push(`${category}/${level}: no list-sourced mystery word in ${SEEDS} seeds`);
     }
     expect(bad.length, firstFew(bad)).toBe(0);
   });

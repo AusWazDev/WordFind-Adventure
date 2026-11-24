@@ -1801,11 +1801,11 @@ function canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize
 // to any category, then to a fixed list of long words when the category had no word
 // of length K (SF-84: "UNDERSTANDING" in Food). Those fallbacks are gone.
 //
-// Sources, in order, and nothing else:
-//   1. the category's bonus pairs, each with its written hint;
-//   2. the category's word list, with the generic hint "A 9-letter food word 🔎".
-// Random's pool: categoryBonusWordPairs.random, then every category's word list (the
-// same lists Random draws its listed words from); its generic hint says "mystery".
+// Sources, and nothing else: the category's bonus pairs, each with its written hint,
+// and the category's word list, with the generic hint "A 9-letter food word 🔎".
+// [CR-140, S51: drawn from the union, every word equally likely; CR-139 took the pairs
+// first.] Random's pool: categoryBonusWordPairs.random and every category's word list
+// (the same lists Random draws its listed words from); its generic hint says "mystery".
 // Only these sources are read, so the word is in category by construction. That a
 // word exists at all depends on the data (every category has bonus pairs);
 // mysteryWordSF85.test.js checks it for every category and level.
@@ -1816,26 +1816,23 @@ function mysteryCategoryKey(category) {
     : null;
 }
 
+// S51 (CR-140, 24 Nov 2026; refines S49): the word is drawn from the UNION of the
+// category's bonus pairs and its word list, every distinct word equally likely. A word
+// that is a bonus pair keeps its written hint; any other gets the generic hint. Still
+// only the selected category's sources (Random: its own pairs and every list).
 function chooseMysteryWord(category, maxLength) {
   const catKey = mysteryCategoryKey(category);
   const fitsGrid = (w) => w.length >= 2 && w.length <= maxLength;
 
-  // 1. Bonus pairs of the category (Random: the 'random' pairs)
-  const pairs = (categoryBonusWordPairs[catKey || 'random'] || []).filter(e => fitsGrid(e.word));
-  if (pairs.length > 0) {
-    const p = pairs[Math.floor(Math.random() * pairs.length)];
-    return { word: p.word.toUpperCase(), hint: p.hint };
-  }
-
-  // 2. The category's word list (Random: every category's list)
+  const pairHints = new Map(
+    (categoryBonusWordPairs[catKey || 'random'] || []).map(e => [e.word.toUpperCase(), e.hint])
+  );
   const list = catKey ? wordLists[catKey] : Object.values(wordLists).flat();
-  const words = [...new Set(list.map(w => w.toUpperCase()))].filter(fitsGrid);
-  if (words.length > 0) {
-    const w = words[Math.floor(Math.random() * words.length)];
-    return { word: w, hint: `A ${w.length}-letter ${catKey || 'mystery'} word 🔎` };
-  }
+  const candidates = [...new Set([...pairHints.keys(), ...list.map(w => w.toUpperCase())])].filter(fitsGrid);
+  if (candidates.length === 0) return null;
 
-  return null;
+  const word = candidates[Math.floor(Math.random() * candidates.length)];
+  return { word, hint: pairHints.get(word) ?? `A ${word.length}-letter ${catKey || 'mystery'} word 🔎` };
 }
 
 // Reserve n distinct cells at random, returned in reading order, so the mystery word

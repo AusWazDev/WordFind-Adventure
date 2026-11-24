@@ -148,7 +148,7 @@ export default function GameModeSelector({ onSelectMode }) {
                   </span>
                 </div>
                 <p className="text-white/85 text-xs mt-1 leading-snug">
-                  Find every word in the grid. The remaining letters reveal a hidden mystery word
+                  Find every word in the grid, then use the gold letters to discover the hidden mystery word
                 </p>
               </div>
             </div>

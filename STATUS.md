@@ -26,7 +26,7 @@ GitHub: https://github.com/AusWazDev/WordFind-Adventure
 | Mode | Description |
 |------|-------------|
 | **Audio Challenge** | Words spoken aloud — find the spelling in the grid. Featured mode. |
-| **Mystery Word** | Find all words — remaining letters reveal a hidden mystery word. |
+| **Mystery Word** | Find every word in the grid, then use the gold letters to discover the hidden mystery word (CR-140; was "Find all words — remaining letters reveal a hidden mystery word."). |
 | **Standard** | Classic word search — word list visible, find them all. |
 | **Anagram Hunt** | Words shown scrambled — unscramble then find them. |
 | **Word Association** | Hand-crafted clue shown instead of the word — works fully offline. |
@@ -626,6 +626,8 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-139, the fix (decisions S49 "Pick the word first" and S50 "Follow the level rules", developer, 24 Nov 2026).** The mystery word is now chosen first, from the category's own bonus pairs (Random: its own 8), and its cells are reserved before the listed words go in. Easy, Medium and Hard list exactly 6, 10 and 15 words within the level's lengths. Cells not used by a word or the mystery word get random letters, as in Standard. Sweep after the fix: 0 off-category, 0 missing, 0 length or count breaks in 94,000 games. Other modes are byte-identical under the same seeds. Not in Android 7 or iOS 1.2.0; it goes into the next build.
   - **For the developer:** (1) each category now has 8 possible mystery words (its bonus pairs) where it had about 10; (2) the Mystery Word tile still says "The remaining letters reveal a hidden mystery word", and the same line is in the README, the iPhone test list and the website; (3) the Daily "Sound Check" (Audio, music) lists 6 tricky words that are not music words, by `trickyRatio`, unchanged.
   - S49 and S50 are not yet rows in the CURRENT DECISIONS block (`C:\dev\docs\current-decisions.md`); the MER session holds that pen.
+- **CR-140, Mystery Word variety (S51 "Yes, use both", developer, 24 Nov 2026).** The mystery word now comes from the category's bonus pairs and its whole word list, each word equally likely: about 100 different words per category instead of 8. Bonus pairs, with their written clues, are now about 8% of category games and about 1% of Random games, and mystery words are shorter (15% are 4 letters or fewer at Easy). Those numbers are for the developer to judge. The mode tile now reads "Find every word in the grid, then use the gold letters to discover the hidden mystery word". The round size from CR-139 was accepted ("Yes, that's fine").
+  - **Still to do elsewhere:** the website line (`uniquegames-site/src/pages/soundfind/index.astro:47`); S51 is not yet a row in the CURRENT DECISIONS block.
 
 ## Next Steps (Priority Order)
 

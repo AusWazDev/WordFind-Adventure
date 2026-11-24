@@ -12,7 +12,7 @@ A word-finding puzzle game with multiple game modes, daily challenges, and audio
 - **Audio Challenge** — words are spoken aloud via text-to-speech; find the spelling in the grid
 - **Anagram Hunt** — words are shown scrambled; unscramble then find them
 - **Word Association** — a hand-crafted clue is shown instead of the word; works fully offline
-- **Mystery Word** — find all main words; the remaining letters spell a hidden bonus word
+- **Mystery Word** — find every word in the grid, then use the gold letters to discover the hidden mystery word
 
 ## Tech Stack
 

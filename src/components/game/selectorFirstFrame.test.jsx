@@ -24,7 +24,7 @@ const SELECTORS = {
   },
   CategorySelector: {
     el: <CategorySelector onSelectCategory={noop} />,
-    labels: ['Random', 'Animals', 'Food', 'Nature', 'Colors', 'Sports', 'Space', 'Music', 'Countries', 'Science', 'Mythology', 'Technology', 'Ocean', 'History', 'Emotions'],
+    labels: ['Random Mix', 'Animals', 'Food', 'Nature', 'Colours', 'Sports', 'Space', 'Music', 'Countries', 'Science', 'Mythology', 'Technology', 'Ocean', 'History', 'Emotions'],
   },
   AudioCategorySelector: {
     el: <AudioCategorySelector onSelectCategory={noop} />,

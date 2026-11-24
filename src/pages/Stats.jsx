@@ -4,6 +4,7 @@ import PullToRefresh from '@/components/ui/PullToRefresh';
 import { getLocalProgress, getAllDailyRecords } from '@/components/game/offlineStorage';
 import { Trophy, Zap, Flame, Search, Target, BarChart2, Star } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { CATEGORY_LABELS } from '@/lib/constants';
 
 const CATEGORY_COLORS = {
   animals: '#8b5cf6',
@@ -40,6 +41,21 @@ function StatCard({ icon: Icon, iconColor, label, value, sub }) {
   );
 }
 
+// CR-142 (SF-88): daily records stay keyed by category id ("colors"); the chart groups
+// by id and shows the player-facing label from CATEGORY_LABELS ("Colours"), the same
+// source as the game header. An id with no label is shown as stored.
+export function categoryChartData(records) {
+  const counts = {};
+  records.forEach(cp => {
+    if (cp.category) {
+      counts[cp.category] = (counts[cp.category] || 0) + 1;
+    }
+  });
+  return Object.entries(counts)
+    .map(([id, count]) => ({ id, name: CATEGORY_LABELS[id] ?? id, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
     return (
@@ -64,17 +80,7 @@ export default function Stats() {
   };
 
   // Derive category chart data from daily challenge history
-  const categoryData = React.useMemo(() => {
-    const counts = {};
-    challengeProgress.forEach(cp => {
-      if (cp.category) {
-        counts[cp.category] = (counts[cp.category] || 0) + 1;
-      }
-    });
-    return Object.entries(counts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
-  }, [challengeProgress]);
+  const categoryData = React.useMemo(() => categoryChartData(challengeProgress), [challengeProgress]);
 
   const gamesPlayed = progress?.games_played || 0;
   const totalScore = progress?.total_score || 0;
@@ -143,8 +149,8 @@ export default function Stats() {
                     <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                       {categoryData.map((entry) => (
                         <Cell
-                          key={entry.name}
-                          fill={CATEGORY_COLORS[entry.name] || '#8b5cf6'}
+                          key={entry.id}
+                          fill={CATEGORY_COLORS[entry.id] || '#8b5cf6'}
                         />
                       ))}
                     </Bar>

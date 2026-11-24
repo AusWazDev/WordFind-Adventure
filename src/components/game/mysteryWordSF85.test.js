@@ -175,9 +175,12 @@ describe('Mystery Word (CR-139, S49 and S50)', () => {
       const pairs = categoryBonusWordPairs[g.category] || [];
       const pair = pairs.find(e => e.word.toUpperCase() === bonusWord);
       // CR-141: the generic clue names the category by its player-facing label.
+      // CR-142: "An" for a number said with a vowel first (8, 11, 18, 80 to 89).
+      const n = bonusWord.length;
+      const art = (n === 8 || n === 11 || n === 18 || (n >= 80 && n <= 89)) ? 'An' : 'A';
       const generic = g.category === 'random'
-        ? `A ${bonusWord.length}-letter mystery word 🔎`
-        : `A ${bonusWord.length}-letter word from ${CATEGORY_LABELS[g.category]} 🔎`;
+        ? `${art} ${n}-letter mystery word 🔎`
+        : `${art} ${n}-letter word from ${CATEGORY_LABELS[g.category]} 🔎`;
       if (bonusHint !== (pair ? pair.hint : generic)) bad.push(`${label(g)}: hint "${bonusHint}"`);
       if (/[–—]|--| - /.test(bonusHint || '')) bad.push(`${label(g)}: dash in "${bonusHint}"`);
     }

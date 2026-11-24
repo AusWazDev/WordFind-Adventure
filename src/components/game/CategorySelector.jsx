@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import { Sparkles, Apple, TreePine, Palette, Trophy, Rocket, Music, Globe, FlaskConical, Sword, Cpu, Waves, BookOpen, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// `name` is display only and must match CATEGORY_LABELS in src/lib/constants.js
+// (categoryLabelsSF88.test.jsx checks it); `id` is what is selected and stored (CR-142).
 const categories = [
-  { id: 'random',     name: 'Random',       description: 'Mix of everything!',      icon: Sparkles,     gradient: 'from-violet-500 to-indigo-600', bgGradient: 'from-violet-50 to-indigo-50' },
+  { id: 'random',     name: 'Random Mix',   description: 'Mix of everything!',      icon: Sparkles,     gradient: 'from-violet-500 to-indigo-600', bgGradient: 'from-violet-50 to-indigo-50' },
   { id: 'animals',   name: 'Animals',      description: 'Wildlife & creatures',     icon: Sparkles,     gradient: 'from-orange-500 to-red-600',    bgGradient: 'from-orange-50 to-red-50' },
   { id: 'food',      name: 'Food',         description: 'Delicious treats',         icon: Apple,        gradient: 'from-pink-500 to-rose-600',     bgGradient: 'from-pink-50 to-rose-50' },
   { id: 'nature',    name: 'Nature',       description: 'Natural wonders',          icon: TreePine,     gradient: 'from-green-500 to-emerald-600', bgGradient: 'from-green-50 to-emerald-50' },
-  { id: 'colors',    name: 'Colors',       description: 'Shades & hues',            icon: Palette,      gradient: 'from-purple-500 to-violet-600', bgGradient: 'from-purple-50 to-violet-50' },
+  { id: 'colors',    name: 'Colours',      description: 'Shades & hues',            icon: Palette,      gradient: 'from-purple-500 to-violet-600', bgGradient: 'from-purple-50 to-violet-50' },
   { id: 'sports',    name: 'Sports',       description: 'Games & activities',       icon: Trophy,       gradient: 'from-blue-500 to-cyan-600',     bgGradient: 'from-blue-50 to-cyan-50' },
   { id: 'space',     name: 'Space',        description: 'Stars & cosmos',           icon: Rocket,       gradient: 'from-slate-600 to-indigo-800',  bgGradient: 'from-slate-50 to-indigo-50' },
   { id: 'music',     name: 'Music',        description: 'Instruments & genres',     icon: Music,        gradient: 'from-fuchsia-500 to-pink-600',  bgGradient: 'from-fuchsia-50 to-pink-50' },

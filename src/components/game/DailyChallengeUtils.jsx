@@ -16,7 +16,7 @@ export const CHALLENGE_TEMPLATES = [
   { title: "Nature Sprint", description: "Sprint through nature words!", category: "nature", mode: "standard", level: 2, timed: true, min_seconds: 90, bonus_multiplier: 2, reward_hints: 1 },
   { title: "Food for Thought", description: "Find delicious foods using clues!", category: "food", mode: "association", level: 2, timed: true, min_seconds: 150, bonus_multiplier: 2.5, reward_hints: 2 },
   { title: "Grandmaster", description: "Maximum difficulty: no time limit, all categories!", category: "random", mode: "standard", level: 4, timed: false, bonus_multiplier: 4, reward_hints: 3 },
-  { title: "Color Coded", description: "Find colors at lightning speed!", category: "colors", mode: "standard", level: 2, timed: true, min_seconds: 60, bonus_multiplier: 3, reward_hints: 2 },
+  { title: "Colour Coded", description: "Find colours at lightning speed!", category: "colors", mode: "standard", level: 2, timed: true, min_seconds: 60, bonus_multiplier: 3, reward_hints: 2 },
 ];
 
 const pad2 = n => String(n).padStart(2, '0');

@@ -8,7 +8,7 @@ import { CHALLENGE_TEMPLATES, dailyTimeLimit } from './DailyChallengeUtils';
 const OLD_LIMIT = {
   'Beast Mode': 120, 'Galaxy Brain': 150, 'Tech Hunt': 180, 'Myth Busted': 120,
   'Scramble Scientist': 150, 'Emotional Journey': 90, 'Sound Check': 180,
-  'World Tour': 120, 'Nature Sprint': 90, 'Food for Thought': 150, 'Color Coded': 60,
+  'World Tour': 120, 'Nature Sprint': 90, 'Food for Thought': 150, 'Colour Coded': 60, // was "Color Coded" (renamed CR-142)
 };
 const UNTIMED = ['Ocean Deep', 'History Lesson', 'Grandmaster'];
 const byTitle = t => CHALLENGE_TEMPLATES.find(x => x.title === t);
@@ -29,7 +29,7 @@ describe('the Daily time floor (S27, CR-85)', () => {
   });
 
   it('a template whose scaled limit is higher keeps the scaled one', () => {
-    expect(dailyTimeLimit(byTitle('Color Coded'), 10)).toBe(120);       // 10 x 12 s > 60 s
+    expect(dailyTimeLimit(byTitle('Colour Coded'), 10)).toBe(120);       // 10 x 12 s > 60 s
     expect(dailyTimeLimit(byTitle('Scramble Scientist'), 15)).toBe(225); // 15 x 15 s > 150 s
   });
 

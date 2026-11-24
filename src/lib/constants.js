@@ -17,7 +17,7 @@ export const CATEGORIES = [
   { value: 'animals',           label: 'Animals' },
   { value: 'food',              label: 'Food' },
   { value: 'nature',            label: 'Nature' },
-  { value: 'colors',            label: 'Colors' },
+  { value: 'colors',            label: 'Colours' }, // id stays 'colors' (stored); label is display only (CR-142)
   { value: 'sports',            label: 'Sports' },
   { value: 'space',             label: 'Space' },
   { value: 'music',             label: 'Music' },

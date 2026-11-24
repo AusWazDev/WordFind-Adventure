@@ -1831,6 +1831,17 @@ function mysteryCategoryKey(category) {
 export const MYSTERY_PAIR_SHARE = 1 / 3;
 export const MYSTERY_LIST_MIN_LENGTH = 6;
 
+// CR-142 (SF-88): "A" or "An" by how the number is SAID: an eight, an eleven, an
+// eighteen, an eighty-one, an eight hundred, an eleven thousand; but a hundred and
+// eleven. Any number whose first digit is 8, or whose leading thousands group is 11 or
+// 18, starts with a vowel sound.
+export function articleForNumber(n) {
+  const s = String(Math.abs(Math.trunc(n)));
+  if (s[0] === '8') return 'An';
+  const leadingPair = s.length % 3 === 2 ? s.slice(0, 2) : null;
+  return leadingPair === '11' || leadingPair === '18' ? 'An' : 'A';
+}
+
 function chooseMysteryWord(category, maxLength) {
   const catKey = mysteryCategoryKey(category);
   const fitsGrid = (w) => w.length >= 2 && w.length <= maxLength;
@@ -1851,9 +1862,10 @@ function chooseMysteryWord(category, maxLength) {
   }
   if (listWords.length > 0) {
     const word = listWords[Math.floor(Math.random() * listWords.length)];
+    const article = articleForNumber(word.length);
     const hint = catKey
-      ? `A ${word.length}-letter word from ${CATEGORY_LABELS[catKey] ?? catKey} 🔎`
-      : `A ${word.length}-letter mystery word 🔎`;
+      ? `${article} ${word.length}-letter word from ${CATEGORY_LABELS[catKey] ?? catKey} 🔎`
+      : `${article} ${word.length}-letter mystery word 🔎`;
     return { word, hint };
   }
   return null;

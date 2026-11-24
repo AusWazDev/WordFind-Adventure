@@ -100,7 +100,9 @@ describe('S28: the reward is once per day', () => {
     expect(store('wf_progress').hints_remaining).toBe(5 + 2);
     expect(store('wf_daily')['2026-09-30']).toMatchObject({ completed: true, streak: 3, words_found: 3 });
     expect(store('wf_progress').best_streak).toBe(3);
-    expect(container.textContent).toContain('+2 hints added to your account!');
+    // SF-90: SoundFind has no accounts, so the reward line must not claim one.
+    expect(container.textContent).toContain('+2 hints added!');
+    expect(container.textContent).not.toContain('your account');
   });
 
   it('a second completion the same day adds 0 hints and leaves the record and streak unchanged', async () => {
@@ -117,7 +119,7 @@ describe('S28: the reward is once per day', () => {
     expect(p.games_played).toBe(4);                              // still counts as a game
     expect(p.words_found).toBe(23);
     expect(p.total_score).toBeGreaterThan(100);
-    expect(container.textContent).not.toContain('hints added to your account');
+    expect(container.textContent).not.toContain('hints added');
   });
 });
 

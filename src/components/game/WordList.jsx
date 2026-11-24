@@ -9,6 +9,7 @@ import { getLocalSettings } from '@/components/game/offlineStorage';
 import { getTrickyWordHint } from '@/components/game/gameUtils';
 import { getSentence, hasSentence } from '@/components/game/trickySentences';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import CantHearTip from '@/components/game/CantHearTip';
 
 export default function WordList({
   words,
@@ -190,6 +191,9 @@ export default function WordList({
           Tricky words play with full sentences. Other words play word only offline.
         </p>
       )}
+
+      {/* CR-146 (SF-92): the "Can't hear the words?" tip, audio mode only */}
+      {isAudioMode && <CantHearTip />}
     </div>
   );
 }

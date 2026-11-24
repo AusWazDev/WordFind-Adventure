@@ -1,3 +1,5 @@
+import { CATEGORY_LABELS } from '@/lib/constants';
+
 // ─── Standard category word lists ────────────────────────────────────────────
 
 const wordLists = {
@@ -1804,7 +1806,8 @@ function canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize
 // Sources, and nothing else: the category's bonus pairs, each with its written hint,
 // and the category's word list, with the generic hint "A 9-letter food word 🔎".
 // [CR-140, S51: drawn from the union, every word equally likely; CR-139 took the pairs
-// first.] Random's pool: categoryBonusWordPairs.random and every category's word list
+// first. CR-141, S52: one in three a pair, else a list word of 6 letters or more; the
+// generic hint now reads "A 9-letter word from Food 🔎".] Random's pool: categoryBonusWordPairs.random and every category's word list
 // (the same lists Random draws its listed words from); its generic hint says "mystery".
 // Only these sources are read, so the word is in category by construction. That a
 // word exists at all depends on the data (every category has bonus pairs);
@@ -1816,23 +1819,44 @@ function mysteryCategoryKey(category) {
     : null;
 }
 
-// S51 (CR-140, 24 Nov 2026; refines S49): the word is drawn from the UNION of the
-// category's bonus pairs and its word list, every distinct word equally likely. A word
-// that is a bonus pair keeps its written hint; any other gets the generic hint. Still
-// only the selected category's sources (Random: its own pairs and every list).
+// S51 (CR-140, 24 Nov 2026; refines S49): the word may come from the category's bonus
+// pairs or its word list. [CR-140 drew from their union, every word equally likely.]
+// S52 (CR-141, 24 Nov 2026; refines S51): one game in three a bonus pair, otherwise a
+// list word of at least MYSTERY_LIST_MIN_LENGTH letters, each side uniform. If a side
+// has no candidate the other side is used, still within the category. A bonus pair
+// keeps its written hint; a list word gets the generic hint, which names the category
+// by its player-facing label (CATEGORY_LABELS): "A 6-letter word from Food 🔎".
+// Random's sides: its own bonus pairs, and every category's list; its generic hint is
+// "A 7-letter mystery word 🔎". Math.random is the only random source (tests seed it).
+export const MYSTERY_PAIR_SHARE = 1 / 3;
+export const MYSTERY_LIST_MIN_LENGTH = 6;
+
 function chooseMysteryWord(category, maxLength) {
   const catKey = mysteryCategoryKey(category);
   const fitsGrid = (w) => w.length >= 2 && w.length <= maxLength;
 
-  const pairHints = new Map(
-    (categoryBonusWordPairs[catKey || 'random'] || []).map(e => [e.word.toUpperCase(), e.hint])
-  );
+  const pairs = (categoryBonusWordPairs[catKey || 'random'] || []).filter(e => fitsGrid(e.word));
+  const pairWords = new Set(pairs.map(e => e.word.toUpperCase()));
   const list = catKey ? wordLists[catKey] : Object.values(wordLists).flat();
-  const candidates = [...new Set([...pairHints.keys(), ...list.map(w => w.toUpperCase())])].filter(fitsGrid);
-  if (candidates.length === 0) return null;
+  // A list word that is also a bonus pair belongs to the pair side only, so the
+  // one-in-three share is the pairs' share.
+  const listWords = [...new Set(list.map(w => w.toUpperCase()))]
+    .filter(w => w.length >= MYSTERY_LIST_MIN_LENGTH && fitsGrid(w) && !pairWords.has(w));
 
-  const word = candidates[Math.floor(Math.random() * candidates.length)];
-  return { word, hint: pairHints.get(word) ?? `A ${word.length}-letter ${catKey || 'mystery'} word 🔎` };
+  const wantPair = Math.random() < MYSTERY_PAIR_SHARE;
+  const usePair = pairs.length > 0 && (wantPair || listWords.length === 0);
+  if (usePair) {
+    const p = pairs[Math.floor(Math.random() * pairs.length)];
+    return { word: p.word.toUpperCase(), hint: p.hint };
+  }
+  if (listWords.length > 0) {
+    const word = listWords[Math.floor(Math.random() * listWords.length)];
+    const hint = catKey
+      ? `A ${word.length}-letter word from ${CATEGORY_LABELS[catKey] ?? catKey} 🔎`
+      : `A ${word.length}-letter mystery word 🔎`;
+    return { word, hint };
+  }
+  return null;
 }
 
 // Reserve n distinct cells at random, returned in reading order, so the mystery word

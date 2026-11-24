@@ -2,6 +2,8 @@
 // category, always; listed words obey the level's length rule and word count.
 // CR-140 (brief SF-86; S51): the word may come from the category's bonus pairs or its
 // full word list.
+// CR-141 (brief SF-87; S52): one game in three a bonus pair, otherwise a list word of 6
+// letters or more; the generic clue names the category by its player-facing label.
 //
 // Sweeps every combination Mystery Word can be played in (the SF-84 denominator):
 // the 14 categories in CategorySelector.jsx at levels 1 to 3 (LevelSelector.jsx caps a
@@ -11,6 +13,7 @@
 // code under test.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateGame, levelConfig, wordLists, categoryBonusWordPairs } from './gameUtils';
+import { CATEGORY_LABELS } from '../../lib/constants';
 
 const SEEDS = 40;
 const CATEGORIES = ['animals', 'food', 'nature', 'colors', 'sports', 'space', 'music', 'countries',
@@ -42,18 +45,31 @@ function mulberry32(seed) {
 }
 
 const games = [];
+// S52 share batch: 600 games per category (200 seeds at each of levels 1 to 3; Random
+// 120 at each of 1 to 5). With p = 1/3 the standard deviation of the share is
+// sqrt(0.222 / 600), about 1.9 points, so the 25% and 42% bounds sit 4.3 and 4.5
+// standard deviations away: about 2 in 100,000 per category, 3 in 10,000 across all
+// 15, that an unrelated change to the random sequence trips the check.
+const SHARE_GAMES_PER_CATEGORY = 600;
+const shareGames = [];
 // Math.random is swapped directly, not with vi.spyOn: a spy records every call, and
 // the pre-fix generator made enough calls to exhaust the worker's memory.
 const realRandom = Math.random;
 
+function generateSeeded(out, seedsPerCombo, seedBase) {
+  for (const [category, level] of COMBOS) {
+    const n = typeof seedsPerCombo === 'function' ? seedsPerCombo(category) : seedsPerCombo;
+    for (let seed = 1; seed <= n; seed++) {
+      Math.random = mulberry32(seedBase + seed * 1000 + level * 100 + COMBOS.findIndex(c => c[0] === category && c[1] === level));
+      out.push({ category, level, seed, game: generateGame(level, category, false, true) });
+    }
+  }
+}
+
 beforeAll(() => {
   try {
-    for (const [category, level] of COMBOS) {
-      for (let seed = 1; seed <= SEEDS; seed++) {
-        Math.random = mulberry32(seed * 1000 + level * 100 + COMBOS.findIndex(c => c[0] === category && c[1] === level));
-        games.push({ category, level, seed, game: generateGame(level, category, false, true) });
-      }
-    }
+    generateSeeded(games, SEEDS, 0);
+    generateSeeded(shareGames, (c) => SHARE_GAMES_PER_CATEGORY / (c === 'random' ? 5 : 3), 7_000_000);
   } finally {
     Math.random = realRandom;
   }
@@ -158,9 +174,49 @@ describe('Mystery Word (CR-139, S49 and S50)', () => {
       if (!bonusWord) continue;
       const pairs = categoryBonusWordPairs[g.category] || [];
       const pair = pairs.find(e => e.word.toUpperCase() === bonusWord);
-      const generic = `A ${bonusWord.length}-letter ${g.category === 'random' ? 'mystery' : g.category} word 🔎`;
+      // CR-141: the generic clue names the category by its player-facing label.
+      const generic = g.category === 'random'
+        ? `A ${bonusWord.length}-letter mystery word 🔎`
+        : `A ${bonusWord.length}-letter word from ${CATEGORY_LABELS[g.category]} 🔎`;
       if (bonusHint !== (pair ? pair.hint : generic)) bad.push(`${label(g)}: hint "${bonusHint}"`);
       if (/[–—]|--| - /.test(bonusHint || '')) bad.push(`${label(g)}: dash in "${bonusHint}"`);
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it('makes bonus pairs 25 to 42% of each category\'s mystery words (S52)', () => {
+    expect(shareGames).toHaveLength(15 * SHARE_GAMES_PER_CATEGORY);
+    const bad = [];
+    for (const category of [...CATEGORIES, 'random']) {
+      const pairs = new Set(upper((categoryBonusWordPairs[category] || []).map(e => e.word)));
+      const mine = shareGames.filter(g => g.category === category);
+      const share = mine.filter(g => pairs.has(g.game.bonusWord)).length / mine.length;
+      if (share < 0.25 || share > 0.42) bad.push(`${category}: bonus pairs ${(100 * share).toFixed(1)}% of ${mine.length} games`);
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it('never takes a list word of fewer than 6 letters as the mystery word (S52)', () => {
+    const bad = [];
+    for (const g of [...games, ...shareGames]) {
+      const w = g.game.bonusWord;
+      if (!w) continue;
+      const pairs = new Set(upper((categoryBonusWordPairs[g.category] || []).map(e => e.word)));
+      if (!pairs.has(w) && w.length < 6) bad.push(`${label(g)}: list word ${w} has ${w.length} letters`);
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it("names the category in a generic clue by its player-facing label, never its id (CR-141)", () => {
+    const bad = [];
+    for (const g of [...games, ...shareGames]) {
+      if (g.category === 'random') continue;
+      const { bonusWord, bonusHint } = g.game;
+      const pair = (categoryBonusWordPairs[g.category] || []).find(e => e.word.toUpperCase() === bonusWord);
+      if (!bonusWord || pair) continue;
+      const name = CATEGORY_LABELS[g.category];
+      if (!bonusHint.includes(name)) bad.push(`${label(g)}: "${bonusHint}" lacks "${name}"`);
+      if (bonusHint.includes(g.category)) bad.push(`${label(g)}: "${bonusHint}" shows the id "${g.category}"`);
     }
     expect(bad.length, firstFew(bad)).toBe(0);
   });

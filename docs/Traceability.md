@@ -59,11 +59,12 @@ The pre-commit hook (`scripts/hooks/pre-commit`) automates these checks at commi
 
 | | Files |
 |---|---|
-| **Primary source** | `src/components/game/gameUtils.jsx` (word placement, filler logic) |
+| **Primary source** | `src/components/game/gameUtils.jsx` (word placement, filler logic) [CR-139, 24 Nov 2026: `chooseMysteryWord`, `reserveMysteryCells`, `tryPlaceWordAvoiding` and the `bonusWordMode` block of `generateGame`; the filler loop and `findMysteryWord` are gone] |
 | **Supporting source** | `src/components/game/WordList.jsx`, `src/components/game/GameBoard.jsx`, `src/pages/Game.jsx` |
+| **Tests** | `src/components/game/mysteryWordSF85.test.js` (CR-139, S49, S50): all 47 Mystery Word combinations, seeded |
 | **Related docs** | `docs/Change Register.md`, `STATUS.md`, `src/pages/Tutorial.jsx` (was `HowToPlayModal.jsx`, deleted in SF-64) |
-| **Beta test cases** | TC-03 (Mystery Word fills grid), TC-04 (Mystery Word revealed on win), TC-08 (no non-category fillers) |
-| **Also check when changed** | Is the homophone label still suppressed in non-audio Mystery Word? Is the tutorial's finish-screen description (`Tutorial.jsx` `MODE_LINES`) still accurate? |
+| **Beta test cases** | TC-03 (Mystery Word fills grid), TC-04 (Mystery Word revealed on win), TC-08 (no non-category fillers). [CR-139: TC-03 no longer holds as written. The grid is no longer filled by words; cells outside the listed words and the gold mystery cells get random letters, as in Standard.] |
+| **Also check when changed** | Is the homophone label still suppressed in non-audio Mystery Word? Is the tutorial's finish-screen description (`Tutorial.jsx` `MODE_LINES`) still accurate? Does `mysteryWordSF85.test.js` still cover every category in `CategorySelector.jsx` and the level cap in `LevelSelector.jsx`? |
 
 ---
 

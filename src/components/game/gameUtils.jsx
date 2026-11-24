@@ -4,6 +4,8 @@ const wordLists = {
   // DEF-20: words added at previously missing lengths (4–12) so the Mystery Word
   // filler loop always lands on a valid category length and findMysteryWord always
   // returns a themed word. Also increases variety for regular players.
+  // [CR-139, 24 Nov 2026: the filler loop and findMysteryWord no longer exist; the
+  // mystery word is chosen first, in category (S49). The words stay.]
   // DEF-24: each category expanded to ~100 words so the category-restricted filler
   // pool is large enough for Expert / Master levels (was 40–65, needed ~80+).
   animals: ['LION','TIGER','BEAR','WOLF','EAGLE','SHARK','WHALE','SNAKE','HORSE','ZEBRA','PANDA','KOALA','RABBIT','DEER','FOX','OWL','PARROT','DOLPHIN','CHEETAH','GORILLA','PENGUIN','LEOPARD','HAMSTER','GIRAFFE','BUFFALO','MOOSE','CAMEL','JAGUAR','PANTHER','LYNX','OTTER','BEAVER','BADGER','FALCON','CONDOR','TOUCAN','IGUANA','PYTHON','MEERKAT','WOMBAT','LEMUR','BISON','COYOTE','HYENA','MOLE','SPARROW','PELICAN','STORK','PEACOCK','FLAMINGO',
@@ -1778,7 +1780,8 @@ function tryPlaceWordDense(grid, word, gridSize, wordPositions) {
 }
 
 // ─── Placement helpers that respect bonus-word reserved cells ─────────────────
-// Used when placing filler words to fill every non-bonus cell in Master level.
+// Used by tryPlaceWordAvoiding, which places Mystery Word's listed words around the
+// reserved mystery cells (CR-139).
 
 function canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize, protectedKeys) {
   for (let i = 0; i < word.length; i++) {
@@ -1792,111 +1795,101 @@ function canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize
   return true;
 }
 
-// CR-05: Filler pool for Mystery Word mode is RESTRICTED to the active category.
-// This ensures a Food game never shows emotion words etc. in the word list.
-// For random category, all standard word lists are fair game.
-function buildFillerWordPool(category, usedSet) {
-  const catKey = (category && category !== 'random' && !category.startsWith('tricky_') && wordLists[category])
+// ─── Mystery Word: the word is chosen first (S49, S50; CR-139, brief SF-85) ─────
+// Replaces CR-05/CR-06's fill-then-fit design, in which the leftover cell count K set
+// the mystery word's length and findMysteryWord fell back to other categories, then
+// to any category, then to a fixed list of long words when the category had no word
+// of length K (SF-84: "UNDERSTANDING" in Food). Those fallbacks are gone.
+//
+// Sources, in order, and nothing else:
+//   1. the category's bonus pairs, each with its written hint;
+//   2. the category's word list, with the generic hint "A 9-letter food word 🔎".
+// Random's pool: categoryBonusWordPairs.random, then every category's word list (the
+// same lists Random draws its listed words from); its generic hint says "mystery".
+// Only these sources are read, so the word is in category by construction. That a
+// word exists at all depends on the data (every category has bonus pairs);
+// mysteryWordSF85.test.js checks it for every category and level.
+
+function mysteryCategoryKey(category) {
+  return (category && category !== 'random' && !category.startsWith('tricky_') && wordLists[category])
     ? category
     : null;
-  const raw = catKey
-    ? wordLists[catKey].filter(w => !usedSet.has(w.toUpperCase()))
-    : [...new Set(Object.values(wordLists).flat().filter(w => !usedSet.has(w.toUpperCase())))];
-
-  // Sort long words FIRST so they fill empty cells quickly while the grid is sparse.
-  // Short words are tried last, when the grid is dense — they are more likely to find
-  // a valid non-conflicting placement and can precisely tune K into the target range.
-  // Shuffle within each length group to keep word variety.
-  const byLength = {};
-  for (const w of raw) {
-    const l = w.length;
-    if (!byLength[l]) byLength[l] = [];
-    byLength[l].push(w);
-  }
-  return Object.keys(byLength)
-    .map(Number)
-    .sort((a, b) => b - a)          // descending length
-    .flatMap(l => fisherYates(byLength[l]));
 }
 
-// CR-06: After filling, find a mystery word whose length exactly matches the
-// remaining empty cells. Searches the active category word list first (for
-// thematic consistency), then the bonus pairs, then all categories for random.
-// placedLetters: Set of all letters already used by placed words — mystery word
-// is preferred when it contains at least one letter NOT in this set, ensuring it
-// contributes something the player cannot deduce purely from the regular word list.
-function findMysteryWord(category, usedSet, targetLength, placedLetters) {
-  if (targetLength < 2) return null;
+function chooseMysteryWord(category, maxLength) {
+  const catKey = mysteryCategoryKey(category);
+  const fitsGrid = (w) => w.length >= 2 && w.length <= maxLength;
 
-  const catKey = (category && category !== 'random' && !category.startsWith('tricky_') && wordLists[category])
-    ? category
-    : null;
-
-  // True if the word adds at least one letter not already present in placed words.
-  // Falls back to allowing any word if placedLetters not provided.
-  const hasUniqueLetter = (word) =>
-    !placedLetters || word.toUpperCase().split('').some(l => !placedLetters.has(l));
-
-  // Helper: scan a word array for exact length matches not already used.
-  // Returns the first candidate with a unique letter; falls back to any valid match.
-  const findIn = (arr) => {
-    const candidates = arr.filter(w => {
-      const up = w.toUpperCase();
-      return up.length === targetLength && !usedSet.has(up);
-    });
-    return candidates.find(w => hasUniqueLetter(w)) || candidates[0] || null;
-  };
-
-  // 1. Category bonus pairs (come with a nice hint)
-  const bonusPairs = catKey ? (categoryBonusWordPairs[catKey] || []) : [];
-  const bonusCandidates = bonusPairs.filter(e => e.word.length === targetLength && !usedSet.has(e.word));
-  const matchedPair = bonusCandidates.find(e => hasUniqueLetter(e.word)) || bonusCandidates[0] || null;
-  if (matchedPair) return matchedPair;
-
-  // 2. Regular category word list (generate a generic hint)
-  const catPool = catKey ? (wordLists[catKey] || []) : Object.values(wordLists).flat();
-  const matchedWord = findIn(catPool);
-  if (matchedWord) {
-    const label = catKey ? catKey : 'mystery';
-    return { word: matchedWord.toUpperCase(), hint: `A ${targetLength}-letter ${label} word 🔎` };
+  // 1. Bonus pairs of the category (Random: the 'random' pairs)
+  const pairs = (categoryBonusWordPairs[catKey || 'random'] || []).filter(e => fitsGrid(e.word));
+  if (pairs.length > 0) {
+    const p = pairs[Math.floor(Math.random() * pairs.length)];
+    return { word: p.word.toUpperCase(), hint: p.hint };
   }
 
-  // 3. Any bonus pair across all categories — last resort only
-  // (filler loop should have stopped at a valid category length, making this rare)
-  for (const pairs of Object.values(categoryBonusWordPairs)) {
-    const candidates = pairs.filter(e => e.word.length === targetLength && !usedSet.has(e.word));
-    const p = candidates.find(e => hasUniqueLetter(e.word)) || candidates[0] || null;
-    if (p) return p;
+  // 2. The category's word list (Random: every category's list)
+  const list = catKey ? wordLists[catKey] : Object.values(wordLists).flat();
+  const words = [...new Set(list.map(w => w.toUpperCase()))].filter(fitsGrid);
+  if (words.length > 0) {
+    const w = words[Math.floor(Math.random() * words.length)];
+    return { word: w, hint: `A ${w.length}-letter ${catKey || 'mystery'} word 🔎` };
   }
-
-  // 4. Any word from any category
-  const anyWord = findIn(Object.values(wordLists).flat());
-  if (anyWord) return { word: anyWord.toUpperCase(), hint: `A hidden ${targetLength}-letter word 🔎` };
-
-  // 5. Universal fallback — covers lengths 13–17 that no category word list reaches.
-  //    These only appear when the filler pool exhausted with K above the normal range.
-  //    Using a real word here (vs random padding) means ALL remaining cells become amber
-  //    mystery-word cells — zero orphaned letters in the grid.
-  const universalWords = [
-    'UNDERSTANDING','COMMUNICATION','ENTERTAINMENT','DETERMINATION','EXTRAORDINARY', // 13
-    'ACCOMPLISHMENT','DISAPPOINTMENT','TRANSFORMATION','CONGRATULATING',             // 14
-    'CONGRATULATIONS','ACCOMPLISHMENTS','DISORGANIZATION',                           // 15
-    'MISUNDERSTANDING','COUNTERINTUITIVE',                                           // 16
-    'MISUNDERSTANDINGS','COUNTERPRODUCTIVE',                                         // 17
-  ];
-  const universal = findIn(universalWords);
-  if (universal) return { word: universal.toUpperCase(), hint: `A hidden ${targetLength}-letter word 🔎` };
 
   return null;
 }
 
-// Count empty cells across the whole grid
-function countEmptyCells(grid, gridSize) {
-  let n = 0;
+// Reserve n distinct cells at random, returned in reading order, so the mystery word
+// reads left to right, top to bottom across its gold cells.
+function reserveMysteryCells(gridSize, n) {
+  const all = [];
   for (let r = 0; r < gridSize; r++)
     for (let c = 0; c < gridSize; c++)
-      if (grid[r][c] === '') n++;
-  return n;
+      all.push({ row: r, col: c });
+  return fisherYates(all)
+    .slice(0, n)
+    .sort((a, b) => (a.row - b.row) || (a.col - b.col));
+}
+
+// Place a word without touching reserved cells. Dense (crossing) placement first, as
+// Mystery Word always used for its listed words, then random placement.
+function tryPlaceWordAvoiding(grid, word, gridSize, wordPositions, protectedKeys) {
+  const candidates = [];
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      if (grid[r][c] === '') continue;
+      for (let charIdx = 0; charIdx < word.length; charIdx++) {
+        if (word[charIdx] !== grid[r][c]) continue;
+        for (const dir of directions) {
+          const startRow = r - charIdx * dir.row;
+          const startCol = c - charIdx * dir.col;
+          if (!canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize, protectedKeys)) continue;
+          let overlaps = 0;
+          for (let i = 0; i < word.length; i++) {
+            if (grid[startRow + i * dir.row][startCol + i * dir.col] !== '') overlaps++;
+          }
+          candidates.push({ startRow, startCol, dir, overlaps });
+        }
+      }
+    }
+  }
+  if (candidates.length > 0) {
+    candidates.sort((a, b) => b.overlaps - a.overlaps);
+    const topTier = candidates.filter(c => c.overlaps === candidates[0].overlaps);
+    const chosen = topTier[Math.floor(Math.random() * topTier.length)];
+    placeWord(grid, word, chosen.startRow, chosen.startCol, chosen.dir, wordPositions);
+    return true;
+  }
+  for (const dir of fisherYates([...directions])) {
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const startRow = Math.floor(Math.random() * gridSize);
+      const startCol = Math.floor(Math.random() * gridSize);
+      if (canPlaceWordAvoidingCells(grid, word, startRow, startCol, dir, gridSize, protectedKeys)) {
+        placeWord(grid, word, startRow, startCol, dir, wordPositions);
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 // ─── Tricky category map ──────────────────────────────────────────────────────
@@ -1925,141 +1918,71 @@ export function generateGame(level, category = null, isAudioMode = false, bonusW
     : coreAudioWords;
   const effectiveTrickyRatio = isTrickyCategory ? 1.0 : trickyRatio;
 
-  // Word pool: both Standard and Mystery Word modes draw from the same themed category
-  // pool (or all categories if random). In Mystery Word mode the mystery word itself
-  // also comes from this same pool via findMysteryWord.
+  // Word pool: both Standard and Mystery Word modes draw their listed words from the
+  // same themed category pool (or all categories if random). The mystery word comes
+  // from chooseMysteryWord (S49, CR-139), never from another category.
   const standardPool = (category && category !== 'random' && !isTrickyCategory && wordLists[category])
     ? wordLists[category]
     : Object.values(wordLists).flat();
+  const fitsLevel = (w) => w.length >= minWordLen && w.length <= maxWordLen;
+
+  // Mystery Word (S49): choose the word and reserve its cells BEFORE anything is placed.
+  const mystery = bonusWordMode ? chooseMysteryWord(category, gridSize * gridSize) : null;
+  const mysteryPositions = mystery ? reserveMysteryCells(gridSize, mystery.word.length) : null;
+  const protectedKeys = new Set((mysteryPositions || []).map(p => `${p.row},${p.col}`));
+  // The mystery word is never also a listed word.
+  const pickPool = mystery ? standardPool.filter(w => w.toUpperCase() !== mystery.word) : standardPool;
 
   const selectedWords = isAudioMode
     ? pickWords({ count: wordCount, minLen: minWordLen, maxLen: maxWordLen, pool: standardPool, trickyPool, trickyRatio: effectiveTrickyRatio })
-    : pickWords({ count: wordCount, minLen: minWordLen, maxLen: maxWordLen, pool: standardPool, preferUniqueLetters: bonusWordMode });
+    : pickWords({ count: wordCount, minLen: minWordLen, maxLen: maxWordLen, pool: pickPool, preferUniqueLetters: bonusWordMode });
 
   const grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
   const wordPositions = {};
   const placedWords = [];
 
-  // Sort longest-first so large words anchor the grid before shorter ones fill gaps
-  // In Mystery Word mode all levels use dense crossword placement to maximise coverage
+  // Sort longest-first so large words anchor the grid before shorter ones fill gaps.
+  // Mystery Word places every listed word densely and never over a reserved cell.
   const sorted = [...selectedWords].sort((a, b) => b.length - a.length);
   for (const word of sorted) {
-    const placer = (dense || bonusWordMode) ? tryPlaceWordDense : tryPlaceWord;
-    if (placer(grid, word.toUpperCase(), gridSize, wordPositions)) {
+    const placed = bonusWordMode
+      ? tryPlaceWordAvoiding(grid, word.toUpperCase(), gridSize, wordPositions, protectedKeys)
+      : (dense ? tryPlaceWordDense : tryPlaceWord)(grid, word.toUpperCase(), gridSize, wordPositions);
+    if (placed) {
       placedWords.push(word);
     }
   }
 
-  // ── Mystery Word (bonusWordMode only) ────────────────────────────────────────
-  // Algorithm (CR-05 + CR-06):
-  //   1. Fill ALL remaining empty cells with category-restricted filler words.
-  //      Each filler word must contribute at least one new cell (no pure overlaps).
-  //   2. After filling, every remaining empty cell becomes an amber mystery cell.
-  //   3. Find a mystery word whose length EXACTLY matches the number of remaining
-  //      empty cells — guaranteeing 100% grid coverage with no random filler letters.
-  //   4. Write the mystery word letters into those cells (reading order).
+  // ── Mystery Word (bonusWordMode only; S49, S50, CR-139) ──────────────────────
+  // The word and its cells were chosen before placement (see above). Here:
+  //   1. If a listed word could not be placed, replace it from the same category
+  //      pool, under the same length rule, up to the level's word count (S50).
+  //   2. Write the mystery word into its reserved cells.
+  // Every other empty cell gets a random letter below, as in Standard mode. The
+  // gold cells (bonusLetterPositions) mark the mystery word's letters.
   let bonusWord = null;
   let bonusHint = null;
   let bonusLetterPositions = null;
 
-  if (bonusWordMode) {
-    const currentUsed = new Set(placedWords.map(w => w.toUpperCase()));
-
-    // Pre-compute the word lengths available in the current category so the
-    // filler loop can stop as soon as the empty cell count matches one of them.
-    // This prevents the filler from overshooting, which would force findMysteryWord
-    // to fall through to a cross-category word (DEF-17 fix).
-    const _catKey = (category && category !== 'random' && !category.startsWith('tricky_') && wordLists[category])
-      ? category : null;
-    const _mysteryPool = _catKey
-      ? [...(categoryBonusWordPairs[_catKey] || []).map(e => e.word), ...(wordLists[_catKey] || [])]
-      : Object.values(wordLists).flat();
-    const validMysteryLengths = new Set(_mysteryPool.map(w => w.length).filter(l => l >= 2));
-
-    // ── Step 1: Fill empty cells with category filler, stopping when empty
-    //            cell count hits a length available in the category word pool ──
-    const fillerPool = buildFillerWordPool(category, currentUsed);
-    // Never let K drop below the smallest valid mystery word length — we undo any
-    // filler placement that would overshoot below this floor, then try the next word.
-    const minValidLength = validMysteryLengths.size > 0 ? Math.min(...validMysteryLengths) : 2;
-
-    for (const wordRaw of fillerPool) {
-      const currentEmpty = countEmptyCells(grid, gridSize);
-      if (currentEmpty === 0) break;
-      // Stop if we've landed on a count that matches a category mystery word length
-      if (validMysteryLengths.has(currentEmpty)) break;
-
-      const word = wordRaw.toUpperCase();
-      if (currentUsed.has(word)) continue;
-
-      // Snapshot the grid before placement so we can undo if this word overshoots.
-      // Use tryPlaceWord (random placement) — NOT tryPlaceWordDense. Dense placement
-      // maximises overlap, which minimises new cells per word and causes the pool to
-      // exhaust before K drops into the valid mystery-word range on larger grids.
-      // Random placement fills cells evenly and reaches the target far more quickly.
-      const emptyBefore = countEmptyCells(grid, gridSize);
-      const gridSnap = grid.map(row => [...row]);
-
-      if (tryPlaceWord(grid, word, gridSize, wordPositions)) {
-        const emptyAfter = countEmptyCells(grid, gridSize);
-        if (emptyAfter < emptyBefore) {
-          // Word filled new cells — check it didn't overshoot below minValidLength.
-          // Also undo if emptyAfter === 0 (grid fully filled — no cells left for mystery word).
-          if (emptyAfter < minValidLength) {
-            // Undo: restore cells that were empty before and got filled by this word
-            for (let r = 0; r < gridSize; r++)
-              for (let c = 0; c < gridSize; c++)
-                if (gridSnap[r][c] === '' && grid[r][c] !== '') grid[r][c] = '';
-            delete wordPositions[word];
-            continue;
-          }
-          // Placement is safe — commit it
-          placedWords.push(word);
-          currentUsed.add(word);
-          // Stop if the placement landed us on a valid mystery word length
-          if (validMysteryLengths.has(emptyAfter)) break;
-        } else {
-          // Pure overlap — word already existed in grid, grid unchanged
-          delete wordPositions[word];
+  if (bonusWordMode && mystery) {
+    if (placedWords.length < wordCount) {
+      const tried = new Set(selectedWords.map(w => w.toUpperCase()));
+      const spares = fisherYates([...new Set(pickPool.filter(fitsLevel))])
+        .filter(w => !tried.has(w.toUpperCase()));
+      for (const spare of spares) {
+        if (placedWords.length >= wordCount) break;
+        if (tryPlaceWordAvoiding(grid, spare.toUpperCase(), gridSize, wordPositions, protectedKeys)) {
+          placedWords.push(spare);
         }
       }
     }
 
-    // No padding fallback — findMysteryWord (step 5) now covers lengths up to 17
-    // via its universal word list, so whatever K remains after filler, ALL remaining
-    // empty cells become amber mystery-word cells with zero orphaned letters.
-
-    // ── Step 2: Collect ALL remaining empty cells (reading order) ──────────
-    const mysteryPositions = [];
-    for (let r = 0; r < gridSize; r++)
-      for (let c = 0; c < gridSize; c++)
-        if (grid[r][c] === '') mysteryPositions.push({ row: r, col: c });
-
-    const K = mysteryPositions.length;
-
-    // ── Step 3: Find mystery word of exactly length K ───────────────────────
-    if (K >= 2) {
-      // Build the complete set of letters already present in placed words.
-      // Used by findMysteryWord to prefer mystery words that contribute at
-      // least one letter the player hasn't seen in the regular word list.
-      const placedLetters = new Set(
-        placedWords.map(w => w.toUpperCase()).join('').split('')
-      );
-      const mysteryEntry = findMysteryWord(category, currentUsed, K, placedLetters);
-
-      if (mysteryEntry) {
-        bonusWord = mysteryEntry.word.toUpperCase();
-        bonusHint = mysteryEntry.hint;
-        bonusLetterPositions = [];
-
-        // Write mystery word letters into the remaining empty cells
-        for (let i = 0; i < bonusWord.length; i++) {
-          const { row, col } = mysteryPositions[i];
-          grid[row][col] = bonusWord[i];
-          bonusLetterPositions.push({ row, col });
-        }
-      }
-      // If no exact-length word found, fall through to random filler below
+    bonusWord = mystery.word;
+    bonusHint = mystery.hint;
+    bonusLetterPositions = mysteryPositions;
+    for (let i = 0; i < bonusWord.length; i++) {
+      const { row, col } = mysteryPositions[i];
+      grid[row][col] = bonusWord[i];
     }
   }
 
@@ -2142,4 +2065,4 @@ export function getTrickyWordHint(word) {
   return null;
 }
 
-export { wordLists };
+export { wordLists, categoryBonusWordPairs };

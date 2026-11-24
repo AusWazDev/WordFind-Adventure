@@ -620,6 +620,13 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - `android/app/release/app-release.aab`, 111,136,750 bytes, SHA-256 `2eec7c00597233810d049ec095ff218a33c2496d8b8e04808fc65548e7e63886`. Signer certificate identical to vc6's; versionCode 7, versionName 1.2.0, not debuggable, no AD_ID or ADSERVICES permission; web assets identical to a fresh build at `3c87c77`. Details in CR-138.
   - **Next:** the developer uploads it to Google Play closed testing.
 
+### 2026-11-24 (Windows — Mystery Word picks its word first, briefs SF-84 and SF-85)
+
+- **SF-84 (diagnosis, no change):** on the tablet (a sideloaded debug 1.2.0 (6) from 14 Oct), Mystery Word, Food, Easy gave "UNDERSTANDING". The cause was the fill-then-fit design: when the leftover cell count matched no Food word, the code fell back to other categories and then to a fixed list of long words. Across every Mystery Word combination, 20% of games had an off-category mystery word and 10% had none.
+- **CR-139, the fix (decisions S49 "Pick the word first" and S50 "Follow the level rules", developer, 24 Nov 2026).** The mystery word is now chosen first, from the category's own bonus pairs (Random: its own 8), and its cells are reserved before the listed words go in. Easy, Medium and Hard list exactly 6, 10 and 15 words within the level's lengths. Cells not used by a word or the mystery word get random letters, as in Standard. Sweep after the fix: 0 off-category, 0 missing, 0 length or count breaks in 94,000 games. Other modes are byte-identical under the same seeds. Not in Android 7 or iOS 1.2.0; it goes into the next build.
+  - **For the developer:** (1) each category now has 8 possible mystery words (its bonus pairs) where it had about 10; (2) the Mystery Word tile still says "The remaining letters reveal a hidden mystery word", and the same line is in the README, the iPhone test list and the website; (3) the Daily "Sound Check" (Audio, music) lists 6 tricky words that are not music words, by `trickyRatio`, unchanged.
+  - S49 and S50 are not yet rows in the CURRENT DECISIONS block (`C:\dev\docs\current-decisions.md`); the MER session holds that pen.
+
 ## Next Steps (Priority Order)
 
 ### ✅ SoundFind v1.0.0 PUBLISHED on Microsoft Store — 29 April 2026

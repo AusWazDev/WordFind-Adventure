@@ -1,0 +1,146 @@
+// CR-139 (brief SF-85; decisions S49 and S50): Mystery Word picks its word first, in
+// category, always; listed words obey the level's length rule and word count.
+//
+// Sweeps every combination Mystery Word can be played in (the SF-84 denominator):
+// the 14 categories in CategorySelector.jsx at levels 1 to 3 (LevelSelector.jsx caps a
+// specific category at Hard), plus Random at levels 1 to 5. 47 combinations, SEEDS games
+// each, with Math.random replaced by a seeded generator so a failure names a
+// reproducible case. Expectations are built here from the raw data, not from the
+// code under test.
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { generateGame, levelConfig, wordLists, categoryBonusWordPairs } from './gameUtils';
+
+const SEEDS = 40;
+const CATEGORIES = ['animals', 'food', 'nature', 'colors', 'sports', 'space', 'music', 'countries',
+  'science', 'mythology', 'technology', 'ocean', 'history', 'emotions'];
+const COMBOS = [
+  ...CATEGORIES.flatMap(c => [1, 2, 3].map(l => [c, l])),
+  ...[1, 2, 3, 4, 5].map(l => ['random', l]),
+];
+
+const upper = (arr) => arr.map(w => w.toUpperCase());
+// "In category": the category's bonus pairs and word list. Random's pool: the 'random'
+// bonus pairs plus every category's word list.
+function poolFor(category) {
+  if (category === 'random') {
+    return new Set([...upper(categoryBonusWordPairs.random.map(e => e.word)), ...upper(Object.values(wordLists).flat())]);
+  }
+  return new Set([...upper(categoryBonusWordPairs[category].map(e => e.word)), ...upper(wordLists[category])]);
+}
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const games = [];
+// Math.random is swapped directly, not with vi.spyOn: a spy records every call, and
+// the pre-fix generator made enough calls to exhaust the worker's memory.
+const realRandom = Math.random;
+
+beforeAll(() => {
+  try {
+    for (const [category, level] of COMBOS) {
+      for (let seed = 1; seed <= SEEDS; seed++) {
+        Math.random = mulberry32(seed * 1000 + level * 100 + COMBOS.findIndex(c => c[0] === category && c[1] === level));
+        games.push({ category, level, seed, game: generateGame(level, category, false, true) });
+      }
+    }
+  } finally {
+    Math.random = realRandom;
+  }
+});
+
+afterAll(() => { Math.random = realRandom; });
+
+const label = ({ category, level, seed }) => `${category}/${level} seed ${seed}`;
+// Assert on the count and name the first cases, so a failure reads as a number and
+// three reproducible examples.
+const firstFew = (bad) => `${bad.length} cases, first: ${bad.slice(0, 3).join('; ')}`;
+
+describe('Mystery Word (CR-139, S49 and S50)', () => {
+  it('sweeps all 47 combinations', () => {
+    expect(COMBOS).toHaveLength(47);
+    expect(games).toHaveLength(47 * SEEDS);
+  });
+
+  it('always has a mystery word, written into its gold cells in reading order (S49)', () => {
+    const bad = [];
+    for (const g of games) {
+      const { bonusWord, bonusLetterPositions, grid } = g.game;
+      if (!bonusWord) { bad.push(`${label(g)}: no mystery word`); continue; }
+      const spelled = (bonusLetterPositions || []).map(p => grid[p.row][p.col]).join('');
+      if (spelled !== bonusWord) bad.push(`${label(g)}: cells spell ${spelled}, word ${bonusWord}`);
+      const order = (bonusLetterPositions || []).map(p => p.row * g.game.gridSize + p.col);
+      if (order.some((v, i) => i > 0 && v <= order[i - 1])) bad.push(`${label(g)}: cells not in reading order`);
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it('takes the mystery word from the selected category, or the Random pool (S49)', () => {
+    const bad = [];
+    for (const g of games) {
+      const w = g.game.bonusWord;
+      if (w && !poolFor(g.category).has(w)) bad.push(`${label(g)}: ${w} is not in ${g.category}`);
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it('never also lists the mystery word, and never lets a listed word cross a gold cell', () => {
+    const bad = [];
+    for (const g of games) {
+      const { bonusWord, bonusLetterPositions, words, wordPositions } = g.game;
+      if (!bonusWord) continue;
+      if (upper(words).includes(bonusWord)) bad.push(`${label(g)}: ${bonusWord} is also listed`);
+      const gold = new Set((bonusLetterPositions || []).map(p => `${p.row},${p.col}`));
+      for (const w of words) {
+        if ((wordPositions[w.toUpperCase()] || []).some(p => gold.has(`${p.row},${p.col}`))) {
+          bad.push(`${label(g)}: ${w} crosses a gold cell`);
+        }
+      }
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it("gives every listed word a length inside the level's minWordLen and maxWordLen (S50)", () => {
+    const bad = [];
+    for (const g of games) {
+      const { minWordLen, maxWordLen } = levelConfig[g.level];
+      for (const w of g.game.words) {
+        if (w.length < minWordLen || w.length > maxWordLen) bad.push(`${label(g)}: ${w} (${w.length}) outside ${minWordLen} to ${maxWordLen}`);
+      }
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it("lists no more words than the level's configured count, and all are in category (S50)", () => {
+    const bad = [];
+    for (const g of games) {
+      const { wordCount } = levelConfig[g.level];
+      if (g.game.words.length > wordCount) bad.push(`${label(g)}: ${g.game.words.length} words listed, level allows ${wordCount}`);
+      const lists = g.category === 'random' ? new Set(upper(Object.values(wordLists).flat())) : new Set(upper(wordLists[g.category]));
+      for (const w of g.game.words) if (!lists.has(w.toUpperCase())) bad.push(`${label(g)}: listed ${w} is not in ${g.category}`);
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+
+  it('uses the bonus pair hint, or the generic category hint, with no dash', () => {
+    const bad = [];
+    for (const g of games) {
+      const { bonusWord, bonusHint } = g.game;
+      if (!bonusWord) continue;
+      const pairs = categoryBonusWordPairs[g.category] || [];
+      const pair = pairs.find(e => e.word.toUpperCase() === bonusWord);
+      const generic = `A ${bonusWord.length}-letter ${g.category === 'random' ? 'mystery' : g.category} word 🔎`;
+      if (bonusHint !== (pair ? pair.hint : generic)) bad.push(`${label(g)}: hint "${bonusHint}"`);
+      if (/[–—]|--| - /.test(bonusHint || '')) bad.push(`${label(g)}: dash in "${bonusHint}"`);
+    }
+    expect(bad.length, firstFew(bad)).toBe(0);
+  });
+});

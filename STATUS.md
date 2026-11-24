@@ -635,7 +635,8 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
 - **CR-143, the Random Mix blurb (the chat half's copy decision, brief SF-89).** The picker's Random Mix description now reads "A bit of everything!" instead of "Mix of everything!". One copy in `src/`; a new check in `categoryLabelsSF88.test.jsx` guards it. Part A of SF-89 (website facts: iPad, offline, accounts, the Audio Challenge sentence) was read only and changed nothing.
   - **For the chat half:** the Daily's reward toast says "+N hints added to your account!" (`DailyChallenge.jsx:605`), but there are no accounts, and the hint modal says hints "aren't linked to an account". Not changed (SF-89 allowed no other copy).
 - **CR-144, the Daily reward line (brief SF-90, Part B).** It now reads "+N hints added!"; it no longer claims an account. Part A of SF-90 (how audio plays, mute controls, detecting a muted device) was read only.
-  - **For the chat half:** there is no singular form, so the "Emotional Journey" Daily (1 hint) reads "+1 hints added!". Not changed.
+  - **For the chat half:** there is no singular form, so the "Emotional Journey" Daily (1 hint) reads "+1 hints added!". Not changed. *(Resolved by CR-145, SF-91.)*
+- **CR-145, singular hint on the Daily card (brief SF-91).** A 1-hint reward now reads "+1 hint added!"; larger rewards read "+N hints added!". The other "N hints" messages use pack sizes or the streak bonus, none of which can be 1 today; listed in the Register, not changed.
   - **For the developer:** the in-game speaker button in Audio Challenge ("Mute sound") silences only the "Great! You found..." phrases, not the word clips a player taps. Whether word audio plays with the iPhone's Ring/Silent switch on is not settled by the code or by Apple's documentation; it needs the SF-90 device test.
 
 ## Next Steps (Priority Order)

@@ -602,7 +602,7 @@ export default function DailyChallenge() {
               <Gift className="w-5 h-5 text-violet-500" />
               <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">
                 {rewardEarned
-                  ? `+${reward_hints} hints added!`
+                  ? `+${reward_hints} ${reward_hints === 1 ? 'hint' : 'hints'} added!`
                   : "Today's hints were already claimed. Come back tomorrow!"}
               </span>
             </div>

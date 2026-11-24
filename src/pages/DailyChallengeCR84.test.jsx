@@ -105,6 +105,15 @@ describe('S28: the reward is once per day', () => {
     expect(container.textContent).not.toContain('your account');
   });
 
+  // SF-91: a 1-hint reward (the "Emotional Journey" template) reads in the singular.
+  it('a 1-hint reward reads "+1 hint added!"', async () => {
+    await renderPage(T('standard', 2, 90, { reward_hints: 1 }), 3);
+    await findAll();
+    expect(store('wf_progress').hints_remaining).toBe(5 + 1);    // control: the reward was 1
+    expect(container.textContent).toContain('+1 hint added!');
+    expect(container.textContent).not.toContain('+1 hints');
+  });
+
   it('a second completion the same day adds 0 hints and leaves the record and streak unchanged', async () => {
     const first = { completed: true, score: 999, words_found: 3, total_words: 3, time_taken: 40, streak: 3, category: 'animals' };
     localStorage.setItem('wf_daily', JSON.stringify({ '2026-09-29': { completed: true, streak: 2 }, '2026-09-30': first }));

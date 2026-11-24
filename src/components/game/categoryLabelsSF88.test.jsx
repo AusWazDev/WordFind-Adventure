@@ -123,6 +123,15 @@ describe('category labels (CR-142, steps 2 and 4)', () => {
     expect(shown).not.toContain('Random');
   });
 
+  // SF-89: the Random Mix blurb no longer repeats "Mix".
+  it('describes Random Mix as "A bit of everything!"', async () => {
+    await render(<CategorySelector onSelectCategory={() => {}} />);
+    const random = [...container.querySelectorAll('h4')].find(h => h.textContent === 'Random Mix');
+    const blurb = random.closest('button').querySelector('p').textContent;
+    expect(blurb).toBe('A bit of everything!');
+    expect(container.textContent).not.toContain('Mix of everything!');
+  });
+
   it('passes the id, not the label, when a category is picked', async () => {
     const picked = [];
     await render(<CategorySelector onSelectCategory={id => picked.push(id)} />);

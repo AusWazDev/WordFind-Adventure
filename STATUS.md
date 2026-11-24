@@ -632,6 +632,8 @@ All fixes committed `ad8460a`, version bumped to 1.0.2 (`65d652a`), pushed to Gi
   - **For the developer and the chat half:** the clue says "A 8-letter" and "A 11-letter" (20.3% of generic clues, measured), not "An"; the label "Colors" is itself US spelling; the Stats page's category chart shows raw ids ("colors", "countries", "random"). None changed here. [All three fixed by CR-142, same day.]
 - **CR-142, copy fixes (the chat half's decisions, brief SF-88; display text only).** The clue now says "An 8-letter" and "An 11-letter" where the number is said with a vowel. The category reads "Colours" (its stored id stays `colors`), and the Daily "Color Coded" is now "Colour Coded". The Stats chart names categories as players see them, so a Daily played under `colors` before this shows as "Colours". Random is "Random Mix" in the picker, the game header and Stats. No stored value or key changed.
   - **Listed, not changed:** US spellings inside the word lists (GRAY, SYNTHESIZER, PROGRAM, HARBOR, CIVILIZATION, COLONIZATION), and the tricky categories' deliberate UK and US pairs.
+- **CR-143, the Random Mix blurb (the chat half's copy decision, brief SF-89).** The picker's Random Mix description now reads "A bit of everything!" instead of "Mix of everything!". One copy in `src/`; a new check in `categoryLabelsSF88.test.jsx` guards it. Part A of SF-89 (website facts: iPad, offline, accounts, the Audio Challenge sentence) was read only and changed nothing.
+  - **For the chat half:** the Daily's reward toast says "+N hints added to your account!" (`DailyChallenge.jsx:605`), but there are no accounts, and the hint modal says hints "aren't linked to an account". Not changed (SF-89 allowed no other copy).
 
 ## Next Steps (Priority Order)
 

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 // `name` is display only and must match CATEGORY_LABELS in src/lib/constants.js
 // (categoryLabelsSF88.test.jsx checks it); `id` is what is selected and stored (CR-142).
 const categories = [
-  { id: 'random',     name: 'Random Mix',   description: 'Mix of everything!',      icon: Sparkles,     gradient: 'from-violet-500 to-indigo-600', bgGradient: 'from-violet-50 to-indigo-50' },
+  { id: 'random',     name: 'Random Mix',   description: 'A bit of everything!',    icon: Sparkles,     gradient: 'from-violet-500 to-indigo-600', bgGradient: 'from-violet-50 to-indigo-50' },
   { id: 'animals',   name: 'Animals',      description: 'Wildlife & creatures',     icon: Sparkles,     gradient: 'from-orange-500 to-red-600',    bgGradient: 'from-orange-50 to-red-50' },
   { id: 'food',      name: 'Food',         description: 'Delicious treats',         icon: Apple,        gradient: 'from-pink-500 to-rose-600',     bgGradient: 'from-pink-50 to-rose-50' },
   { id: 'nature',    name: 'Nature',       description: 'Natural wonders',          icon: TreePine,     gradient: 'from-green-500 to-emerald-600', bgGradient: 'from-green-50 to-emerald-50' },
